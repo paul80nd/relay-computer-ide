@@ -13,6 +13,9 @@ interface MonarchLanguageConfiguration extends monaco.languages.IMonarchLanguage
 interface MonarchLanguageCompletionItemProvider extends monaco.languages.CompletionItemProvider {
   completionMnemonics: any;
 }
+interface MonarchLanguageSignatureHelpProvider extends monaco.languages.SignatureHelpProvider {
+  signatures: any;
+}
 
 export function onMonacoLoad() {
 
@@ -68,6 +71,55 @@ export function onMonacoLoad() {
       return { suggestions:  this.completionMnemonics };
     }
   } as MonarchLanguageCompletionItemProvider);
+
+  monaco.languages.registerSignatureHelpProvider('rcasm', {
+    signatureHelpTriggerCharacters: [' '],
+   signatures: {
+     'add': [{label: 'add dest', documentation: 'Arithmetic add (dest = b + c)',
+       parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],
+     'and': [{label: 'and dest', documentation: 'Binary AND (dest = b & c)',
+       parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                          
+     'clr': [{label: 'clr dest', documentation: 'Clear (dest = 0)',
+       parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                          
+     'inc': [{label: 'inc dest', documentation: 'Arithmetic increment (dest = b + 1)',
+       parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                           
+     'ldi': [{label: 'ldi dest,value', documentation: 'Load immediate value in to dest register',
+       parameters: [{label: 'dest', documentation: 'Destination register (a|b)'},
+               {label: 'value', documentation: '5-bit sign extended value (-16 to 15)'}]}],
+     'mov': [{label: 'mov dest,src', documentation: 'Copy 8-bit value from src to dest register',
+       parameters: [{label: 'dest', documentation: 'Destination register (a|b|c|d)'},
+               {label: 'src', documentation: 'Source register (a|b|c|d)'}]}],
+     'not': [{label: 'not dest', documentation: 'Binary NOT (dest = ~b)',
+       parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                           
+     'orr': [{label: 'orr dest', documentation: 'Binary OR (dest = b | c)',
+       parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                           
+     'eor': [{label: 'eor dest', documentation: 'Binary exclusive OR (dest = b ^ c)',
+       parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                           
+     'rol': [{label: 'rol dest', documentation: 'Bitwise circular shift left (dest = <<b)',
+       parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                           
+   },
+    provideSignatureHelp: function(model, position, token) : monaco.languages.ProviderResult<monaco.languages.SignatureHelpResult> {
+     // Signature help only following mnemonic
+     if (position.column < 5) return null;
+     var textUntilPosition = model.getValueInRange({startLineNumber: position.lineNumber, startColumn: 1, endLineNumber: position.lineNumber, endColumn: position.column});
+     var match = textUntilPosition.match(/^([a-z]{3}) (?:([a-z0-9]*)(,([a-z0-9]*))?)?$/i)
+     if (match && match[1]) {
+       // Get signature
+       let mnemonic = match[1].toLowerCase();
+       let signatures = this.signatures[mnemonic];
+       let atParam = match[3] ? 1 : 0;
+       // Filter signatures
+       return {
+         value: {
+          activeParameter: atParam,
+          activeSignature: 0,
+          signatures: signatures.filter(function(s) { return s.parameters.length > atParam })
+         }
+       } as monaco.languages.SignatureHelpResult
+     }
+     return null;
+    }  
+ } as MonarchLanguageSignatureHelpProvider);
 
   monaco.languages.registerHoverProvider('rcasm', {
     provideHover: function(model, position, token) : monaco.languages.ProviderResult<monaco.languages.Hover> {         
