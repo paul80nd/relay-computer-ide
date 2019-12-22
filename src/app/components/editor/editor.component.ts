@@ -5,7 +5,7 @@ import { Component } from '@angular/core';
   templateUrl: './editor.component.html'
 })
 export class EditorComponent {
-  editorOptions = {language: 'rcasm', lineNumbers: 'off'};
+  editorOptions = {language: 'rcasm', lineNumbers: 'off', fontSize: 14, minimap: {enabled: false}};
   code: string = ['; Demo program using MOVE8, SETAB and ALU instructions',
   '; Evaluates ((2 + 4 + 1) x 3) - 3',
   '',
