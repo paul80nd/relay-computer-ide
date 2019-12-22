@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-    selector: 'rc-documentation',
+    selector: 'ride-documentation',
     templateUrl: './docs.component.html'
 })
 

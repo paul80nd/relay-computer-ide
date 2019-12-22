@@ -5,8 +5,9 @@ import { Component } from '@angular/core';
   templateUrl: './editor.component.html'
 })
 export class EditorComponent {
-  editorOptions = {language: 'rcasm', lineNumbers: 'off', fontSize: 14, minimap: {enabled: false}};
+  editorOptions = {language: 'rcasm', lineNumbers: 'off', fontSize: 14, renderLineHighlight: 'none', minimap: {enabled: false}};
   code: string = [
+    '',
     ';*****************************************************',             
     '; Demo program to calculate Fibonacci series',
     '; Result is placed in A register on each loop',

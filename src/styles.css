@@ -1,9 +1,6 @@
 body {
-    background-color: darkslategrey;
     overflow: hidden;
 }
-
-.content-area { padding: 0 0.5rem !important; }
 
 svg text {
     -webkit-user-select: none;
