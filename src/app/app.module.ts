@@ -7,6 +7,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppComponent } from './app.component';
 
 import { DocumentationModule } from './components/docs/docs.module';
+import { EditorModule } from './components/editor/editor.module';
 
 import { ClarityModule } from '@clr/angular';
 
@@ -18,6 +19,7 @@ import { ClarityModule } from '@clr/angular';
     BrowserModule,
     BrowserAnimationsModule,
     ClarityModule,
+    EditorModule,
     FormsModule,
     HttpClientModule,
     BrowserModule,
