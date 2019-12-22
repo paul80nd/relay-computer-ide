@@ -68,7 +68,51 @@ export function onMonacoLoad() {
       return { suggestions:  this.completionMnemonics };
     }
   } as MonarchLanguageCompletionItemProvider);
+
+  monaco.languages.registerHoverProvider('rcasm', {
+    provideHover: function(model, position, token) : monaco.languages.ProviderResult<monaco.languages.Hover> {         
+      var line = model.getLineContent(position.lineNumber);
+      var match = line.match(/^([a-z]{3})(?: ([a-d])(?:,([a-d]|[01]+b|0x[0-9a-f]+|-?[0-9]+))?)?/i) 
+      if (match) {
+        if(match[1]) {            
+          var contents : monaco.IMarkdownString[];
+          switch (match[1].toLowerCase()) {
+            case 'add':
+              contents = [{ value: '**ALU Add (b+c)**'}, { value: 'Adds the values in register b and c, placing the result in register '+(match[2] ? match[2]:'a')}]; break;                       
+            case 'and':
+              contents = [{ value:'**ALU Binary And (b&c)**'}, { value:'Performs a binary AND on the values in register b and c, placing the result in register '+(match[2] ? match[2]:'a')}]; break;                       
+            case 'clr':
+              contents = [{ value:'**ALU Clear**'}, { value:'Performs a ALU clear by placing the result of a no-op in register '+(match[2] ? match[2]:'a')}]; break;                       
+            case 'inc':
+              contents = [{ value:'**ALU Increment (b+1)**'}, { value:'Increments the value in register b, placing the result in register '+(match[2] ? match[2]:'a')}]; break;                       
+            case 'ldi':
+              if (!match[2] || !match[3]) { return null; }
+              contents = [{ value:'**Load Immediate**'},{ value:'Loads a value of '+match[3]+' in to register '+match[2]}]; break;
+            case 'mov':
+              if (!match[2] || !match[3]) { return null; }
+              contents = [{ value:'**8-bit Move**'}, { value:'Copies the value in register '+match[3]+' to register '+match[2]}]; break;
+            case 'not':
+              contents = [{ value:'**ALU Binary Not (~b)**'}, { value:'Performs a binary NOT on the value in register b, placing the result in register '+(match[2] ? match[2]:'a')}]; break;                       
+            case 'orr':
+              contents = [{ value:'**ALU Binary Or (b|c)**'}, { value:'Performs a binary OR on the values in register b and c, placing the result in register '+(match[2] ? match[2]:'a')}]; break;                       
+            case 'eor':
+              contents = [{ value:'**ALU Binary Exclusive Or (b^c)**'}, { value:'Performs a binary exclusive or on the values in register b and c, placing the result in register '+(match[2] ? match[2]:'a')}]; break;                       
+            case 'rol':
+              contents = [{ value:'**ALU Bitwise Circular Shift Left (<<b)**'}, { value:'Performs a bitwise circular shift left on the value in register b, placing the result in register '+(match[2] ? match[2]:'a')}]; break;                       
+            default:
+              return null;
+          }
+          return {
+            range: new monaco.Range(position.lineNumber, 1, position.lineNumber, match[0].length+1),
+            contents: contents
+          } as monaco.languages.Hover
+        }
+      }
+      return null;
+    }
+  });
 }
+ 
 
 const monacoConfig: NgxMonacoEditorConfig = {
   defaultOptions: { scrollBeyondLastLine: false },
