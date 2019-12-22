@@ -1,10 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'ride-editor',
   templateUrl: './editor.component.html'
 })
 export class EditorComponent {
+
+    editor: monaco.editor.ICodeEditor;
+
   editorOptions = {language: 'rcasm', lineNumbers: 'off', fontSize: 14, renderLineHighlight: 'none', minimap: {enabled: false}};
   code: string = [
     '',
@@ -25,4 +28,31 @@ export class EditorComponent {
     '        bnz loop    ; Loop until zero',
     '',
     'end:    jmp end     ; infinite loop'].join('\n');
+
+    onInit(editor: monaco.editor.ICodeEditor) {
+        this.editor = editor;
+      }
+
+    setErrors(errors: ILineError[]) {
+
+        var markers = errors.map(le => ({ 
+            startLineNumber: le.line,
+            startColumn: 1,
+            endLineNumber: le.line,
+            endColumn: 1000,
+            message: le.error,
+            severity: monaco.MarkerSeverity.Error}));
+
+        monaco.editor.setModelMarkers(this.editor.getModel(), 'test', markers)
+    }
+
+    clearErrors() {
+        monaco.editor.setModelMarkers(this.editor.getModel(), 'test', [])
+    }
+    
+}
+
+export interface ILineError {
+    line: number;
+    error: string;
 }

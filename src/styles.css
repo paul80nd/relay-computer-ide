@@ -2,6 +2,12 @@ body {
     overflow: hidden;
 }
 
+.badLine {
+	background: red;
+	width: 5px !important;
+	margin-left: 3px;
+}
+
 svg text {
     -webkit-user-select: none;
     -moz-user-select: none;
