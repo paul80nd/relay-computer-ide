@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "relay-computer": {
+    "relay-computer-ide": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -68,26 +68,25 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "relay-computer:build"
+            "browserTarget": "relay-computer-ide:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "relay-computer:build:production"
+              "browserTarget": "relay-computer-ide:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "relay-computer:build"
+            "browserTarget": "relay-computer-ide:build"
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
             "tsConfig": [
-              "tsconfig.app.json",
-              "tsconfig.spec.json"
+              "tsconfig.app.json"
             ],
             "exclude": [
               "**/node_modules/**"
@@ -96,5 +95,5 @@
         }
       }
     }},
-  "defaultProject": "relay-computer"
+  "defaultProject": "relay-computer-ide"
 }
