@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+	<title>Relay Computer Code Editor</title>
+</head>
+<body style="height: 100%">
+
+<div id="container" style="width:100%;height:100%;margin:0;"></div>
+
+<script src="monaco-editor/min/vs/loader.js"></script>
+<script>
+	require.config({ paths: { 'vs': 'monaco-editor/min/vs' }});
+	require(['vs/editor/editor.main'], function() {
+
+    	// Register a new language
+        monaco.languages.register({ id: 'rcasm' });
+
+    	monaco.languages.setMonarchTokensProvider('rcasm', {
+			ignoreCase: true,
+			keywords: [
+				'add', 'and', 'clr', 'inc', 'mov', 'not', 'ldi', 'orr', 'eor', 'rol'
+			],
+			types: [
+				'a', 'b', 'c', 'd'
+			],
+			tokenizer: {
+				root: [
+					// Identifiers and keywords
+					[/^[a-z]{3}/, {cases:{'@keywords':'keyword'}}],
+					[/[a-d]/, {cases:{'@types':'type'}}],
+
+					// Whitespace
+					{ include: '@whitespace'},
+
+					// Numbers
+					[/[01]+b/,'number'],
+					[/0[xX][0-9a-fA-F]+/,'number'],
+					[/-?\d+/,'number']
+				],
+				whitespace: [
+					[/[\t\r\n]+/,'white'],
+					[/;.*$/, 'comment'],
+				],
+			},
+		});
+
+		monaco.languages.registerCompletionItemProvider('rcasm', {
+			completionMnemonics:[
+				{ label: 'add', detail: 'ALU', documentation: 'Arithmetic add (b + c) to register a (or to register d if specified).', kind: monaco.languages.CompletionItemKind.Function },                   
+				{ label: 'and', detail: 'ALU', documentation: 'Binary AND (b & c) to register a (or to register d if specified).', kind: monaco.languages.CompletionItemKind.Function },                           
+				{ label: 'clr', detail: 'ALU', documentation: 'Clear register a via an ALU NO-OP (or to register d if specified).', kind: monaco.languages.CompletionItemKind.Function },                           
+				{ label: 'inc', detail: 'ALU', documentation: 'Arithmetic increment (b + 1) to register a (or to register d if specified).', kind: monaco.languages.CompletionItemKind.Function },                   
+				{ label: 'ldi', detail: 'SETAB', documentation: 'Load immediate value to register a or b.', kind: monaco.languages.CompletionItemKind.Function },                      
+				{ label: 'mov', detail: 'MOVE8', documentation: 'Copy 8-bit value from register to register.', kind: monaco.languages.CompletionItemKind.Function },                      
+				{ label: 'not', detail: 'ALU', documentation: 'Binary NOT (~b) to register a (or to register d if specified).', kind: monaco.languages.CompletionItemKind.Function },                           
+				{ label: 'orr', detail: 'ALU', documentation: 'Binary OR (b | c) to register a (or to register d if specified).', kind: monaco.languages.CompletionItemKind.Function },                           
+				{ label: 'eor', detail: 'ALU', documentation: 'Binary exlusive OR (b ^ c) to register a (or to register d if specified).', kind: monaco.languages.CompletionItemKind.Function },   
+				{ label: 'rol', detail: 'ALU', documentation: 'Bitwise circular shift left (<<b) to register a (or to register d if specified).', kind: monaco.languages.CompletionItemKind.Function },   
+			],
+			provideCompletionItems: function(model, position) {
+				// Provide mnemonic completions at start of line only
+				if (position.column !== 2) return [];
+					return this.completionMnemonics;
+			}
+		});
+
+		monaco.languages.registerSignatureHelpProvider('rcasm', {
+ 			signatureHelpTriggerCharacters: [' '],
+			signatures: {
+				'add': [{label: 'add dest', documentation: 'Arithmetic add (dest = b + c)',
+					parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],
+				'and': [{label: 'and dest', documentation: 'Binary AND (dest = b & c)',
+					parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                          
+				'clr': [{label: 'clr dest', documentation: 'Clear (dest = 0)',
+					parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                          
+				'inc': [{label: 'inc dest', documentation: 'Arithmetic increment (dest = b + 1)',
+					parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                           
+				'ldi': [{label: 'ldi dest,value', documentation: 'Load immediate value in to dest register',
+					parameters: [{label: 'dest', documentation: 'Destination register (a|b)'},
+									{label: 'value', documentation: '5-bit sign extended value (-16 to 15)'}]}],
+				'mov': [{label: 'mov dest,src', documentation: 'Copy 8-bit value from src to dest register',
+					parameters: [{label: 'dest', documentation: 'Destination register (a|b|c|d)'},
+									{label: 'src', documentation: 'Source register (a|b|c|d)'}]}],
+				'not': [{label: 'not dest', documentation: 'Binary NOT (dest = ~b)',
+					parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                           
+				'orr': [{label: 'orr dest', documentation: 'Binary OR (dest = b | c)',
+					parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                           
+				'eor': [{label: 'eor dest', documentation: 'Binary exclusive OR (dest = b ^ c)',
+					parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                           
+				'rol': [{label: 'rol dest', documentation: 'Bitwise circular shift left (dest = <<b)',
+					parameters: [{label: 'dest', documentation: 'Destination register (a|d)'}]}],                           
+			},
+ 			provideSignatureHelp: function(model, position, token) {
+				// Signature help only following mnemonic
+				if (position.column < 5) return null;
+				var textUntilPosition = model.getValueInRange({startLineNumber: position.lineNumber, startColumn: 1, endLineNumber: position.lineNumber, endColumn: position.column});
+				var match = textUntilPosition.match(/^([a-z]{3}) (?:([a-z0-9]*)(,([a-z0-9]*))?)?$/i)
+				if (match && match[1]) {
+					// Get signature
+					let mnemonic = match[1].toLowerCase();
+					let signatures = this.signatures[mnemonic];
+					let atParam = match[3] ? 1 : 0;
+					// Filter signatures
+					return {
+						activeParameter: atParam,
+						activeSignature: 0,
+						signatures: signatures.filter(function(s) { return s.parameters.length > atParam }),
+					}
+				}
+				return null;
+ 			}  
+		});
+
+		monaco.languages.registerHoverProvider('rcasm', {
+			provideHover: function(model, position) {         
+				var line = model.getLineContent(position.lineNumber);
+				var match = line.match(/^([a-z]{3})(?: ([a-d])(?:,([a-d]|[01]+b|0x[0-9a-f]+|-?[0-9]+))?)?/i) 
+				if (match) {
+					if(match[1]) {  
+						var contents;
+						switch (match[1].toLowerCase()) {
+							case 'add':
+								contents = ['**ALU Add (b+c)**', 'Adds the values in register b and c, placing the result in register '+(match[2] ? match[2]:'a')]; break;                       
+							case 'and':
+								contents = ['**ALU Binary And (b&c)**', 'Performs a binary AND on the values in register b and c, placing the result in register '+(match[2] ? match[2]:'a')]; break;                       
+							case 'clr':
+								contents = ['**ALU Clear**', 'Performs a ALU clear by placing the result of a no-op in register '+(match[2] ? match[2]:'a')]; break;                       
+							case 'inc':
+								contents = ['**ALU Increment (b+1)**', 'Increments the value in register b, placing the result in register '+(match[2] ? match[2]:'a')]; break;                       
+							case 'ldi':
+								if (!match[2] || !match[3]) { return []; }
+								contents = ['**Load Immediate**','Loads a value of '+match[3]+' in to register '+match[2]]; break;
+							case 'mov':
+								if (!match[2] || !match[3]) { return []; }
+								contents = ['**8-bit Move**', 'Copies the value in register '+match[3]+' to register '+match[2]]; break;
+							case 'not':
+								contents = ['**ALU Binary Not (~b)**', 'Performs a binary NOT on the value in register b, placing the result in register '+(match[2] ? match[2]:'a')]; break;                       
+							case 'orr':
+								contents = ['**ALU Binary Or (b|c)**', 'Performs a binary OR on the values in register b and c, placing the result in register '+(match[2] ? match[2]:'a')]; break;                       
+							case 'eor':
+								contents = ['**ALU Binary Exclusive Or (b^c)**', 'Performs a binary exclusive or on the values in register b and c, placing the result in register '+(match[2] ? match[2]:'a')]; break;                       
+							case 'rol':
+								contents = ['**ALU Bitwise Circular Shift Left (<<b)**', 'Performs a bitwise circular shift left on the value in register b, placing the result in register '+(match[2] ? match[2]:'a')]; break;                       
+							default:
+								return [];
+						}
+						return {
+							range: new monaco.Range(position.lineNumber, 1, position.lineNumber, match[0].length+1),
+							contents: contents
+						}
+					}
+				}
+				return [];
+			}
+		});
+
+		var editor = monaco.editor.create(document.getElementById('container'), {
+			value: [
+                '; Demo program using MOVE8, SETAB and ALU instructions',
+                '; Evaluates ((2 + 4 + 1) x 3) - 3',
+                '',
+                'ldi b,2		; 2 + 4 = 6',
+		        'ldi a,4',
+		        'mov c,a',
+		        'add',
+                '',
+		        'mov b,a		; 6 + 1 = 7',
+		        'inc',
+                '',
+		        'mov b,a		; 7 * 3 = 21',
+		        'mov c,a',
+		        'add',			
+		        'mov b,a',
+		        'add',
+                '',
+		        'ldi b,3		; Negate 3',
+		        'not d',
+		        'mov b,d',					
+		        'inc d',
+		        'mov b,a		; 21 - 3 = 18',
+		        'mov c,d',
+		        'add'
+			].join('\n'),
+			language: 'rcasm',
+            lineNumbers: 'off'
+		});
+	});
+</script>
+</body>
+</html>
