@@ -15,9 +15,9 @@ interface MonarchLanguageCompletionItemProvider extends monaco.languages.Complet
 
 export function onMonacoLoad() {
 
-  monaco.languages.register({ id: 'rcasm' });
+  monaco.languages.register({ id: 'xrcasm' });
 
-  monaco.languages.setMonarchTokensProvider('rcasm', {
+  monaco.languages.setMonarchTokensProvider('xrcasm', {
     ignoreCase: true,
     keywords: [
       'add', 'and', 'bnz', 'clr', 'inc', 'jmp', 'mov', 'not', 'ldi', 'orr', 'eor', 'rol'
@@ -47,7 +47,7 @@ export function onMonacoLoad() {
     },
   } as MonarchLanguageConfiguration);
 
-  monaco.languages.registerCompletionItemProvider('rcasm', {
+  monaco.languages.registerCompletionItemProvider('xrcasm', {
     completionMnemonics: [
       { label: 'add', detail: 'Arithmetic Add [ALU]', insertText: 'add', kind: monaco.languages.CompletionItemKind.Function },
       { label: 'and', detail: 'Logic And [ALU]', insertText: 'and', kind: monaco.languages.CompletionItemKind.Function },
@@ -74,7 +74,7 @@ export function onMonacoLoad() {
     }
   } as MonarchLanguageCompletionItemProvider);
 
-  monaco.languages.registerHoverProvider('rcasm', {
+  monaco.languages.registerHoverProvider('xrcasm', {
     provideHover(model, position, token): monaco.languages.ProviderResult<monaco.languages.Hover> {
       const line = model.getLineContent(position.lineNumber);
       let contents: monaco.IMarkdownString[] = null;

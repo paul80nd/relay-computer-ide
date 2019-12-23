@@ -12,7 +12,7 @@ export class AppComponent  {
     editor.clearErrors();
 
     // Phase 1: Lex
-    var lexList = editor.code.split('\n').map((v, i) => this.stringToLex(v,i));
+    var lexList = editor.getCode().split('\n').map((v, i) => this.stringToLex(v,i));
     var lexErrors = lexList.filter(l => l.error);
     if (lexErrors.length) {
       var errors : ILineError[] = lexErrors.map(le => ({ line: le.line, error: le.error }));
