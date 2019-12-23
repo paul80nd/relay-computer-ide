@@ -2,6 +2,8 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import {FormsModule} from '@angular/forms';
 
+import * as rcasm from '../../monaco-rcasm/monaco.contribution';
+
 import { EditorComponent } from './editor.component';
 
 import { MonacoEditorModule, NgxMonacoEditorConfig } from 'ngx-monaco-editor';
@@ -14,6 +16,8 @@ interface MonarchLanguageCompletionItemProvider extends monaco.languages.Complet
 }
 
 export function onMonacoLoad() {
+
+  rcasm.registerLanguage();
 
   monaco.languages.register({ id: 'xrcasm' });
 

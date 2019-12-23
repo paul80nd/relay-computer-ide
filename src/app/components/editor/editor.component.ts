@@ -8,7 +8,7 @@ export class EditorComponent {
 
     editor: monaco.editor.ICodeEditor;
 
-  editorOptions = {language: 'xrcasm', lineNumbers: 'off', fontSize: 14, renderLineHighlight: 'none', minimap: {enabled: false}};
+  editorOptions = {language: 'rcasm', lineNumbers: 'off', fontSize: 14, renderLineHighlight: 'none', minimap: {enabled: false}};
   
     onInit(editor: monaco.editor.ICodeEditor) {
         this.editor = editor;
