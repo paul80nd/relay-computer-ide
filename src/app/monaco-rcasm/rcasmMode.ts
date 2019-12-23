@@ -25,6 +25,7 @@ export function setupRcasm(defaults: LanguageServiceDefaultsImpl): IDisposable {
 
 		disposeAll(providers);
 
+		providers.push(monaco.languages.registerColorProvider(languageId, new languageFeatures.DocumentColorAdapter(worker)));
 	}
 
 	registerProviders();
