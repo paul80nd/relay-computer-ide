@@ -1,5 +1,6 @@
 'use strict';
 
+import { LanguageServiceDefaultsImpl } from './monaco.contribution';
 import { RcasmWorker } from './rcasmWorker';
 
 import IDisposable = monaco.IDisposable;
@@ -9,13 +10,15 @@ const STOP_WHEN_IDLE_FOR = 2 * 60 * 1000; // 2min
 
 export class WorkerManager {
 
+    private _defaults: LanguageServiceDefaultsImpl;
     private _idleCheckInterval: number;
     private _lastUsedTime: number;
     
     private _worker: monaco.editor.MonacoWebWorker<RcasmWorker>;
     private _client: Promise<RcasmWorker>;
 
-	constructor() {
+	constructor(defaults: LanguageServiceDefaultsImpl) {
+        this._defaults = defaults;
 		this._worker = null;
 		this._idleCheckInterval = window.setInterval(() => this._checkIfIdle(), 30 * 1000);
 		this._lastUsedTime = 0;
@@ -53,11 +56,11 @@ export class WorkerManager {
 				// module that exports the create() method and returns a `RcasmWorker` instance
 				moduleId: 'vs/language/rcasm/rcasmWorker',
 
-				label: 'rcasm',
+				label: this._defaults.languageId,
 
 				// passed in to the create() method
 				createData: {
-					languageId: 'rcasm'
+					languageId: this._defaults.languageId
 				}
 			});
 
