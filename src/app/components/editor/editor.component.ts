@@ -40,7 +40,7 @@ export class EditorComponent {
             '        mov b,a',
             '        add',
             '',
-            '        bnz loop    ; Loop until zero',
+            '        bne loop    ; Loop until zero',
             '',
             'end:    jmp end     ; infinite loop'].join('\n');
     }
