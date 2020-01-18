@@ -30,19 +30,19 @@ export class EditorComponent {
             '; Demo program to calculate Fibonacci series',
             '; Result is placed in A register on each loop',
             '; until calculation overflows. Result is:',
-            '; 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233',
+            '; 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233',
             ';*****************************************************',
             '',
-            'start:  ldi a,1     ; Inital setup A = B = 1',
-            '        mov b,a',
+            'start:  ldi a,1     ; inital setup A = 1',
+            '        ldi b,0     ;              B = 0',
             '',
-            'loop:   mov c,b     ; Calculate C = B, B = A then add',
-            '        mov b,a',
-            '        add',
+            'loop:   mov c,b     ; slide B -> C',
+            '        mov b,a     ;       A -> B',
+            '        add         ; and add together',
             '',
-            '        bne loop    ; Loop until zero',
+            'done:   bcs done    ; infinite loop if overflowed',
             '',
-            'end:    jmp end     ; infinite loop'].join('\n');
+            '        jmp loop    ; otherwise have another go'].join('\n');
     }
 
 getCode() : string {
