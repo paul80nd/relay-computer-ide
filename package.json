@@ -34,7 +34,7 @@
     "@angular-devkit/build-angular": "~0.1000.0",
     "@angular/cli": "^9.1.9",
     "@angular/compiler-cli": "~9.1.11",
-    "@paul80nd/monaco-editor": "^0.19.6",
+    "@paul80nd/monaco-editor": "^0.20.1",
     "@types/node": "^12.11.1",
     "codelyzer": "^5.1.2",
     "ts-node": "~7.0.0",
