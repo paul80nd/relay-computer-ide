@@ -1,0 +1,7 @@
+/*!-----------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * monaco-languages version: 1.10.0(f56fd8146eb6d90f54493f212df82f891b3cc8b3)
+ * Released under the MIT license
+ * https://github.com/Microsoft/monaco-languages/blob/master/LICENSE.md
+ *-----------------------------------------------------------------------------*/
+define("vs/basic-languages/rcasm/rcasm",["require","exports"],(function(e,r){"use strict";Object.defineProperty(r,"__esModule",{value:!0}),r.conf={comments:{lineComment:";"}},r.language={defaultToken:"",ignoreCase:!1,tokenPostfix:".rcasm",keywords:["add","inc","ixy","and","orr","eor","not","rol","cmp","mov","clr","ldi","lds","ldr","str","hlt","hlr","opc","jmp","jsr","rts","bne","beq","bcs","bmi","blt","ble"],registers:["a","b","c","d","j","j1","j2","m","m1","m2","x","y","xy"],symbols:/[\.,\:]+/,tokenizer:{root:[[/[.a-zA-Z_]\w*/,{cases:{this:"variable.predefined","@keywords":{token:"keyword.$0"},"@registers":"type.register","@default":""}}],[/[ \t\r\n]+/,""],[/;.*$/,"comment"],[/@symbols/,"delimiter"],[/0[xX][0-9a-fA-F]+/,"number.hex"],[/0[bB][0-1]+/,"number.binary"],[/[+-]?\d+/,"number"]]}}}));
