@@ -24,8 +24,8 @@
             "aot": true,
             "assets": [
               "src/favicon.ico",
-              { "glob": "**/*", "input": "node_modules/@paul80nd/monaco-editor/min", "output": "./assets/monaco/" },
-              { "glob": "**/*", "input": "node_modules/@paul80nd/monaco-editor/min-maps", "output": "./assets/min-maps/" }
+              { "glob": "**/*", "input": "node_modules/@paul80nd/monaco-editor/min", "output": "./assets/monaco-editor/min/" },
+              { "glob": "**/*", "input": "node_modules/@paul80nd/monaco-editor/min-maps", "output": "./assets/monaco-editor/min-maps/" }
             ],
             "styles": [
               "src/styles.css",
