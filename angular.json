@@ -1,5 +1,8 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "cli": {
+    "analytics": "c35bdf4d-db52-4024-a1a6-9241bc8376d6"
+  },
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
@@ -21,7 +24,8 @@
             "aot": true,
             "assets": [
               "src/favicon.ico",
-              { "glob": "**/*", "input": "node_modules/@paul80nd/monaco-editor/min", "output": "./assets/monaco/" }
+              { "glob": "**/*", "input": "node_modules/@paul80nd/monaco-editor/min", "output": "./assets/monaco/" },
+              { "glob": "**/*", "input": "node_modules/@paul80nd/monaco-editor/min-maps", "output": "./assets/min-maps/" }
             ],
             "styles": [
               "src/styles.css",
