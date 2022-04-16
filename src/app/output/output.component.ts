@@ -1,10 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'ride-output',
   templateUrl: './output.component.html'
 })
 export class OutputComponent {
+
+  @Input()
+  set dasm(val: string) {
+    this.editor?.getModel()?.setValue(val);
+  }
 
   editor: monaco.editor.ICodeEditor | null = null;
 
@@ -21,19 +26,6 @@ export class OutputComponent {
 
   onInit(editor: monaco.editor.ICodeEditor) {
     this.editor = editor;
-    const code = this.getDefaultCode();
-    editor.getModel()?.setValue(code);
-  }
-
-  getDefaultCode(): string {
-    return [
-      '0000: 41           ldi a,1',
-      '0001: 60           ldi b,0',
-      '0002: 11           mov c,b',
-      '0003: 08           mov b,a',
-      '0004: 81           add',
-      '0005: E8 00 05     bcs',
-      '0008: E6 00 02     jmp'].join('\n');
   }
 
 }

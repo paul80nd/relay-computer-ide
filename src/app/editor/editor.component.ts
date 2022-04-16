@@ -21,8 +21,6 @@ export class EditorComponent {
 
   onInit(editor: monaco.editor.ICodeEditor) {
     this.editor = editor;
-    const code = localStorage.getItem("code") || this.getDefaultCode();
-    editor.getModel()?.setValue(code);
 
     editor.onDidChangeModelContent(() => {
       const code = editor.getModel()?.getValue()
@@ -32,6 +30,8 @@ export class EditorComponent {
       }
     });
 
+    const code = localStorage.getItem("code") || this.getDefaultCode();
+    editor.getModel()?.setValue(code);
   }
 
   getDefaultCode(): string {
