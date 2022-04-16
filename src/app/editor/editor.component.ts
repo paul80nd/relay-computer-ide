@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-// import { Component, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'ride-editor',
@@ -13,16 +12,15 @@ export class EditorComponent {
     language: 'rcasm',
     lineNumbers: 'off',
     fontSize: 14,
-    renderLineHighlight: 'none'
+    renderLineHighlight: 'none',
+    theme: (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'vs-dark' : 'vs-light'
     // minimap: { enabled: false }
   };
 
   onInit(editor: monaco.editor.ICodeEditor) {
     this.editor = editor;
-
     const code = localStorage.getItem("code") || this.getDefaultCode();
     editor.getModel()?.setValue(code);
-
 
     editor.onDidChangeModelContent(() => {
       const code = editor.getModel()?.getValue()
@@ -60,28 +58,4 @@ export class EditorComponent {
     this.editor?.getModel()?.setValue(this.getDefaultCode());
   }
 
-  //     setErrors(errors: ILineError[]) {
-
-  //         var markers = errors.map(le => ({
-  //             startLineNumber: le.line,
-  //             startColumn: 1,
-  //             endLineNumber: le.line,
-  //             endColumn: 1000,
-  //             message: le.error,
-  //             severity: monaco.MarkerSeverity.Error
-  //         }));
-
-  //         monaco.editor.setModelMarkers(this.editor.getModel(), 'test', markers)
-  //     }
-
-  //     clearErrors() {
-  //         monaco.editor.setModelMarkers(this.editor.getModel(), 'test', [])
-  //     }
 }
-
-
-
-// export interface ILineError {
-//     line: number;
-//     error: string;
-// }
