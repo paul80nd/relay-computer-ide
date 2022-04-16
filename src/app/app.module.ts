@@ -6,6 +6,7 @@ import { AppComponent } from './app.component';
 
 import { ClarityModule } from '@clr/angular';
 import { EditorModule } from './editor/editor.module';
+import { OutputModule } from './output/output.module';
 
 @NgModule({
   declarations: [
@@ -15,7 +16,8 @@ import { EditorModule } from './editor/editor.module';
     BrowserModule,
     BrowserAnimationsModule,
     ClarityModule,
-    EditorModule],
+    EditorModule,
+    OutputModule],
   providers: [],
   bootstrap: [AppComponent]
 })

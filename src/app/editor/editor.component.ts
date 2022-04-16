@@ -1,19 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component,  EventEmitter, Output  } from '@angular/core';
 
 @Component({
   selector: 'ride-editor',
   templateUrl: './editor.component.html'
 })
 export class EditorComponent {
+  @Output() codeChanged = new EventEmitter<string>();
 
   editor: monaco.editor.ICodeEditor | null = null;
 
   editorOptions = <monaco.editor.IStandaloneEditorConstructionOptions>{
     language: 'rcasm',
     lineNumbers: 'off',
-    fontSize: 14,
     renderLineHighlight: 'none',
-    theme: (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'vs-dark' : 'vs-light'
+    scrollBeyondLastLine: true,
+    theme: (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'vs-dark' : 'vs-light',
+    padding: { top: 15 }
     // minimap: { enabled: false }
   };
 
@@ -24,13 +26,16 @@ export class EditorComponent {
 
     editor.onDidChangeModelContent(() => {
       const code = editor.getModel()?.getValue()
-      if (code) { localStorage.setItem("code", code) }
+      if (code) {
+        localStorage.setItem("code", code);
+        this.codeChanged.emit(code);
+      }
     });
+
   }
 
   getDefaultCode(): string {
     return [
-      '',
       ';*****************************************************',
       '; Demo program to calculate Fibonacci series',
       '; Result is placed in A register on each loop',
@@ -49,10 +54,6 @@ export class EditorComponent {
       '',
       '        jmp loop    ; otherwise have another go'].join('\n');
   }
-
-  //     getCode(): string {
-  //         return this.editor.getModel().getValue();
-  //     }
 
   loadExample() {
     this.editor?.getModel()?.setValue(this.getDefaultCode());

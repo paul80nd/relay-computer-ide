@@ -1,13 +1,13 @@
 import { NgModule } from '@angular/core';
 
-import { EditorComponent } from './editor.component';
+import { OutputComponent } from './output.component';
 import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
 
 @NgModule({
-  declarations: [EditorComponent],
+  declarations: [OutputComponent],
   imports: [
     MonacoEditorModule
   ],
-  exports: [EditorComponent]
+  exports: [OutputComponent]
 })
-export class EditorModule { }
+export class OutputModule { }

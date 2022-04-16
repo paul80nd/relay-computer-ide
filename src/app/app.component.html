@@ -38,7 +38,12 @@
   </header>
   <div class="content-container">
     <div class="content-area" style="margin: 0; padding: 0;">
-      <ride-editor #editor></ride-editor>
+      <ride-editor #editor (codeChanged)="onEditorCodeChanged($event)"></ride-editor>
     </div>
+    <nav class="sidenav">
+      <section class="sidenav-content">
+        <ride-output></ride-output>
+      </section>
+    </nav>
   </div>
 </div>

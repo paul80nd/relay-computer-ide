@@ -7,3 +7,17 @@
 .header-actions {
   padding-right: .5em;
 }
+
+.main-container .content-container .sidenav {
+  order: 1;
+}
+
+.sidenav {
+  border-left: .05rem solid #ccc;
+  border-right: none;
+  min-width: 13rem;
+}
+
+.sidenav .sidenav-content {
+  padding-bottom: 0;
+}
