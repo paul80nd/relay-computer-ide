@@ -1,44 +1,44 @@
 <div class="main-container">
-    <header class="header-6">
-        <div class="branding" style="padding: 0 .4rem;">
-            <a href="#" class="nav-link">
-                <clr-icon shape="code" class="is-solid"></clr-icon>
-                <span class="title">Relay Computer IDE</span>
-            </a>
-        </div>
-        <div class="header-actions">
-            <!--
-            <a href="#" (click)="assemble(editor)" class="nav-link nav-icon">
-                <clr-icon shape="play"></clr-icon>
-            </a>
-            -->
-            <clr-dropdown>
-                <button class="nav-icon" clrDropdownTrigger>
-                    <clr-icon shape="import"></clr-icon>
-                    <clr-icon shape="caret down"></clr-icon>
-                </button>
-                <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
-                    <h4 class="dropdown-header">Load Examples</h4>
-                    <a href="#" (click)="editor.loadExample()" clrDropdownItem>Fibonacci Series</a>
-                </clr-dropdown-menu>
-            </clr-dropdown>
-            <clr-dropdown>
-                <button class="nav-icon" clrDropdownTrigger>
-                    <clr-icon shape="link"></clr-icon>
-                    <clr-icon shape="caret down"></clr-icon>
-                </button>
-                <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
-                    <h4 class="dropdown-header">Related Sites</h4>
-                    <a href="https://relaycomputer.co.uk" target="_blank" clrDropdownItem>Blog</a>
-                    <a href="https://simulator.relaycomputer.co.uk" target="_blank" clrDropdownItem>Simulator</a>
-                    <a href="https://github.com/paul80nd/relay-computer-ide" target="_blank" clrDropdownItem>GitHub Source</a>
-                </clr-dropdown-menu>
-            </clr-dropdown>
-        </div>
-    </header>
-    <div class="content-container">
-        <div class="content-area" style="margin: 0; padding: 0;">
-            <ride-editor #editor></ride-editor>
-        </div>
-</div>
+  <header class="header header-6">
+    <div class="branding">
+      <a href="javascript:void(0)">
+        <clr-icon shape="terminal"></clr-icon>
+        <span class="title">Relay Computer IDE</span>
+      </a>
+    </div>
+    <div class="header-actions">
+      <!--
+      <a href="#" (click)="assemble(editor)" class="nav-link nav-icon">
+        <clr-icon shape="play"></clr-icon>
+      </a>
+      -->
+      <clr-dropdown>
+        <button class="nav-icon" clrDropdownTrigger>
+          <clr-icon shape="import"></clr-icon>
+          <clr-icon shape="angle down"></clr-icon>
+        </button>
+        <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
+          <h4 class="dropdown-header">Load Examples</h4>
+          <a href="#" (click)="editor.loadExample()" clrDropdownItem>Fibonacci Series</a>
+        </clr-dropdown-menu>
+      </clr-dropdown>
+      <clr-dropdown>
+        <button class="nav-icon" clrDropdownTrigger>
+          <clr-icon shape="library"></clr-icon>
+          <clr-icon shape="angle down"></clr-icon>
+        </button>
+        <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
+          <h4 class="dropdown-header">Related Sites</h4>
+          <a href="https://relaycomputer.co.uk" target="_blank" clrDropdownItem>Blog</a>
+          <a href="https://simulator.relaycomputer.co.uk" target="_blank" clrDropdownItem>Simulator</a>
+          <a href="https://github.com/paul80nd/relay-computer-ide" target="_blank" clrDropdownItem>GitHub Source</a>
+        </clr-dropdown-menu>
+      </clr-dropdown>
+    </div>
+  </header>
+  <div class="content-container">
+    <div class="content-area" style="margin: 0; padding: 0;">
+      <ride-editor #editor></ride-editor>
+    </div>
+  </div>
 </div>

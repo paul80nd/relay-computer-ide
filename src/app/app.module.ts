@@ -1,15 +1,11 @@
-import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppComponent } from './app.component';
 
-import { DocumentationModule } from './components/docs/docs.module';
-import { EditorModule } from './components/editor/editor.module';
-
 import { ClarityModule } from '@clr/angular';
+import { EditorModule } from './editor/editor.module';
 
 @NgModule({
   declarations: [
@@ -19,13 +15,7 @@ import { ClarityModule } from '@clr/angular';
     BrowserModule,
     BrowserAnimationsModule,
     ClarityModule,
-    EditorModule,
-    FormsModule,
-    HttpClientModule,
-    BrowserModule,
-    DocumentationModule,
-    ClarityModule
-  ],
+    EditorModule],
   providers: [],
   bootstrap: [AppComponent]
 })
