@@ -14,7 +14,7 @@ export class EditorComponent {
 
   editorOptions = <monaco.editor.IStandaloneEditorConstructionOptions>{
     language: 'rcasm',
-    lineNumbers: 'off',
+    lineNumbers: 'on',
     renderLineHighlight: 'none',
     scrollBeyondLastLine: true,
     theme: (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'vs-dark' : 'vs-light',
