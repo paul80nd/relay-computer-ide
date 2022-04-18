@@ -28,6 +28,7 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
+              "src/assets",
               { "glob": "**/*", "input": "node_modules/@paul80nd/monaco-editor/min", "output": "./assets/monaco-editor/min/" },
               { "glob": "**/*", "input": "node_modules/@paul80nd/monaco-editor/min-maps", "output": "./assets/monaco-editor/min-maps/" }
             ],

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, isDevMode } from '@angular/core';
 import * as rcasm from '@paul80nd/rcasm';
 
 @Component({
@@ -7,6 +7,11 @@ import * as rcasm from '@paul80nd/rcasm';
 })
 export class AppComponent {
   dasm = ''
+  isDevMode: boolean;
+
+  constructor() {
+    this.isDevMode = isDevMode();
+  }
 
   onEditorCodeChanged(code: string) {
     const { prg, errors, debugInfo } = rcasm.assemble(code);

@@ -1,4 +1,5 @@
-import { Component,  EventEmitter, Output  } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'ride-editor',
@@ -8,6 +9,8 @@ export class EditorComponent {
   @Output() codeChanged = new EventEmitter<string>();
 
   editor: monaco.editor.ICodeEditor | null = null;
+
+  constructor(private http: HttpClient) { }
 
   editorOptions = <monaco.editor.IStandaloneEditorConstructionOptions>{
     language: 'rcasm',
@@ -37,26 +40,19 @@ export class EditorComponent {
   getDefaultCode(): string {
     return [
       ';*****************************************************',
-      '; Demo program to calculate Fibonacci series',
-      '; Result is placed in A register on each loop',
-      '; until calculation overflows. Result is:',
-      '; 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233',
+      '; Welcome to Relay Computer Assembly (RCASM)',
+      ';',
+      '; Start typing your program below or open an example',
+      '; using the open file icon at the top right',
       ';*****************************************************',
       '',
-      'start:  ldi a,1     ; inital setup A = 1',
-      '        ldi b,0     ;              B = 0',
-      '',
-      'loop:   mov c,b     ; slide B -> C',
-      '        mov b,a     ;       A -> B',
-      '        add         ; and add together',
-      '',
-      'done:   bcs done    ; infinite loop if overflowed',
-      '',
-      '        jmp loop    ; otherwise have another go'].join('\n');
+      ''].join('\n');
   }
 
-  loadExample() {
-    this.editor?.getModel()?.setValue(this.getDefaultCode());
+  loadExample(example: string) {
+    this.http.get(`/assets/examples/${example}`, { responseType: 'text' }).subscribe(data => {
+      this.editor?.getModel()?.setValue(data);
+    });
   }
 
 }

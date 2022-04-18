@@ -19,7 +19,8 @@
         </button>
         <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
           <h4 class="dropdown-header">Load Examples</h4>
-          <a href="#" (click)="editor.loadExample()" clrDropdownItem>Fibonacci Series</a>
+          <a href="#" (click)="editor.loadExample('fibonacci.rcasm')" clrDropdownItem>Fibonacci Series</a>
+          <a *ngIf="isDevMode" href="#" (click)="editor.loadExample('hello-world.rcasm')" clrDropdownItem>Hello World</a>
         </clr-dropdown-menu>
       </clr-dropdown>
       <clr-dropdown>
