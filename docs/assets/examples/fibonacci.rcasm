@@ -1,0 +1,17 @@
+;*****************************************************
+; Demo program to calculate Fibonacci series
+; Result is placed in A register on each loop
+; until calculation overflows. Result is:
+; 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233
+;*****************************************************
+
+start:  ldi a,1     ; inital setup A = 1
+        ldi b,0     ;              B = 0
+
+loop:   mov c,b     ; slide B -> C
+        mov b,a     ;       A -> B
+        add         ; and add together
+
+done:   bcs done    ; infinite loop if overflowed
+
+        jmp loop    ; otherwise have another go

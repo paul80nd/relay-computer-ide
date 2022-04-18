@@ -748,18 +748,18 @@ ${this._themeCSS}`,this._styleElements.forEach(p=>p.textContent=this._allCSS)}ge
 
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.33.0(7b8264ffaa34c598ef7d644f48f7059e9d29f9e5)
+ * Version: 0.33.0(436bf1645b47d9c71cf59af7751deb82d8caa0c2)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
 define("vs/basic-languages/monaco.contribution", ["require","require","vs/editor/editor.api"],(require)=>{
-var moduleExports=(()=>{var I=Object.create;var g=Object.defineProperty;var b=Object.getOwnPropertyDescriptor;var _=Object.getOwnPropertyNames;var z=Object.getPrototypeOf,k=Object.prototype.hasOwnProperty;var C=a=>g(a,"__esModule",{value:!0});var n=(a=>typeof require!="undefined"?require:typeof Proxy!="undefined"?new Proxy(a,{get:(e,r)=>(typeof require!="undefined"?require:e)[r]}):a)(function(a){if(typeof require!="undefined")return require.apply(this,arguments);throw new Error('Dynamic require of "'+a+'" is not supported')});var c=(a,e)=>()=>(a&&(e=a(a=0)),e);var M=(a,e)=>()=>(e||a((e={exports:{}}).exports,e),e.exports),u=(a,e)=>{for(var r in e)g(a,r,{get:e[r],enumerable:!0})},m=(a,e,r,s)=>{if(e&&typeof e=="object"||typeof e=="function")for(let i of _(e))!k.call(a,i)&&(r||i!=="default")&&g(a,i,{get:()=>e[i],enumerable:!(s=b(e,i))||s.enumerable});return a},p=(a,e)=>m(C(g(a!=null?I(z(a)):{},"default",!e&&a&&a.__esModule?{get:()=>a.default,enumerable:!0}:{value:a,enumerable:!0})),a);var x=M((q,L)=>{var w=p(n("vs/editor/editor.api"));L.exports=w});var f={};u(f,{conf:()=>A,language:()=>j});var A,j,h=c(()=>{A={comments:{lineComment:";"}},j={defaultToken:"",ignoreCase:!0,tokenPostfix:".rcasm",keywords:["add","inc","ixy","and","orr","eor","not","rol","cmp","mov","clr","ldi","lds","ldr","str","hlt","hlr","opc","jmp","jsr","rts","bne","beq","bcs","bmi","blt","ble"],registers:["a","b","c","d","j","j1","j2","m","m1","m2","x","y","xy"],symbols:/[\.,\:]+/,tokenizer:{root:[[/[.a-zA-Z_]\w*/,{cases:{this:"variable.predefined","@keywords":{token:"keyword.$0"},"@registers":"type.register","@default":""}}],[/[ \t\r\n]+/,""],[/;.*$/,"comment"],[/@symbols/,"delimiter"],[/0[xX][0-9a-fA-F]+/,"number.hex"],[/[0-1]+b/,"number.binary"],[/[+-]?[0-9]+d?/,"number"]]}}});var P={};u(P,{conf:()=>R,language:()=>T});var R,T,v=c(()=>{R={},T={defaultToken:"",ignoreCase:!1,tokenPostfix:".rcdsm",tokenizer:{root:[[/[ \t\r\n]+/,""],[/[0-9A-F]{4}:/,"number.hex"],[/[0-9A-F]{2}/,"keyword"],[/.*/,"comment"]]}}});var o={};m(o,p(x()));var y={},d={},l=class{static getOrCreate(e){return d[e]||(d[e]=new l(e)),d[e]}_languageId;_loadingTriggered;_lazyLoadPromise;_lazyLoadPromiseResolve;_lazyLoadPromiseReject;constructor(e){this._languageId=e,this._loadingTriggered=!1,this._lazyLoadPromise=new Promise((r,s)=>{this._lazyLoadPromiseResolve=r,this._lazyLoadPromiseReject=s})}load(){return this._loadingTriggered||(this._loadingTriggered=!0,y[this._languageId].loader().then(e=>this._lazyLoadPromiseResolve(e),e=>this._lazyLoadPromiseReject(e))),this._lazyLoadPromise}};function t(a){let e=a.id;y[e]=a,o.languages.register(a);let r=l.getOrCreate(e);o.languages.registerTokensProviderFactory(e,{create:async()=>(await r.load()).language}),o.languages.onLanguage(e,async()=>{let s=await r.load();o.languages.setLanguageConfiguration(e,s.conf)})}t({id:"csharp",extensions:[".cs",".csx",".cake"],aliases:["C#","csharp"],loader:()=>new Promise((a,e)=>{n(["vs/basic-languages/csharp/csharp"],a,e)})});t({id:"mips",extensions:[".s"],aliases:["MIPS","MIPS-V"],mimetypes:["text/x-mips","text/mips","text/plaintext"],loader:()=>new Promise((a,e)=>{n(["vs/basic-languages/mips/mips"],a,e)})});t({id:"rcasm",extensions:[".rcasm"],aliases:["RCASM"],mimetypes:["text/x-rcasm","text/rcasm","text/plaintext"],loader:()=>Promise.resolve().then(()=>(h(),f))});t({id:"rcdsm",extensions:[".rcdsm"],aliases:["RCDSM"],mimetypes:["text/x-rcdsm","text/rcdsm","text/plaintext"],loader:()=>Promise.resolve().then(()=>(v(),P))});})();
+var moduleExports=(()=>{var b=Object.create;var g=Object.defineProperty;var I=Object.getOwnPropertyDescriptor;var _=Object.getOwnPropertyNames;var z=Object.getPrototypeOf,k=Object.prototype.hasOwnProperty;var w=a=>g(a,"__esModule",{value:!0});var s=(a=>typeof require!="undefined"?require:typeof Proxy!="undefined"?new Proxy(a,{get:(e,r)=>(typeof require!="undefined"?require:e)[r]}):a)(function(a){if(typeof require!="undefined")return require.apply(this,arguments);throw new Error('Dynamic require of "'+a+'" is not supported')});var c=(a,e)=>()=>(a&&(e=a(a=0)),e);var C=(a,e)=>()=>(e||a((e={exports:{}}).exports,e),e.exports),u=(a,e)=>{for(var r in e)g(a,r,{get:e[r],enumerable:!0})},m=(a,e,r,i)=>{if(e&&typeof e=="object"||typeof e=="function")for(let n of _(e))!k.call(a,n)&&(r||n!=="default")&&g(a,n,{get:()=>e[n],enumerable:!(i=I(e,n))||i.enumerable});return a},p=(a,e)=>m(w(g(a!=null?b(z(a)):{},"default",!e&&a&&a.__esModule?{get:()=>a.default,enumerable:!0}:{value:a,enumerable:!0})),a);var x=C((q,L)=>{var M=p(s("vs/editor/editor.api"));L.exports=M});var f={};u(f,{conf:()=>A,language:()=>j});var A,j,h=c(()=>{A={comments:{lineComment:";"}},j={defaultToken:"",ignoreCase:!0,tokenPostfix:".rcasm",keywords:["add","inc","ixy","and","orr","eor","not","rol","cmp","mov","clr","ldi","lds","ldr","str","hlt","hlr","opc","jmp","jsr","rts","bne","beq","bcs","bmi","blt","ble","org","dfb","dfw"],registers:["a","b","c","d","j","j1","j2","m","m1","m2","x","y","xy"],symbols:/[\.,\:]+/,tokenizer:{root:[[/[.a-zA-Z_]\w*/,{cases:{this:"variable.predefined","@keywords":{token:"keyword.$0"},"@registers":"type.register","@default":""}}],[/[ \t\r\n]+/,""],[/;.*$/,"comment"],[/@symbols/,"delimiter"],[/0[xX][0-9a-fA-F]+/,"number.hex"],[/[0-1]+b/,"number.binary"],[/[+-]?[0-9]+d?/,"number"]]}}});var v={};u(v,{conf:()=>R,language:()=>T});var R,T,P=c(()=>{R={},T={defaultToken:"",ignoreCase:!1,tokenPostfix:".rcdsm",tokenizer:{root:[[/🔸.*$/,"invalid"],[/❌.*/,"invalid"],[/[ \t\r\n]+/,""],[/[0-9A-F]{4}:/,"number.hex"],[/[0-9A-F]{2}/,"keyword"],[/.*/,"comment"]]}}});var o={};m(o,p(x()));var y={},d={},l=class{static getOrCreate(e){return d[e]||(d[e]=new l(e)),d[e]}_languageId;_loadingTriggered;_lazyLoadPromise;_lazyLoadPromiseResolve;_lazyLoadPromiseReject;constructor(e){this._languageId=e,this._loadingTriggered=!1,this._lazyLoadPromise=new Promise((r,i)=>{this._lazyLoadPromiseResolve=r,this._lazyLoadPromiseReject=i})}load(){return this._loadingTriggered||(this._loadingTriggered=!0,y[this._languageId].loader().then(e=>this._lazyLoadPromiseResolve(e),e=>this._lazyLoadPromiseReject(e))),this._lazyLoadPromise}};function t(a){let e=a.id;y[e]=a,o.languages.register(a);let r=l.getOrCreate(e);o.languages.registerTokensProviderFactory(e,{create:async()=>(await r.load()).language}),o.languages.onLanguage(e,async()=>{let i=await r.load();o.languages.setLanguageConfiguration(e,i.conf)})}t({id:"csharp",extensions:[".cs",".csx",".cake"],aliases:["C#","csharp"],loader:()=>new Promise((a,e)=>{s(["vs/basic-languages/csharp/csharp"],a,e)})});t({id:"mips",extensions:[".s"],aliases:["MIPS","MIPS-V"],mimetypes:["text/x-mips","text/mips","text/plaintext"],loader:()=>new Promise((a,e)=>{s(["vs/basic-languages/mips/mips"],a,e)})});t({id:"rcasm",extensions:[".rcasm"],aliases:["RCASM"],mimetypes:["text/x-rcasm","text/rcasm","text/plaintext"],loader:()=>Promise.resolve().then(()=>(h(),f))});t({id:"rcdsm",extensions:[".rcdsm"],aliases:["RCDSM"],mimetypes:["text/x-rcdsm","text/rcdsm","text/plaintext"],loader:()=>Promise.resolve().then(()=>(P(),v))});})();
 return moduleExports;
 });
 
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.33.0(7b8264ffaa34c598ef7d644f48f7059e9d29f9e5)
+ * Version: 0.33.0(436bf1645b47d9c71cf59af7751deb82d8caa0c2)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
@@ -770,7 +770,7 @@ return moduleExports;
 
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.33.0(7b8264ffaa34c598ef7d644f48f7059e9d29f9e5)
+ * Version: 0.33.0(436bf1645b47d9c71cf59af7751deb82d8caa0c2)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
@@ -781,7 +781,7 @@ return moduleExports;
 
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.33.0(7b8264ffaa34c598ef7d644f48f7059e9d29f9e5)
+ * Version: 0.33.0(436bf1645b47d9c71cf59af7751deb82d8caa0c2)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
@@ -792,7 +792,7 @@ return moduleExports;
 
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.33.0(7b8264ffaa34c598ef7d644f48f7059e9d29f9e5)
+ * Version: 0.33.0(436bf1645b47d9c71cf59af7751deb82d8caa0c2)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
@@ -803,7 +803,7 @@ return moduleExports;
 
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.33.0(7b8264ffaa34c598ef7d644f48f7059e9d29f9e5)
+ * Version: 0.33.0(436bf1645b47d9c71cf59af7751deb82d8caa0c2)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
