@@ -9,11 +9,11 @@ export class AppComponent {
   dasm = ''
 
   onEditorCodeChanged(code: string) {
-    const { prg, errors } = rcasm.assemble(code);
+    const { prg, errors, debugInfo } = rcasm.assemble(code);
     if (errors.length > 0) {
       this.dasm = '';
     } else {
-      this.dasm = rcasm.disassemble(prg).join('\n');
+      this.dasm = rcasm.disassemble(prg, { isInstruction: debugInfo!.info().isInstruction }).join('\n');
     }
   }
 
