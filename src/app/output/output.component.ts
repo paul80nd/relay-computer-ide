@@ -45,4 +45,8 @@ export class OutputComponent {
     this.stateText = `<b>Assembly failed:</b> ${errorText}${warningText}`;
     this.stateType = 'danger';
   }
+  setStateInformation(message: string){
+    this.stateText = message;
+    this.stateType = 'info';
+  }
 }

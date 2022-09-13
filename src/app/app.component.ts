@@ -1,5 +1,6 @@
 import { Component, isDevMode, ViewChild } from '@angular/core';
 import { OutputComponent } from './output/output.component';
+import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
 
 @Component({
@@ -16,7 +17,7 @@ export class AppComponent {
   lastCompile?: Uint8Array;
   didAssemble: boolean = false;
 
-  constructor() {
+  constructor(private _clipboardService: ClipboardService) {
     this.isDevMode = isDevMode();
   }
 
@@ -46,7 +47,9 @@ export class AppComponent {
 
   exportToClipboard() {
     if (this.didAssemble && this.lastCompile) {
-      alert([...this.lastCompile].map(x => x.toString(16).padStart(2, "0")).join(''));
+      const hex = [...this.lastCompile].map(x => x.toString(16).padStart(2, "0")).join('')
+      this._clipboardService.copy(hex);
+      this.output.setStateInformation(`Copied ${hex.length > 14 ? hex.substring(0, 14) + '...' : hex} to the clipboard`);
     }
   }
 }

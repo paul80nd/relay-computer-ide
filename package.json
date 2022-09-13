@@ -12,7 +12,6 @@
   },
   "private": true,
   "dependencies": {
-    "@paul80nd/rcasm": "^1.1.1",
     "@angular/animations": "~12.2.0",
     "@angular/common": "~12.2.0",
     "@angular/compiler": "~12.2.0",
@@ -25,8 +24,10 @@
     "@clr/angular": "^12.4.1",
     "@clr/icons": "^12.0.12",
     "@clr/ui": "^12.4.1",
-    "@webcomponents/webcomponentsjs": "^2.6.0",
     "@materia-ui/ngx-monaco-editor": "^5.1.0",
+    "@paul80nd/rcasm": "^1.1.1",
+    "@webcomponents/webcomponentsjs": "^2.6.0",
+    "ngx-clipboard": "^14.0.2",
     "rxjs": "~6.6.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"
