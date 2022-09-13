@@ -14,15 +14,27 @@
       -->
       <clr-dropdown>
         <button class="nav-icon" clrDropdownTrigger>
-          <clr-icon shape="import"></clr-icon>
+          <clr-icon shape="upload-cloud"></clr-icon>
           <clr-icon shape="angle down"></clr-icon>
         </button>
         <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
-          <h4 class="dropdown-header">Load Examples</h4>
+          <h4 class="dropdown-header">Example Programs</h4>
           <a *ngIf="isDevMode" href="#" (click)="editor.loadExample('counter.rcasm')" clrDropdownItem>Counter</a>
           <a href="#" (click)="editor.loadExample('fibonacci.rcasm')" clrDropdownItem>Fibonacci Series</a>
-          <a *ngIf="isDevMode" href="#" (click)="editor.loadExample('hello-world.rcasm')" clrDropdownItem>Hello World</a>
-          <a *ngIf="isDevMode" href="#" (click)="editor.loadExample('memory-test.rcasm')" clrDropdownItem>Memory Test</a>
+          <a *ngIf="isDevMode" href="#" (click)="editor.loadExample('hello-world.rcasm')" clrDropdownItem>Hello
+            World</a>
+          <a *ngIf="isDevMode" href="#" (click)="editor.loadExample('memory-test.rcasm')" clrDropdownItem>Memory
+            Test</a>
+        </clr-dropdown-menu>
+      </clr-dropdown>
+      <clr-dropdown>
+        <button class="nav-icon" clrDropdownTrigger>
+          <clr-icon shape="download-cloud"></clr-icon>
+          <clr-icon shape="angle down"></clr-icon>
+        </button>
+        <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
+          <h4 class="dropdown-header">Export Assembled</h4>
+          <a href="#" (click)="exportToClipboard()" [clrDisabled]="!didAssemble" clrDropdownItem>to Clipboard</a>
         </clr-dropdown-menu>
       </clr-dropdown>
       <clr-dropdown>
@@ -41,11 +53,11 @@
   </header>
   <div class="content-container">
     <div class="content-area" style="margin: 0; padding: 0;">
-      <ride-editor #editor (codeChanged)="onEditorCodeChanged($event)"></ride-editor>
+      <app-ride-editor #editor (codeChanged)="onEditorCodeChanged($event)" class="editor-container"></app-ride-editor>
     </div>
     <nav class="sidenav">
       <section class="sidenav-content">
-        <ride-output #output [dasm]="dasm"></ride-output>
+        <app-ride-output #output [dasm]="dasm" class="editor-container"></app-ride-output>
       </section>
     </nav>
   </div>

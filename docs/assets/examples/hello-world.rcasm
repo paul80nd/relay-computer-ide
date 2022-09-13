@@ -5,24 +5,24 @@
         org	0x8400
 
 hello:  ;ldi m,len       ; length of msg
-        ;mov b,M2
+        mov b,m2
         jsr negate      ; loop count in D
         clr a           ; zero the offset
 
 hcont:  ;ldi m,mesg      ; get base of msg array
-        ;mov m2,a        ; insert offset
+        mov m2,a        ; insert offset
         ;ldr B           ; get a char
         ;prt             ; print it
         mov b,a         ; get offset
-        inc A           ; increment it
+        inc a           ; increment it
         mov b,d         ; get loop counter
-        inc D           ; increment it
+        inc d           ; increment it
         bne hcont       ; finished?
-        ;lds A           ; yes, check should stop
+        ;lds a           ; yes, check should stop
         mov b,a
-        not D           ; double invert to test
-        mov B,D
-        not D
+        not d           ; double invert to test
+        mov b,d
+        not d
         beq hello       ; don't stop
         ;hlt             ; yes
         jmp hello       ; release halt to repeat
@@ -47,6 +47,6 @@ mesg:   dfb "Hello "
 
         org 0x843D
 negate: not d       ; complement B to D
-        mov b,D     ; move it back to B
-        inc D       ; add one
+        mov b,d     ; move it back to B
+        inc d       ; add one
         ;rts
