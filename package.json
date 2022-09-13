@@ -26,7 +26,7 @@
     "@clr/icons": "^13.0.2",
     "@clr/ui": "^13.1.0",
     "@webcomponents/webcomponentsjs": "^2.6.0",
-    "@materia-ui/ngx-monaco-editor": "^5.1.0",
+    "@materia-ui/ngx-monaco-editor": "^12.0.0",
     "rxjs": "~6.6.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"
