@@ -2,11 +2,14 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
-  selector: 'ride-editor',
+  selector: 'app-ride-editor',
   templateUrl: './editor.component.html'
 })
 export class EditorComponent {
   @Output() codeChanged = new EventEmitter<string>();
+
+  stateType: string = 'info';
+  stateText: string = 'ready';
 
   editor: monaco.editor.ICodeEditor | null = null;
 
@@ -31,6 +34,10 @@ export class EditorComponent {
         localStorage.setItem("code", code);
         this.codeChanged.emit(code);
       }
+    });
+
+    editor.onDidChangeCursorPosition(e => {
+      this.stateText = `ok ${e.position.lineNumber}:${e.position.column}`;
     });
 
     const code = localStorage.getItem("code") || this.getDefaultCode();

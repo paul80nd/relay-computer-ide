@@ -12,6 +12,10 @@
   order: 1;
 }
 
+.content-area {
+  display: flex;
+}
+
 .editor-container {
   display: flex;
   flex-direction: column;
