@@ -7,7 +7,7 @@
 ; Set number to count to in data switches before running
 ; Defaults to 8 if zero
 
-start2: ;lds A       ; get the desired max count
+start2: lds A       ; get the desired max count
         mov b,A
         rol D       ; ALU inst to set condition codes
         bne cntst2  ; ok if count not zero
@@ -27,5 +27,5 @@ loop2:  mov b,A     ; get displayed count
         inc D       ; increment it
         beq done    ; finished if zero
         jmp loop2   ; go again
-done:   ;hlt         ; put new loop count in data switches
+done:   hlt         ; put new loop count in data switches
         jmp start2  ; and RESTART to continue
