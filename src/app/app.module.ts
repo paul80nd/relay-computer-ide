@@ -9,6 +9,16 @@ import { ClarityModule } from '@clr/angular';
 import { EditorModule } from './editor/editor.module';
 import { OutputModule } from './output/output.module';
 
+import {
+  ClarityIcons,
+  downloadCloudIcon,
+  libraryIcon,
+  terminalIcon,
+  uploadCloudIcon
+} from '@cds/core/icon';
+
+ClarityIcons.addIcons(downloadCloudIcon, libraryIcon, terminalIcon, uploadCloudIcon);
+
 @NgModule({
   declarations: [
     AppComponent
@@ -19,7 +29,8 @@ import { OutputModule } from './output/output.module';
     ClarityModule,
     EditorModule,
     HttpClientModule,
-    OutputModule],
+    OutputModule
+  ],
   providers: [],
   bootstrap: [AppComponent]
 })
