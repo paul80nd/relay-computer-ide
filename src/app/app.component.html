@@ -35,6 +35,7 @@
         <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
           <h4 class="dropdown-header">Export Assembled</h4>
           <a href="#" (click)="exportToClipboard()" [clrDisabled]="!didAssemble" clrDropdownItem>to Clipboard</a>
+          <a href="#" (click)="exportToPaperTape()" [clrDisabled]="!didAssemble" clrDropdownItem>to Paper Tape</a>
         </clr-dropdown-menu>
       </clr-dropdown>
       <clr-dropdown>
