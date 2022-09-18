@@ -52,4 +52,23 @@ export class AppComponent {
       this.output.setStateInformation(`Copied ${hex.length > 14 ? hex.substring(0, 14) + '...' : hex} to the clipboard`);
     }
   }
+
+  exportToPaperTape() {
+    if (this.didAssemble && this.lastCompile) {
+      const wi = window.open('', 'tape', '');
+      if (wi) {
+        wi.location.href = 'assets/tape/tape.html';
+        // Wait for window instance to be created
+        setTimeout(() => {
+          const prgId = Math.random().toString(36).slice(2, 10);
+          const name = '';
+          const desc = '';
+          wi.document.body.innerText = `${prgId}@${name}@${desc}@${this.dasm.replace(/\n/gi, '|')}`;
+          var script = document.createElement('script');
+          script.src = 'tape.js';
+          wi.document.head.appendChild(script);
+        }, 500);
+      }
+    }
+  }
 }
