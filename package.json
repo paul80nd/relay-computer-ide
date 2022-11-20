@@ -24,7 +24,7 @@
     "@clr/icons": "^13.0.2",
     "@clr/ui": "^13.8.2",
     "@materia-ui/ngx-monaco-editor": "^6.0.0",
-    "@paul80nd/rcasm": "^1.1.1",
+    "@paul80nd/rcasm": "^1.4.0",
     "ngx-clipboard": "^15.1.0",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
