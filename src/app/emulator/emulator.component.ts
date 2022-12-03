@@ -52,12 +52,115 @@ export class EmulatorComponent {
     this.flagC = false; this.flagS = false; this.flagZ = false;
   }
 
-  step() {
-    // Load Instruction
-    this.registerI = this.memoryArray[this.registerPC];
+  step(): boolean {
 
-    // Advance PC
-    this.registerPC += 1;
+    // Load Instruction
+    const instr = this.registerI = this.memoryArray[this.registerPC];
+
+    // Perform Instruction
+
+    if ((instr & 0xC0) === 0x40) // SETAB 01rvvvvv
+    {
+      const r = (instr & 0x20) === 0x20;
+      const v = (instr & 0x10) === 0x10 ? (instr & 0x0F) + 0xF0 : (instr & 0x0F);
+      if (r) { this.registerB = v; } else { this.registerA = v; }
+      this.registerPC += 1;
+      return true;
+    }
+
+    if ((instr & 0xC0) === 0x00) // MOV8 00dddsss
+    {
+      const d = (instr & 0x38) >> 3
+      const s = (instr & 0x07)
+      const v = (d === s) ? 0 : this.readMovReg[s]();
+      this.setMovReg[d](v);
+      this.registerPC += 1;
+      return true;
+    }
+
+    if ((instr & 0xF0) === 0x80) // ALU 1000rfff
+    {
+      const r = (instr & 0x08) === 0x08;
+      const f = (instr & 0x07);
+      const v = this.aluFunc[f]();
+      if (r) { this.registerD = v; } else { this.registerA = v; }
+      this.registerPC += 1;
+      return true;
+    }
+
+    if ((instr & 0xC0) === 0xC0) // GOTO 11dscznx
+    {
+      const d = (instr & 0x20) === 0x20;
+      const s = (instr & 0x10) === 0x20;
+      const c = (instr & 0x08) === 0x08;
+      const z = (instr & 0x04) === 0x04;
+      const n = (instr & 0x02) === 0x02;
+      const x = (instr & 0x01) === 0x01;
+
+      // Advance PC + load high dest
+      this.registerPC += 1;
+      let tgt = this.memoryArray[this.registerPC] << 8;
+
+      // Advance PC + load low dest
+      this.registerPC += 1;
+      tgt += this.memoryArray[this.registerPC];
+
+      // Load Dest
+      if (d) { this.registerJ = tgt; } else { this.registerM = tgt; }
+
+      // Advance PC & opt copy
+      this.registerPC += 1;
+      if (x) { this.registerXY = this.registerPC; }
+
+      // Jump
+      const jmp = (s && this.flagS) || (c && this.flagC) || (z && this.flagZ) || (n && !this.flagZ);
+      if (jmp) { this.registerPC = tgt; }
+
+      return true;
+    }
+
+    return false;
   }
+
+  run() {
+    //do { } while (this.step());
+    if (this.step()) {
+      setTimeout(() => this.run(), 10);
+    }
+  }
+
+  private readMovReg: Array<() => number> = [
+    () => this.registerA,
+    () => this.registerB,
+    () => this.registerC,
+    () => this.registerD,
+    () => (this.registerM & 0xFF00) >> 8,
+    () => this.registerM & 0x00FF,
+    () => (this.registerXY & 0xFF00) >> 8,
+    () => this.registerXY & 0x00FF,
+  ]
+
+  private setMovReg: Array<(v: number) => void> = [
+    (v) => this.registerA = v,
+    (v) => this.registerB = v,
+    (v) => this.registerC = v,
+    (v) => this.registerD = v,
+    (v) => this.registerM = (this.registerM & 0x00FF) + (v << 8),
+    (v) => this.registerM = (this.registerM & 0xFF00) + v,
+    (v) => this.registerXY = (this.registerXY & 0x00FF) + (v << 8),
+    (v) => this.registerXY = (this.registerXY & 0xFF00) + v,
+  ]
+
+  private aluFunc: Array<() => number> = [
+    () => 0,
+    () => this.registerB + this.registerC,
+    () => this.registerB + 1,
+    () => this.registerB & this.registerC,
+    () => this.registerB | this.registerC,
+    () => this.registerB ^ this.registerC,
+    () => (~this.registerB) & 0xFF,
+    () => (this.registerB & 0x80) === 0x80 ? (this.registerB << 1) + 1 : (this.registerB << 1)
+  ];
+
 
 }
