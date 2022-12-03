@@ -1,4 +1,5 @@
 import { Component, isDevMode, ViewChild } from '@angular/core';
+import { EmulatorComponent } from './emulator/emulator.component';
 import { OutputComponent } from './output/output.component';
 import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
@@ -11,6 +12,9 @@ export class AppComponent {
 
   @ViewChild(OutputComponent)
   private output!: OutputComponent;
+
+  @ViewChild(EmulatorComponent)
+  private emulator!: EmulatorComponent;
 
   dasm = ''
   isDevMode: boolean;
@@ -42,6 +46,7 @@ export class AppComponent {
         this.dasm = '';
       }
       this.dasm += rcasm.disassemble(prg, { isInstruction: debugInfo!.info().isInstruction }).join('\n');
+      this.emulator.load(this.lastCompile);
     }
   }
 

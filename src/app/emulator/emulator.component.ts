@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-ride-emulator',
@@ -18,6 +19,15 @@ export class EmulatorComponent {
   }
   nextOffset() {
     this.memoryOffset += 128; // 0x80 page
+  }
+  load(values: Uint8Array) {
+    if (values.length > 2) {
+      const offset = values[0] + (values[1] << 8);
+      const prog = values.slice(2);
+      for (let i = 0; i < prog.length; i++) {
+        this.memoryArray[offset + i] = prog[i];
+      }
+    }
   }
 
 }
