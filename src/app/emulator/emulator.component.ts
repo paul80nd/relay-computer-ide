@@ -9,6 +9,18 @@ export class EmulatorComponent {
 
   memoryOffset = 0;
   memoryArray: number[];
+  registerA = 0;
+  registerB = 0;
+  registerC = 0;
+  registerD = 0;
+  registerM = 0;
+  registerXY = 0;
+  registerJ = 0;
+  registerI = 0;
+  registerPC = 0;
+  flagZ = false;
+  flagS = false;
+  flagC = false;
 
   constructor() {
     this.memoryArray = new Array(32768);
@@ -27,6 +39,7 @@ export class EmulatorComponent {
       for (let i = 0; i < prog.length; i++) {
         this.memoryArray[offset + i] = prog[i];
       }
+      this.registerPC = offset;
     }
   }
 
