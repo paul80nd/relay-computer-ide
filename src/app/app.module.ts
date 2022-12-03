@@ -7,6 +7,7 @@ import { AppComponent } from './app.component';
 
 import { ClarityModule } from '@clr/angular';
 import { EditorModule } from './editor/editor.module';
+import { EmulatorModule } from './emulator/emulator.module';
 import { OutputModule } from './output/output.module';
 
 import {
@@ -28,6 +29,7 @@ ClarityIcons.addIcons(downloadCloudIcon, libraryIcon, terminalIcon, uploadCloudI
     BrowserAnimationsModule,
     ClarityModule,
     EditorModule,
+    EmulatorModule,
     HttpClientModule,
     OutputModule
   ],

@@ -1,0 +1,112 @@
+<div class="clr-row">
+  <div class="clr-col">
+    <table class="table table-compact">
+      <thead>
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>D</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td> <code>00</code> </td>
+          <td> <code>00</code> </td>
+          <td> <code>00</code> </td>
+          <td> <code>00</code> </td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="table table-compact">
+      <thead>
+        <tr>
+          <th>I</th>
+          <th>PC</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td> <code>00</code> </td>
+          <td> <code>0000</code> </td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="table table-compact">
+      <thead>
+        <tr>
+          <th>M</th>
+          <th>XY</th>
+          <th>J</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td> <a href="#" role="tooltip" class="tooltip tooltip-sm tooltip-bottom-left">
+              <code>0000</code>
+              <span class="tooltip-content"><code>Register M <br/>Hex: 0x0000<br/>UInt: 50<br/>SInt: 30</code></span>
+            </a></td>
+          <td> <code>0100</code></td>
+          <td> <code>1111</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="table table-compact">
+      <thead>
+        <tr>
+          <th>Z</th>
+          <th>C</th>
+          <th>S</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="#" role="tooltip" class="tooltip tooltip-sm tooltip-bottom-left">
+              <code>●</code>
+              <span class="tooltip-content"><code>Zero Flag <br/>SET</code></span>
+            </a></td>
+          <td> <a href="#" role="tooltip" class="tooltip tooltip-sm tooltip-bottom-left">
+              <code>○</code>
+              <span class="tooltip-content"><code>Carry Flag<br/>CLEAR</code></span>
+            </a></td>
+          <td> <a href="#" role="tooltip" class="tooltip tooltip-sm tooltip-bottom-left">
+              <code>●</code>
+              <span class="tooltip-content"><code>Sign Flag <br/>SET</code></span>
+            </a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="clr-col">
+    <table class="table table-compact">
+      <thead>
+        <tr>
+          <th>
+            <a *ngIf="memoryOffset>=128" href="#" (click)="prevOffset()">&lt;</a>
+          </th>
+          <th colspan="14">Memory <small>(offset <code>{{memoryOffset | hex:"4" }}</code>)</small></th>
+          <th>
+            <a *ngIf="memoryOffset<32640" href="#" (click)="nextOffset()">&gt;</a>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let idx of [0,1,2,3,4,5,6,7]">
+          <td *ngFor="let sidx of [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];">
+            <a href="#" role="tooltip" class="tooltip tooltip-sm" [class.tooltip-right]="sidx<=7 && idx<=4"
+              [class.tooltip-left]="sidx>=8 && idx<=4" [class.tooltip-top-right]="sidx<=7 && idx>=5"
+              [class.tooltip-top-left]="sidx>=8 && idx>=5">
+              <code>{{ memoryArray[memoryOffset + (idx*16) + sidx] | hex:"2"  }}</code>
+              <span class="tooltip-content"><code>
+                Address: {{memoryOffset + (idx*16) + sidx | hex:"4"}} <br/>
+                Hex: {{ memoryArray[memoryOffset + (idx*16) + sidx] | hex:"2" }}<br/>
+              </code></span>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
