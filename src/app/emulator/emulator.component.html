@@ -1,5 +1,5 @@
 <div class="clr-row">
-  <div class="clr-col">
+  <div class="clr-col-12">
 
     <!-- 8-bit Register Display -->
     <table class="table table-compact">
@@ -138,10 +138,17 @@
 
   </div>
 
-  <div class="clr-col">
+  <div class="clr-col-12">
+    <div class="btn-group btn-link btn-sm">
+      <button (click)="step()" class="btn">Step</button>
+      <button (click)="reset()" class="btn">Reset</button>
+    </div>
+  </div>
+
+  <div class="clr-col-12">
 
     <!-- Memory Display -->
-    <table class="table table-compact">
+    <table class="table table-compact" style="margin-top: 0;">
       <thead>
         <tr>
           <th>
@@ -155,7 +162,8 @@
       </thead>
       <tbody>
         <tr *ngFor="let idx of [0,1,2,3,4,5,6,7]">
-          <td *ngFor="let sidx of [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];" [class.pc-marker]="registerPC === (memoryOffset + (idx*16) + sidx)">
+          <td *ngFor="let sidx of [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];"
+            [class.pc-marker]="registerPC === (memoryOffset + (idx*16) + sidx)">
             <a href="#" role="tooltip" class="tooltip tooltip-sm" [class.tooltip-right]="sidx<=7 && idx<=3"
               [class.tooltip-left]="sidx>=8 && idx<=3" [class.tooltip-top-right]="sidx<=7 && idx>=4"
               [class.tooltip-top-left]="sidx>=8 && idx>=4">

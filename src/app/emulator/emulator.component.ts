@@ -32,6 +32,7 @@ export class EmulatorComponent {
   nextOffset() {
     this.memoryOffset += 128; // 0x80 page
   }
+
   load(values: Uint8Array) {
     if (values.length > 2) {
       const offset = values[0] + (values[1] << 8);
@@ -41,6 +42,22 @@ export class EmulatorComponent {
       }
       this.registerPC = offset;
     }
+  }
+
+  reset() {
+    this.memoryArray = new Array(32768);
+    this.registerA = 0; this.registerB = 0; this.registerC = 0; this.registerD = 0;
+    this.registerI = 0; this.registerPC = 0;
+    this.registerM = 0; this.registerXY = 0; this.registerJ = 0;
+    this.flagC = false; this.flagS = false; this.flagZ = false;
+  }
+
+  step() {
+    // Load Instruction
+    this.registerI = this.memoryArray[this.registerPC];
+
+    // Advance PC
+    this.registerPC += 1;
   }
 
 }
