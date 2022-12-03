@@ -1,0 +1,65 @@
+;**********************************************************************
+; Multiply Program
+;
+; Multiplies two unsigned 8-bit numbers to produce an 8-bit result.
+; The arguments are taken from B and C and the result is placed in X.
+; Overflow is ignored.
+;**********************************************************************
+
+; Example load b with 17 and c with 13
+;        ldi a, 13
+;        mov c, a
+;        ldi b, 4
+;        add
+;        mov b, a
+
+; Initialise calculation
+        mov y,b
+        clr x
+
+; If MSB of B set then X = C
+        not
+        bmi else
+        mov x,c
+
+; Set counter in D to -7
+else:   ldi a,-7
+        mov d,a
+
+; Rotate X and Y then add C to X if MSB of Y set
+loop:   mov b,x         ; Rotate X
+        rol
+        mov x,a
+
+        mov b,y         ; Rotate Y
+        rol
+        mov y,a
+
+        mov b,y         ; If MSB of Y set
+        not
+        bmi else2
+
+        mov b,x         ; then X = X + C
+        add
+        mov x,a
+
+else2:  mov b,d         ; D = D + 1
+        inc d
+        bne loop        ; go again if not zero
+
+        hlt
+
+; Operates on the principle of long binary multiplication. For example:
+; B:   00010001  (17)
+; C: * 00001101  (13)
+;    ================
+; X:   00000000  Y: [0]0010001  (00001101 x 0)
+; X:   00000000  Y: [0]0100010  (00001101 x 0)
+; X:   00000000  Y: [0]1000100  (00001101 x 0)
+; X:   00001101  Y: [1]0001000  (00001101 x 1)
+; X:   00011010  Y: [0]0010001  (00001101 x 0)
+; X:   00110100  Y: [0]0100010  (00001101 x 0)
+; X:   01101000  Y: [0]1000100  (00001101 x 0)
+; X:   11011101  Y: [1]0001000  (00001101 x 1)
+;    =================
+; X: = 11011101  (221)
