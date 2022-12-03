@@ -67,6 +67,10 @@
   padding-bottom: .4rem !important;
 }
 
+.simulation a:hover {
+  text-decoration: none;
+}
+
 .simulation table {
   width: auto;
   float: left;
@@ -80,4 +84,12 @@
 
 .simulation td, .simulation th {
   padding: .05rem .08rem .05rem .08rem !important;
+}
+
+.simulation td.pc-marker {
+  background-color: #428BCA;
+}
+
+.simulation td.pc-marker a {
+  color: white;
 }
