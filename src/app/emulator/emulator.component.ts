@@ -96,7 +96,7 @@ export class EmulatorComponent {
     if ((instr & 0xC0) === 0xC0) // GOTO 11dscznx
     {
       const d = (instr & 0x20) === 0x20;
-      const s = (instr & 0x10) === 0x20;
+      const s = (instr & 0x10) === 0x10;
       const c = (instr & 0x08) === 0x08;
       const z = (instr & 0x04) === 0x04;
       const n = (instr & 0x02) === 0x02;
