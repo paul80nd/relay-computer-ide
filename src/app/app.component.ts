@@ -16,6 +16,9 @@ export class AppComponent {
   @ViewChild(EmulatorComponent)
   private emulator!: EmulatorComponent;
 
+  showDocs = false;
+  showEmu = true;
+
   dasm = ''
   isDevMode: boolean;
   lastCompile?: Uint8Array;

@@ -6,12 +6,13 @@
         <span class="title">Relay Computer IDE</span>
       </a>
     </div>
+    <div class="header-nav">
+      <a href="#" *ngIf="!showDocs" (click)="showDocs = true" class="nav-link"><div class="nav-text">Show Documentation</div></a>
+      <a href="#" *ngIf="showDocs" (click)="showDocs = false" class="nav-link"><div class="nav-text">Hide Documentation</div></a>
+      <a href="#" *ngIf="!showEmu" (click)="showEmu = true" class="nav-link"><span class="nav-text">Show Emulator</span></a>
+      <a href="#" *ngIf="showEmu" (click)="showEmu = false" class="nav-link"><span class="nav-text">Hide Emulator</span></a>
+    </div>
     <div class="header-actions">
-      <!--
-      <a href="#" (click)="assemble(editor)" class="nav-link nav-icon">
-        <clr-icon shape="play"></clr-icon>
-      </a>
-      -->
       <clr-dropdown>
         <button class="nav-icon" clrDropdownTrigger>
           <cds-icon shape="upload-cloud"></cds-icon>
@@ -59,12 +60,15 @@
     </div>
   </header>
   <div class="content-container">
+    <div class="content-area" *ngIf="showDocs" style="flex: 1;">
+      <app-ride-docs class="documentation"></app-ride-docs>
+    </div>
     <div class="content-area" style="margin: 0; padding: 0;">
       <app-ride-editor #editor (codeChanged)="onEditorCodeChanged($event)" class="editor-container"></app-ride-editor>
     </div>
     <nav class="sidenav">
       <section class="sidenav-content" style="flex-grow: 0;">
-        <app-ride-emulator #emulator class="content-area simulation"></app-ride-emulator>
+        <app-ride-emulator #emulator [style.display]="showEmu ? 'block':'none'" class="content-area simulation"></app-ride-emulator>
       </section>
       <section class="sidenav-content">
         <app-ride-output #output [dasm]="dasm" class="editor-container"></app-ride-output>

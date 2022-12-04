@@ -93,3 +93,7 @@
 .simulation td.pc-marker a {
   color: white;
 }
+
+.documentation p {
+  margin-top: .6rem !important;
+}
