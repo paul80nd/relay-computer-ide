@@ -85,7 +85,10 @@ export class EmulatorComponent {
       const r = (instr & 0x08) === 0x08;
       const f = (instr & 0x07);
       const v = this.aluFunc[f]();
-      if (r) { this.registerD = v; } else { this.registerA = v; }
+      this.flagZ = v === 0;
+      this.flagC = (v & 0x100) === 0x100;
+      this.flagS = (v & 0x80) === 0x80;
+      if (r) { this.registerD = (v & 0xFF); } else { this.registerA = (v & 0xFF); }
       this.registerPC += 1;
       return true;
     }
