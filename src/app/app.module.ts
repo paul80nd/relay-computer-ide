@@ -6,7 +6,9 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
 
 import { ClarityModule } from '@clr/angular';
+import { DocsModule } from './docs/docs.module';
 import { EditorModule } from './editor/editor.module';
+import { EmulatorModule } from './emulator/emulator.module';
 import { OutputModule } from './output/output.module';
 
 import {
@@ -27,7 +29,9 @@ ClarityIcons.addIcons(downloadCloudIcon, libraryIcon, terminalIcon, uploadCloudI
     BrowserModule,
     BrowserAnimationsModule,
     ClarityModule,
+    DocsModule,
     EditorModule,
+    EmulatorModule,
     HttpClientModule,
     OutputModule
   ],

@@ -61,3 +61,39 @@
 .alert-app-level .alert-text {
   margin-right: 0rem;
 }
+
+.simulation {
+  padding: 0 !important;
+  padding-bottom: .4rem !important;
+}
+
+.simulation a:hover {
+  text-decoration: none;
+}
+
+.simulation table {
+  width: auto;
+  float: left;
+  margin-top: .4rem;
+  margin-left: .4rem;
+}
+
+.simulation table tr {
+  padding: 0 !important;
+}
+
+.simulation td, .simulation th {
+  padding: .05rem .08rem .05rem .08rem !important;
+}
+
+.simulation td.pc-marker {
+  background-color: #428BCA;
+}
+
+.simulation td.pc-marker a {
+  color: white;
+}
+
+.documentation p {
+  margin-top: .6rem !important;
+}

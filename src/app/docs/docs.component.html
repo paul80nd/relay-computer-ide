@@ -1,0 +1,147 @@
+<p style="margin-top:0">
+  This is an Integrated Development Environment (IDE) for writing programs in an assembly language sepecific to my relay
+  computer.
+</p>
+<p>
+  More details on my relay computer can be found at <a href="https://relaycomputer.co.uk"
+    target="_blank">https://relaycomputer.co.uk</a> and a full simulation is available at <a
+    href="https://simulator.relaycomputer.co.uk" target="_blank">https://simulator.relaycomputer.co.uk</a>
+</p>
+<h4>Getting Started</h4>
+<p>
+  Type your assembly program into the editor window to the right. Your program is automatically assembled (as you type)
+  with the results placed in the output window at the far right. Any syntax errors or warnings will be displayed and
+  highlighted in the code editor.
+</p>
+<p>
+  Your program is automatically saved in your browser's local storage meaning your last program will be available at
+  your next visit to this IDE.
+</p>
+<p>
+  You can load an example program in to the editor from the <cds-icon shape="upload-cloud"></cds-icon> menu at the top
+  right. You can also export the current program via the <cds-icon shape="download-cloud"></cds-icon> menu. This
+  includes the ability to export the assembled program to your clipboard which can then be imported/pasted into the
+  <a href="https://simulator.relaycomputer.co.uk" target="_blank">Relay Computer Simulator</a>.
+</p>
+<p>
+  Providing your program assembles without error it will be automatically loaded into the emulator within this IDE. The
+  emulator is a simplified version of the full simulator above and allows you to quickly confirm your program before
+  trying the full simulator.
+</p>
+<h4>Assembly Syntax</h4>
+<p>
+  My assembly language (RCASM) draws inspiration from 6502 and Z80 assemblers so has many similarities (although is
+  relatively cut-down and simplified).
+</p>
+<p>
+  Every instruction must be on its own line with everything after a <code>;</code> ignored. Labels are optional and must
+  start with a letter and end with a colon. E.g. <code>label: instruction operands ; comment</code>
+</p>
+<pre>
+ ; comment
+
+ label: instruction operands
+        instruction operands
+        instruction operands        ; comment
+</pre>
+<p>
+  Valid number formats for constants are:
+</p>
+<pre>
+ Decimal: 200
+ Decimal: 200d
+ Hex:     0xA4
+ Binary:  101b
+</pre>
+<p>
+  Operands can either be one of the eight general purpose registers <code>A, B, C, D, M1, M2, X, Y</code> or a constant.
+</p>
+<h4>Assembly Instructions</h4>
+<h5>Register Manipulation</h5>
+<p>
+  <strong><code>mov <em>dest</em>,<em>src</em></code></strong><br />
+  Copies a value from <em>src</em> to <em>dest</em> between any of the eight general purpose registers. If <em>dest</em>
+  and <em>src</em> are the same then <em>dest</em> will be set to <code>0</code>.
+</p>
+<p>
+  <strong><code>clr <em>dest</em></code></strong><br />
+  Clears register <em>dest</em> (sets to 0). This is the equivalent of <code>mov dest,dest</code>.
+</p>
+<p>
+  <strong><code>ldi <em>dest</em>,<em>val</em></code></strong><br />
+  Loads a constant value into <em>dest</em> (register <code>A</code> or <code>B</code>). <em>val</em> can be only
+  between -16 and 15.
+</p>
+<h5>Logic & Arithmetic</h5>
+<p>
+  For all of the following instructions the result in placed in <em>dest</em> (register <code>A</code> or
+  <code>D</code>). If <em>dest</em> is not specified then register <code>A</code> is assumed. Each instruction will
+  affect the condition flags <code>Z</code> (zero) and <code>S</code> (sign - if most significant bit set) based on the
+  result of the instruction.
+</p>
+<p>
+  <strong><code>add <em>(dest)</em></code></strong><br />
+  Adds the contents of register <code>B</code> and <code>C</code>. Affects condition flag <code>C</code> (carry).
+</p>
+<p>
+  <strong><code>inc <em>(dest)</em></code></strong><br />
+  Adds one to the contents of register <code>B</code>. Affects condition flag <code>C</code> (carry).
+</p>
+<p>
+  <strong><code>and <em>(dest)</em></code></strong><br />
+  Performs a bitwise AND on register <code>B</code> and <code>C</code>.
+</p>
+<p>
+  <strong><code>orr <em>(dest)</em></code></strong><br />
+  Performs a bitwise OR on register <code>B</code> and <code>C</code>.
+</p>
+<p>
+  <strong><code>eor <em>(dest)</em></code></strong><br />
+  <strong><code>cmp <em>(dest)</em></code></strong><br />
+  Performs a bitwise XOR (exlusive OR) on register <code>B</code> and <code>C</code>.
+</p>
+<p>
+  <strong><code>not <em>(dest)</em></code></strong><br />
+  Performs a bitwise NOT on register <code>B</code>.
+</p>
+<p>
+  <strong><code>rol <em>(dest)</em></code></strong><br />
+  Performs a bitwise left-rotation on register <code>B</code>. Every bit shifts one place to the left with the left most
+  bit rotated around to right.
+</p>
+<h5>Jumps</h5>
+<p>
+  For all of the following instructions the <code>J</code> register is loaded with the address referenced by
+  <em>label</em> and then based on the condition flags <code>Z</code>, <code>C</code> and <code>S</code> the program
+  counter will be loaded from the <code>J</code> register if the jump is required.
+</p>
+<p>
+  <strong><code>jmp <em>label</em></code></strong><br />
+  Unconditionally jumps to <em>label</em>.
+</p>
+<p>
+  <strong><code>beq <em>label</em></code></strong><br />
+  Jumps to <em>label</em> if <code>Z</code> is set (last ALU operation result was 0).
+</p>
+<p>
+  <strong><code>bne <em>label</em></code></strong><br />
+  Jumps to <em>label</em> if <code>Z</code> is not set (last ALU operation result was not 0).
+</p>
+<p>
+  <strong><code>bcs <em>label</em></code></strong><br />
+  Jumps to <em>label</em> if <code>C</code> is set (last ALU operation resulted in a carry).
+</p>
+<p>
+  <strong><code>blt <em>label</em></code></strong><br />
+  <strong><code>bmi <em>label</em></code></strong><br />
+  Jumps to <em>label</em> if <code>S</code> is set (last ALU operation has most significant bit set / is negative).
+</p>
+<p>
+  <strong><code>ble <em>label</em></code></strong><br />
+  Jumps to <em>label</em> if <code>S</code> or <code>Z</code> is set (last ALU operation resulted in a zero or negative value).
+</p>
+<h5>Other Instructions</h5>
+<p>
+  <strong><code>hlt</code></strong><br />
+  Halts execution of the program.
+</p>
