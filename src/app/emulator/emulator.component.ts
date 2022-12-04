@@ -22,6 +22,8 @@ export class EmulatorComponent {
   flagS = false;
   flagC = false;
 
+  running = false;
+
   constructor() {
     this.memoryArray = new Array(32768);
   }
@@ -123,9 +125,21 @@ export class EmulatorComponent {
   }
 
   run() {
-    //do { } while (this.step());
+    this.running = true;
+    this.runLoop();
+  }
+
+  stop() {
+    this.running = false;
+  }
+
+  private runLoop() {
+    if (!this.running) { return; }
+
     if (this.step()) {
-      setTimeout(() => this.run(), 10);
+      setTimeout(() => this.runLoop(), 10);
+    } else {
+      this.running = false;
     }
   }
 
