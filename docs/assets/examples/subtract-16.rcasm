@@ -1,0 +1,52 @@
+;*********************************************
+; 16-bit Subtraction Program
+;
+; Subtracts two 16-bit numbers: CD = CD - XY
+;
+; Preload the values in to registers CD and XY
+; The answer will be placed in register CD
+;*********************************************
+
+; Calculate two's complement of XY
+        mov b,y         ; invert Y
+        not
+        mov y,a
+        mov b,x         ; invert X
+        not
+        mov x,a
+        ixy             ; increment XY
+
+; Calculate M1 = X + C (higher byte)
+        mov b,x
+        add
+        mov m1, a
+
+; Calculate D = Y + D (lower byte)
+        mov b,d
+        mov c,y
+        add d
+
+; Restore C = M1 (higher byte result)
+        mov c, m1
+
+; Done if no carry on lower byte
+        bcs carry
+        hlt
+
+; Otherwise need to incrment C
+carry:  mov b,c
+        inc
+        mov c,a
+        hlt
+
+; Example (without carry jump):
+;  C:  1001 1101  D:  1101 0101     40,405
+;  X:  0101 1001  Y:  1001 1101   - 22,941
+;      ---------      ---------     ------
+;  C:  0100 0100  D:  0011 1000     17,464
+
+; Example (with carry jump):
+;  C:  1001 1101  D:  1101 0101     40,405
+;  X:  0101 1001  Y:  0001 1101   - 22,813
+;      ---------      ---------     ------
+;  C:  0100 0100  D:  1011 1000     17,592
