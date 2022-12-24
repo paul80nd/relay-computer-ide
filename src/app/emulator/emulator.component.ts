@@ -21,6 +21,7 @@ export class EmulatorComponent {
   flagZ = false;
   flagS = false;
   flagC = false;
+  primarySW = 0;
 
   running = false;
 
