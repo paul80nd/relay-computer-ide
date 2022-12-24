@@ -104,6 +104,22 @@ export class EmulatorComponent {
       return true;
     }
 
+    if ((instr & 0xFE) === 0xAC) // LDSW 1010110d
+    {
+      const d = (instr & 0x01) === 0x01;
+      if (d) { this.registerD = this.primarySW; } else { this.registerA = this.primarySW; }
+      this.registerPC += 1;
+      return true;
+    }
+
+    if ((instr & 0xFE) === 0xAE) // HALT 1010111r
+    {
+      const r = (instr & 0x01) === 0x01;
+      this.registerPC += 1;
+      if (r) { this.registerPC = this.primarySW; }
+      return false;
+    }
+
     if ((instr & 0xC0) === 0xC0) // GOTO 11dscznx
     {
       const d = (instr & 0x20) === 0x20;
