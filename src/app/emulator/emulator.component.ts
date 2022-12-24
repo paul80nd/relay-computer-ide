@@ -99,8 +99,8 @@ export class EmulatorComponent {
       const d = (instr & 0x04) >> 2
       const s = (instr & 0x03)
       const v = (d === 0 && s === 1) ? 0 : this.readMov16Reg[s]();
-      this.setMov16Reg[d](v);
       this.registerPC += 1;
+      this.setMov16Reg[d](v);
       return true;
     }
 
