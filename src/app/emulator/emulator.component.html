@@ -248,6 +248,7 @@
               <span class="tooltip-content"><small>Memory Slot</small><br /><code>
                 Address: {{memoryOffset + (idx*16) + sidx | hex:"4"}} <br/>
                 Hex: {{ memoryArray[memoryOffset + (idx*16) + sidx] | hex:"2" }}<br/>
+                Bin: {{ memoryArray[memoryOffset + (idx*16) + sidx] | bin:"2" }}<br />
                 Dec: {{ memoryArray[memoryOffset + (idx*16) + sidx] | dec:"2" }}
               </code></span>
             </a>
