@@ -147,6 +147,10 @@ export class EmulatorComponent {
     this.running = false;
   }
 
+  flipBit(position: number) {
+    this.primarySW = this.primarySW ^ Math.pow(2,position);
+  }
+
   private runLoop() {
     if (!this.running) { return; }
 
