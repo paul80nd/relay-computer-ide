@@ -54,7 +54,8 @@
  Binary:  101b
 </pre>
 <p>
-  Operands can either be one of the eight general purpose registers <code>A, B, C, D, M1, M2, X, Y</code> or a constant.
+  Operands can either be one of the eight general purpose registers <code>A, B, C, D, M1, M2, X, Y</code>, one of the
+  16-bit registers <code>M, J, XY</code> or a constant.
 </p>
 <h4>Assembly Instructions</h4>
 <h5>Register Manipulation</h5>
@@ -69,8 +70,9 @@
 </p>
 <p>
   <strong><code>ldi <em>dest</em>,<em>val</em></code></strong><br />
-  Loads a constant value into <em>dest</em> (register <code>A</code> or <code>B</code>). <em>val</em> can be only
-  between -16 and 15.
+  Loads an 8-bit constant value into <em>dest</em> (register <code>A</code> or <code>B</code>), <em>val</em> can be only
+  between -16 and 15. Can also load a 16-bit constant value into <em>dest</em> (register <code>m</code> or <code>j</code>),
+  <em>val</em> can be between <code>0x0000</code> and <code>0xFFFF</code>.
 </p>
 <h5>Logic & Arithmetic</h5>
 <p>
@@ -144,4 +146,8 @@
 <p>
   <strong><code>hlt</code></strong><br />
   Halts execution of the program.
+</p>
+<p>
+  <strong><code>hlr</code></strong><br />
+  Halts execution of the program and sets the program counter to the value on the primary switches.
 </p>

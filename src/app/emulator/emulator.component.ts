@@ -21,6 +21,7 @@ export class EmulatorComponent {
   flagZ = false;
   flagS = false;
   flagC = false;
+  primarySW = 0;
 
   running = false;
 
@@ -74,8 +75,8 @@ export class EmulatorComponent {
     {
       const d = (instr & 0x38) >> 3
       const s = (instr & 0x07)
-      const v = (d === s) ? 0 : this.readMovReg[s]();
-      this.setMovReg[d](v);
+      const v = (d === s) ? 0 : this.readMov8Reg[s]();
+      this.setMov8Reg[d](v);
       this.registerPC += 1;
       return true;
     }
@@ -91,6 +92,32 @@ export class EmulatorComponent {
       if (r) { this.registerD = (v & 0xFF); } else { this.registerA = (v & 0xFF); }
       this.registerPC += 1;
       return true;
+    }
+
+    if ((instr & 0xF8) === 0xA0) // MOV16 10100dss
+    {
+      const d = (instr & 0x04) >> 2
+      const s = (instr & 0x03)
+      const v = (d === 0 && s === 1) ? 0 : this.readMov16Reg[s]();
+      this.registerPC += 1;
+      this.setMov16Reg[d](v);
+      return true;
+    }
+
+    if ((instr & 0xFE) === 0xAC) // LDSW 1010110d
+    {
+      const d = (instr & 0x01) === 0x01;
+      if (d) { this.registerD = this.primarySW; } else { this.registerA = this.primarySW; }
+      this.registerPC += 1;
+      return true;
+    }
+
+    if ((instr & 0xFE) === 0xAE) // HALT 1010111r
+    {
+      const r = (instr & 0x01) === 0x01;
+      this.registerPC += 1;
+      if (r) { this.registerPC = this.primarySW; }
+      return false;
     }
 
     if ((instr & 0xC0) === 0xC0) // GOTO 11dscznx
@@ -136,6 +163,10 @@ export class EmulatorComponent {
     this.running = false;
   }
 
+  flipBit(position: number) {
+    this.primarySW = this.primarySW ^ Math.pow(2,position);
+  }
+
   private runLoop() {
     if (!this.running) { return; }
 
@@ -146,7 +177,7 @@ export class EmulatorComponent {
     }
   }
 
-  private readMovReg: Array<() => number> = [
+  private readMov8Reg: Array<() => number> = [
     () => this.registerA,
     () => this.registerB,
     () => this.registerC,
@@ -157,7 +188,7 @@ export class EmulatorComponent {
     () => this.registerXY & 0x00FF,
   ]
 
-  private setMovReg: Array<(v: number) => void> = [
+  private setMov8Reg: Array<(v: number) => void> = [
     (v) => this.registerA = v,
     (v) => this.registerB = v,
     (v) => this.registerC = v,
@@ -166,6 +197,18 @@ export class EmulatorComponent {
     (v) => this.registerM = (this.registerM & 0xFF00) + v,
     (v) => this.registerXY = (this.registerXY & 0x00FF) + (v << 8),
     (v) => this.registerXY = (this.registerXY & 0xFF00) + v,
+  ]
+
+  private readMov16Reg: Array<() => number> = [
+    () => this.registerM,
+    () => this.registerXY,
+    () => this.registerJ,
+    () => 0
+  ]
+
+  private setMov16Reg: Array<(v: number) => void> = [
+    (v) => this.registerXY = v,
+    (v) => this.registerPC = v
   ]
 
   private aluFunc: Array<() => number> = [

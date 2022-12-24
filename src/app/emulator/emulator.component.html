@@ -138,8 +138,40 @@
       </tbody>
     </table>
 
-    <!-- ALU Flags Display -->
+    <!-- PS Register Display -->
     <table class="table table-compact">
+      <thead>
+        <tr>
+          <th>PS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <a href="#" role="tooltip" class="tooltip tooltip-sm tooltip-bottom-left">
+              <code>{{ primarySW | hex:"2"}}</code>
+              <span class="tooltip-content">
+                <small> Primary Switches</small><br />
+                <code>
+                  Hex: {{ primarySW | hex:"2" }}<br />
+                  Bin: {{ primarySW | bin:"2" }}<br />
+                  Dec: {{ primarySW | dec:"2" }}
+                </code>
+              </span>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+<div class="clr-row">
+  <div class="clr-col-12">
+
+    <!-- ALU Flags Display -->
+    <table class="table table-compact alu-display">
       <thead>
         <tr>
           <th>Z</th>
@@ -149,37 +181,51 @@
       </thead>
       <tbody>
         <tr>
-          <td><a href="#" role="tooltip" class="tooltip tooltip-sm tooltip-bottom-left">
-              <code>{{ flagZ ? "●" : "○"}}</code>
+          <td><a href="#" role="tooltip" class="tooltip tooltip-sm tooltip-bottom-right">
+              <code class="dot">{{ flagZ ? "●" : "○"}}</code>
               <span class="tooltip-content"><code>Zero Flag<br/>{{ flagZ ? "SET" : "CLEAR"}}</code></span>
             </a></td>
-          <td> <a href="#" role="tooltip" class="tooltip tooltip-sm tooltip-bottom-left">
-              <code>{{ flagC ? "●" : "○"}}</code>
+          <td> <a href="#" role="tooltip" class="tooltip tooltip-sm tooltip-bottom-right">
+              <code class="dot">{{ flagC ? "●" : "○"}}</code>
               <span class="tooltip-content"><code>Carry Flag<br/>{{ flagC ? "SET" : "CLEAR"}}</code></span>
             </a></td>
-          <td> <a href="#" role="tooltip" class="tooltip tooltip-sm tooltip-bottom-left">
-              <code>{{ flagS ? "●" : "○"}}</code>
+          <td> <a href="#" role="tooltip" class="tooltip tooltip-sm tooltip-bottom-right">
+              <code class="dot">{{ flagS ? "●" : "○"}}</code>
               <span class="tooltip-content"><code>Sign Flag <br/>{{ flagS ? "SET" : "CLEAR"}}</code></span>
             </a></td>
         </tr>
       </tbody>
     </table>
 
-  </div>
-
-  <div class="clr-col-12">
-    <div class="btn-group btn-link btn-sm">
-      <button *ngIf="!running" (click)="run()" class="btn">Run</button>
-      <button *ngIf="running" (click)="stop()" class="btn">Stop</button>
-      <button (click)="step()" class="btn">Step</button>
-      <button (click)="reset()" class="btn">Reset</button>
+    <div>
+      <div class="btn-group btn-sm">
+        <button *ngIf="!running" (click)="run()" class="btn">Run</button>
+        <button *ngIf="running" (click)="stop()" class="btn">Stop</button>
+        <button (click)="step()" class="btn">Step</button>
+        <button (click)="reset()" class="btn">Reset</button>
+      </div>
+      <div class="clr-form-control">
+        <div class="clr-control-container clr-control-inline">
+          <input type="checkbox" clrCheckbox (click)="flipBit(7)" />
+          <input type="checkbox" clrCheckbox (click)="flipBit(6)" />
+          <input type="checkbox" clrCheckbox (click)="flipBit(5)" />
+          <input type="checkbox" clrCheckbox (click)="flipBit(4)" />
+          <input type="checkbox" clrCheckbox (click)="flipBit(3)" />
+          <input type="checkbox" clrCheckbox (click)="flipBit(2)" />
+          <input type="checkbox" clrCheckbox (click)="flipBit(1)" />
+          <input type="checkbox" clrCheckbox (click)="flipBit(0)" />
+        </div>
+      </div>
     </div>
   </div>
+</div>
+
+<div class="clr-row">
 
   <div class="clr-col-12">
 
     <!-- Memory Display -->
-    <table class="table table-compact" style="margin-top: 0;">
+    <table class="table table-compact memory-display" style="margin-top: 0;">
       <thead>
         <tr>
           <th>
@@ -202,6 +248,7 @@
               <span class="tooltip-content"><small>Memory Slot</small><br /><code>
                 Address: {{memoryOffset + (idx*16) + sidx | hex:"4"}} <br/>
                 Hex: {{ memoryArray[memoryOffset + (idx*16) + sidx] | hex:"2" }}<br/>
+                Bin: {{ memoryArray[memoryOffset + (idx*16) + sidx] | bin:"2" }}<br />
                 Dec: {{ memoryArray[memoryOffset + (idx*16) + sidx] | dec:"2" }}
               </code></span>
             </a>

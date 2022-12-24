@@ -78,12 +78,28 @@
   margin-left: .4rem;
 }
 
+.simulation table.alu-display {
+  margin-top: .3rem;
+}
+
 .simulation table tr {
   padding: 0 !important;
 }
 
 .simulation td, .simulation th {
-  padding: .05rem .08rem .05rem .08rem !important;
+  padding: .05rem .11rem .05rem .11rem !important;
+}
+
+.simulation table.alu-display td, .simulation table.alu-display th {
+  padding: .155rem .2rem .155rem .2rem !important;
+}
+
+.simulation table.alu-display code.dot {
+  font-size: 1.5em;
+}
+
+.simulation table.memory-display td, .simulation table.memory-display th {
+  padding: .05rem .075rem .05rem .075rem !important;
 }
 
 .simulation td.pc-marker {
@@ -92,6 +108,27 @@
 
 .simulation td.pc-marker a {
   color: white;
+}
+
+.simulation .btn-group {
+  margin: .3rem .4rem 0rem .4rem;
+}
+
+.simulation .btn-group .btn {
+  min-width: 3.3rem;
+}
+
+.simulation .clr-form-control {
+  margin-top: 0;
+}
+
+.simulation .clr-control-inline {
+  margin-left: .4rem;
+  margin-bottom: .1rem;
+}
+
+.simulation .clr-control-inline .clr-control-label {
+  margin-right: .2rem;
 }
 
 .documentation p {
