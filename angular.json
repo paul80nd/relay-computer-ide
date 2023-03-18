@@ -27,22 +27,18 @@
               "src/assets",
               {
                 "glob": "**/*",
-                "input": "node_modules/@paul80nd/monaco-editor/min",
+                "input": "node_modules/monaco-editor/min",
                 "output": "./assets/monaco-editor/min/"
               },
               {
                 "glob": "**/*",
-                "input": "node_modules/@paul80nd/monaco-editor/min-maps",
+                "input": "node_modules/monaco-editor/min-maps",
                 "output": "./assets/monaco-editor/min-maps/"
               }
             ],
             "styles": [
               "node_modules/@clr/ui/clr-ui.min.css",
-              "node_modules/@clr/icons/clr-icons.min.css",
               "src/styles.css"
-            ],
-            "scripts": [
-              "node_modules/@clr/icons/clr-icons.min.js"
             ]
           },
           "configurations": {

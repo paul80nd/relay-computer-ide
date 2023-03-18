@@ -1,6 +1,6 @@
 /*!-----------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.35.0-dev.20221018.2(2914954a0fea80841ff93dd4e9b639415fafd8e3)
+ * Version: 0.36.0-dev.20230224(f2d1d1d4a1d685a9bcf4bb5d6929080866f20c39)
  * Released under the MIT license
  * https://github.com/microsoft/vscode/blob/main/LICENSE.txt
  *-----------------------------------------------------------*/define("vs/base/common/worker/simpleWorker.nls",{"vs/base/common/platform":["_"]});
