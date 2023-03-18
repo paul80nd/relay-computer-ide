@@ -21,7 +21,6 @@
     "@angular/router": "^15.2.3",
     "@cds/core": "^6.3.1",
     "@clr/angular": "^15.0.3",
-    "@clr/icons": "^13.0.2",
     "@clr/ui": "^15.0.3",
     "@materia-ui/ngx-monaco-editor": "^6.0.0",
     "@paul80nd/rcasm": "^1.6.0",
