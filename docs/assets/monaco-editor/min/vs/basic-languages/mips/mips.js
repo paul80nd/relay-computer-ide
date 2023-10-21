@@ -1,6 +1,6 @@
 "use strict";/*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.36.1(f1164655269ad2839cd61d1ae2cee2ba988efb82)
+ * Version: 0.44.0(0528bcdfa41725e806ab6b214d284b49ef87231d)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
