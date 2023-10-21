@@ -24,7 +24,7 @@
     "@clr/ui": "^16.0.2",
     "@materia-ui/ngx-monaco-editor": "^6.0.0",
     "@paul80nd/rcasm": "^1.6.2",
-    "ngx-clipboard": "^15.1.0",
+    "ngx-clipboard": "^16.0.0",
     "rxjs": "~7.8.0",
     "zone.js": "~0.13.0"
   },
