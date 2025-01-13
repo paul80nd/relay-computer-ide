@@ -231,7 +231,7 @@
           <th>
             <a *ngIf="memoryOffset>=128" href="#" (click)="prevOffset()">&lt;</a>
           </th>
-          <th colspan="14">Memory <small>(offset <code>{{memoryOffset | hex:"4" }}</code>)</small></th>
+          <th colspan="14">Memory <small>(offset </small><code>{{memoryOffset | hex:"4" }}</code><small>)</small></th>
           <th>
             <a *ngIf="memoryOffset<32640" href="#" (click)="nextOffset()">&gt;</a>
           </th>

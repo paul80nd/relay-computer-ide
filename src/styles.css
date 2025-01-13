@@ -66,6 +66,10 @@
   overflow: hidden !important;
 }
 
+.simulation code {
+  font-family: "Inconsolata", monospace;
+}
+
 .simulation a, .simulation a:hover {
   text-decoration: none;
 }
@@ -114,7 +118,7 @@
 }
 
 .simulation .btn-group .btn {
-  min-width: 3.3rem;
+  min-width: 3.15rem;
 }
 
 .simulation .clr-form-control {
@@ -127,7 +131,7 @@
 }
 
 .simulation .clr-control-inline .clr-control-label {
-  margin-right: .2rem;
+  margin-right: .14rem;
 }
 
 .documentation p {
