@@ -23,7 +23,7 @@
     "@clr/angular": "^16.0.2",
     "@clr/ui": "^16.0.2",
     "@materia-ui/ngx-monaco-editor": "^6.0.0",
-    "@paul80nd/rcasm": "^1.6.2",
+    "@paul80nd/rcasm": "^1.7.0",
     "ngx-clipboard": "^16.0.0",
     "rxjs": "~7.8.0",
     "zone.js": "~0.13.0"
@@ -37,9 +37,9 @@
     "@angular-eslint/template-parser": "16.2.0",
     "@angular/cli": "~16.2.7",
     "@angular/compiler-cli": "^16.2.10",
-    "@typescript-eslint/eslint-plugin": "^6.8.0",
-    "@typescript-eslint/parser": "^6.8.0",
-    "eslint": "^8.39.0",
+    "@typescript-eslint/eslint-plugin": "^6.9.0",
+    "@typescript-eslint/parser": "^6.9.0",
+    "eslint": "^8.52.0",
     "typescript": "~4.9.5"
   }
 }
