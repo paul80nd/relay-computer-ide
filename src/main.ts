@@ -1,12 +1,27 @@
 import { enableProdMode } from '@angular/core';
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { AppComponent } from './app/app.component';
+import {
+  ClarityIcons,
+  libraryIcon,
+  terminalIcon,
+  importIcon,
+  exportIcon
+} from '@cds/core/icon';
 
 if (environment.production) {
   enableProdMode();
 }
 
-platformBrowserDynamic().bootstrapModule(AppModule)
+ClarityIcons.addIcons(libraryIcon, terminalIcon, importIcon, exportIcon);
+
+bootstrapApplication(AppComponent, {
+    providers: [
+    provideHttpClient(withInterceptorsFromDi()),
+    provideAnimations()
+]
+})
   .catch(err => console.error(err));
