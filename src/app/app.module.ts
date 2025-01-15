@@ -13,13 +13,13 @@ import { OutputModule } from './output/output.module';
 
 import {
   ClarityIcons,
-  downloadCloudIcon,
   libraryIcon,
   terminalIcon,
-  uploadCloudIcon
+  importIcon,
+  exportIcon
 } from '@cds/core/icon';
 
-ClarityIcons.addIcons(downloadCloudIcon, libraryIcon, terminalIcon, uploadCloudIcon);
+ClarityIcons.addIcons(libraryIcon, terminalIcon, importIcon, exportIcon);
 
 @NgModule({
   declarations: [

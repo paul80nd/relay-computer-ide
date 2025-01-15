@@ -42,7 +42,7 @@ export class OutputComponent {
   setStateAssembledWithErrors(errorCount: number, warnCount: number) {
     const errorText = `${errorCount} error${errorCount === 1 ? '' : 's'}`;
     const warningText =  warnCount > 0 ? `, ${warnCount} warning${warnCount === 1 ? '' : 's'}` : '';
-    this.stateText = `<b>Assembly failed:</b> ${errorText}${warningText}`;
+    this.stateText = `Assembly failed with ${errorText}${warningText}`;
     this.stateType = 'danger';
   }
   setStateInformation(message: string){

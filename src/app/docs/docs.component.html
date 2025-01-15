@@ -1,153 +1,229 @@
-<p style="margin-top:0">
-  This is an Integrated Development Environment (IDE) for writing programs in an assembly language sepecific to my relay
+<p cds-text="body">
+  This is an 'Integrated Development Environment' (IDE) for writing programs in an assembly language sepecific to my
+  relay
   computer.
 </p>
-<p>
+<p cds-text="body" cds-layout="m-t:md m-b:lg">
   More details on my relay computer can be found at <a href="https://relaycomputer.co.uk"
     target="_blank">https://relaycomputer.co.uk</a> and a full simulation is available at <a
     href="https://simulator.relaycomputer.co.uk" target="_blank">https://simulator.relaycomputer.co.uk</a>
 </p>
-<h4>Getting Started</h4>
-<p>
-  Type your assembly program into the editor window to the right. Your program is automatically assembled (as you type)
-  with the results placed in the output window at the far right. Any syntax errors or warnings will be displayed and
-  highlighted in the code editor.
-</p>
-<p>
-  Your program is automatically saved in your browser's local storage meaning your last program will be available at
-  your next visit to this IDE.
-</p>
-<p>
-  You can load an example program in to the editor from the <cds-icon shape="upload-cloud"></cds-icon> menu at the top
-  right. You can also export the current program via the <cds-icon shape="download-cloud"></cds-icon> menu. This
-  includes the ability to export the assembled program to your clipboard which can then be imported/pasted into the
-  <a href="https://simulator.relaycomputer.co.uk" target="_blank">Relay Computer Simulator</a>.
-</p>
-<p>
-  Providing your program assembles without error it will be automatically loaded into the emulator within this IDE. The
-  emulator is a simplified version of the full simulator above and allows you to quickly confirm your program before
-  trying the full simulator.
-</p>
-<h4>Assembly Syntax</h4>
-<p>
-  My assembly language (RCASM) draws inspiration from 6502 and Z80 assemblers so has many similarities (although is
-  relatively cut-down and simplified).
-</p>
-<p>
-  Every instruction must be on its own line with everything after a <code>;</code> ignored. Labels are optional and must
-  start with a letter and end with a colon. E.g. <code>label: instruction operands ; comment</code>
-</p>
-<pre>
- ; comment
+<details cds-layout="m-b:md" cds-text="body">
+  <summary cds-text="subsection">Getting Started</summary>
+  <p cds-text="body" cds-layout="m-t:md">
+    Type your assembly program into the editor window to the right. Your program is automatically assembled (as you
+    type)
+    with the results placed in the output window at the far right. Any syntax errors or warnings will be displayed and
+    highlighted in the code editor.
+  </p>
+  <p cds-text="body" cds-layout="m-t:md">
+    Your program is automatically saved in your browser's local storage meaning your last program will be available at
+    your next visit to this IDE.
+  </p>
+  <p cds-text="body" cds-layout="m-t:md">
+    You can load an example program in to the editor from the import menu at the top
+    right. You can also export the current program via the export menu. This
+    includes the ability to export the assembled program to your clipboard which can then be imported/pasted into the
+    <a href="https://simulator.relaycomputer.co.uk" target="_blank">Relay Computer Simulator</a>.
+  </p>
+  <p cds-text="body" cds-layout="m-t:md">
+    Providing your program assembles without error it will be automatically loaded into the emulator within this IDE.
+    The
+    emulator is a simplified version of the full simulator above and allows you to quickly confirm your program before
+    trying the full simulator.
+  </p>
+</details>
+<details cds-layout="m-b:md">
+  <summary cds-text="subsection">Assembly Syntax</summary>
+  <p cds-text="body" cds-layout="m-t:md">
+    My assembly language (RCASM) draws inspiration from 6502 and Z80 assemblers so has many similarities (although is
+    relatively cut-down and simplified).
+  </p>
+  <p cds-text="body" cds-layout="m-t:md">
+    Every instruction must be on its own line with everything after a semi-colon ignored. Labels are
+    optional and must start with a letter and end with a colon e.g. <span cds-text="code">label:</span>.
+  </p>
+  <p cds-text="body" cds-layout="m-t:md">
+    Valid number formats for constants are:
+  </p>
+  <ul cds-text="body" cds-layout="m-t:xs">
+    <li>decimal: <span cds-text="code">200</span> or <span
+      cds-text="code">200d</span></li>
+      <li>hex: <span cds-text="code">0xA4</span></li>
+      <li>binary:  <span cds-text="code">0101b</span></li>
+  </ul>
+  <p cds-text="body" cds-layout="m-t:md">
+    Operands can be:
+  </p>
+  <ul cds-text="body" cds-layout="m-t:xs">
+    <li>a general purpose register: <span cds-text="code">A, B, C, D, M1, M2, X,
+      Y</span></li>
+      <li>a 16-bit register: <span cds-text="code">M, J, XY</span></li>
+      <li>a constant</li>
+  </ul>
+</details>
+<details>
+  <summary cds-text="subsection">Assembly Instructions</summary>
+  <details cds-layout="m-t:md m-l:md">
+    <summary cds-text="body">Register Manipulation</summary>
+    <table class="table table-vertical" cds-layout="m-t:md">
+      <tbody>
+        <tr>
+          <th>mov <em>dest</em>,<em>src</em></th>
+          <td>Copies a value from <em>src</em> to <em>dest</em> between any of the eight general purpose registers. If
+            <em>dest</em> and <em>src</em> are the same then <em>dest</em> will be set to 0.
+          </td>
+        </tr>
+        <tr>
+          <th>clr <em>dest</em></th>
+          <td>Clears register <em>dest</em> (sets to 0). This is the equivalent of <span cds-text="code">mov
+              dest,dest</span></td>
+        </tr>
+        <tr>
+          <th>ldi <em>dest</em>,<em>val</em></th>
+          <td>
+            <p cds-layout="m-t:none">Loads an 8-bit constant value into <em>dest</em> (register <span
+                cds-text="code">a</span> or <span cds-text="code">b</span>), <em>val</em> can be
+              only between -16 and 15.</p>
+            <p cds-layout="m-t:xxs"> Can also load a 16-bit constant value into <em>dest</em> (register <span
+                cds-text="code">m</span> or
+              <span cds-text="code">j</span>), <em>val</em> can be between <span cds-text="code">0x0000</span> and <span
+                cds-text="code">0xFFFF</span>.
+            </p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </details>
+  <details cds-layout="m-t:sm m-l:md">
+    <summary cds-text="body">Logic & Arithmetic</summary>
+    <table class="table table-vertical" cds-layout="m-t:sm">
+      <tbody>
+        <tr>
+          <td colspan="2">
+            <p cds-layout="m-t:none">
+              For all of the following instructions the result in placed in <em>dest</em> (register <span
+                cds-text="code">A</span>
+              or
+              <span cds-text="code">D</span>). If <em>dest</em> is not specified then register <span
+                cds-text="code">A</span> is
+              assumed.
+            </p>
+            <p cds-layout="m-t:xxs">Each instruction will
+              affect the condition flags <span cds-text="code">Z</span> (zero) and <span cds-text="code">S</span> (sign
+              -
+              if most
+              significant bit set) based on
+              the
+              result of the instruction.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <th>add <em>(dest)</em></th>
+          <td>
+            Adds the contents of register <span cds-text="code">B</span> and <span cds-text="code">C</span>. Affects
+            condition flag <span cds-text="code">C</span> (carry).
+          </td>
+        </tr>
+        <tr>
+          <th>inc <em>(dest)</em></th>
+          <td>
+            Adds one to the contents of register <span cds-text="code">B</span>. Affects condition flag <span
+              cds-text="code">C</span> (carry).
+          </td>
+        </tr>
+        <tr>
+          <th>and <em>(dest)</em></th>
+          <td> Performs a bitwise AND on register <span cds-text="code">B</span> and <span cds-text="code">C</span>.
+          </td>
+        </tr>
+        <tr>
+          <th>orr <em>(dest)</em></th>
+          <td> Performs a bitwise OR on register <span cds-text="code">B</span> and <span cds-text="code">C</span>.
+          </td>
+        </tr>
+        <tr>
+          <th>eor <em>(dest)</em><br />cmp <em>(dest)</em></th>
+          <td> Performs a bitwise XOR (exlusive OR) on register <span cds-text="code">B</span> and <span
+              cds-text="code">C</span>. </td>
+        </tr>
+        <tr>
+          <th>not <em>(dest)</em></th>
+          <td> Performs a bitwise NOT on register <span cds-text="code">B</span>. </td>
+        </tr>
+        <tr>
+          <th>rol <em>(dest)</em></th>
+          <td> Performs a bitwise left-rotation on register <span cds-text="code">B</span>. Every bit shifts one place
+            to
+            the left with the left most bit rotated around to right. </td>
+        </tr>
+      </tbody>
+    </table>
+  </details>
+  <details cds-layout="m-t:sm m-l:md">
+    <summary cds-text="body">Jumps</summary>
+    <table class="table table-vertical" cds-layout="m-t:sm">
+      <tbody>
+        <tr>
+          <td colspan="2">
+            <p cds-layout="m-t:none">
 
- label: instruction operands
-        instruction operands
-        instruction operands        ; comment
-</pre>
-<p>
-  Valid number formats for constants are:
-</p>
-<pre>
- Decimal: 200
- Decimal: 200d
- Hex:     0xA4
- Binary:  101b
-</pre>
-<p>
-  Operands can either be one of the eight general purpose registers <code>A, B, C, D, M1, M2, X, Y</code>, one of the
-  16-bit registers <code>M, J, XY</code> or a constant.
-</p>
-<h4>Assembly Instructions</h4>
-<h5>Register Manipulation</h5>
-<p>
-  <strong><code>mov <em>dest</em>,<em>src</em></code></strong><br />
-  Copies a value from <em>src</em> to <em>dest</em> between any of the eight general purpose registers. If <em>dest</em>
-  and <em>src</em> are the same then <em>dest</em> will be set to <code>0</code>.
-</p>
-<p>
-  <strong><code>clr <em>dest</em></code></strong><br />
-  Clears register <em>dest</em> (sets to 0). This is the equivalent of <code>mov dest,dest</code>.
-</p>
-<p>
-  <strong><code>ldi <em>dest</em>,<em>val</em></code></strong><br />
-  Loads an 8-bit constant value into <em>dest</em> (register <code>A</code> or <code>B</code>), <em>val</em> can be only
-  between -16 and 15. Can also load a 16-bit constant value into <em>dest</em> (register <code>m</code> or <code>j</code>),
-  <em>val</em> can be between <code>0x0000</code> and <code>0xFFFF</code>.
-</p>
-<h5>Logic & Arithmetic</h5>
-<p>
-  For all of the following instructions the result in placed in <em>dest</em> (register <code>A</code> or
-  <code>D</code>). If <em>dest</em> is not specified then register <code>A</code> is assumed. Each instruction will
-  affect the condition flags <code>Z</code> (zero) and <code>S</code> (sign - if most significant bit set) based on the
-  result of the instruction.
-</p>
-<p>
-  <strong><code>add <em>(dest)</em></code></strong><br />
-  Adds the contents of register <code>B</code> and <code>C</code>. Affects condition flag <code>C</code> (carry).
-</p>
-<p>
-  <strong><code>inc <em>(dest)</em></code></strong><br />
-  Adds one to the contents of register <code>B</code>. Affects condition flag <code>C</code> (carry).
-</p>
-<p>
-  <strong><code>and <em>(dest)</em></code></strong><br />
-  Performs a bitwise AND on register <code>B</code> and <code>C</code>.
-</p>
-<p>
-  <strong><code>orr <em>(dest)</em></code></strong><br />
-  Performs a bitwise OR on register <code>B</code> and <code>C</code>.
-</p>
-<p>
-  <strong><code>eor <em>(dest)</em></code></strong><br />
-  <strong><code>cmp <em>(dest)</em></code></strong><br />
-  Performs a bitwise XOR (exlusive OR) on register <code>B</code> and <code>C</code>.
-</p>
-<p>
-  <strong><code>not <em>(dest)</em></code></strong><br />
-  Performs a bitwise NOT on register <code>B</code>.
-</p>
-<p>
-  <strong><code>rol <em>(dest)</em></code></strong><br />
-  Performs a bitwise left-rotation on register <code>B</code>. Every bit shifts one place to the left with the left most
-  bit rotated around to right.
-</p>
-<h5>Jumps</h5>
-<p>
-  For all of the following instructions the <code>J</code> register is loaded with the address referenced by
-  <em>label</em> and then based on the condition flags <code>Z</code>, <code>C</code> and <code>S</code> the program
-  counter will be loaded from the <code>J</code> register if the jump is required.
-</p>
-<p>
-  <strong><code>jmp <em>label</em></code></strong><br />
-  Unconditionally jumps to <em>label</em>.
-</p>
-<p>
-  <strong><code>beq <em>label</em></code></strong><br />
-  Jumps to <em>label</em> if <code>Z</code> is set (last ALU operation result was 0).
-</p>
-<p>
-  <strong><code>bne <em>label</em></code></strong><br />
-  Jumps to <em>label</em> if <code>Z</code> is not set (last ALU operation result was not 0).
-</p>
-<p>
-  <strong><code>bcs <em>label</em></code></strong><br />
-  Jumps to <em>label</em> if <code>C</code> is set (last ALU operation resulted in a carry).
-</p>
-<p>
-  <strong><code>blt <em>label</em></code></strong><br />
-  <strong><code>bmi <em>label</em></code></strong><br />
-  Jumps to <em>label</em> if <code>S</code> is set (last ALU operation has most significant bit set / is negative).
-</p>
-<p>
-  <strong><code>ble <em>label</em></code></strong><br />
-  Jumps to <em>label</em> if <code>S</code> or <code>Z</code> is set (last ALU operation resulted in a zero or negative value).
-</p>
-<h5>Other Instructions</h5>
-<p>
-  <strong><code>hlt</code></strong><br />
-  Halts execution of the program.
-</p>
-<p>
-  <strong><code>hlr</code></strong><br />
-  Halts execution of the program and sets the program counter to the value on the primary switches.
-</p>
+              For all of the following instructions the <span cds-text="code">J</span> register is loaded with the
+              address
+              referenced by
+              <em>label</em> and then based on the condition flags <span cds-text="code">Z</span>, <span
+                cds-text="code">C</span>
+              and <span cds-text="code">S</span> the program
+              counter will be loaded from the <span cds-text="code">J</span> register if the jump is required.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <th>jmp <em>label</em></th>
+          <td>Unconditionally jumps to <em>label</em>. </td>
+        </tr>
+        <tr>
+          <th>beq <em>label</em></th>
+          <td>Jumps to <em>label</em> if <span cds-text="code">Z</span> is set (last ALU operation result was 0).</td>
+        </tr>
+        <tr>
+          <th>bne <em>label</em></th>
+          <td>Jumps to <em>label</em> if <span cds-text="code">Z</span> is not set (last ALU operation result was not
+            0).</td>
+        </tr>
+        <tr>
+          <th>bcs <em>label</em></th>
+          <td> Jumps to <em>label</em> if <span cds-text="code">C</span> is set (last ALU operation resulted in a
+            carry).</td>
+        </tr>
+        <tr>
+          <th>blt <em>label</em><br />bmi <em>label</em></th>
+          <td>Jumps to <em>label</em> if <span cds-text="code">S</span> is set (last ALU operation has most significant
+            bit set /
+            is negative).</td>
+        </tr>
+        <tr>
+          <th>ble <em>label</em></th>
+          <td> Jumps to <em>label</em> if <span cds-text="code">S</span> or <span cds-text="code">Z</span> is set (last
+            ALU operation resulted in a zero or negative value).</td>
+        </tr>
+      </tbody>
+    </table>
+  </details>
+  <details cds-layout="m-t:sm m-l:md">
+    <summary cds-text="body">Other Instructions</summary>
+    <table class="table table-vertical" cds-layout="m-t:sm">
+      <tbody>
+        <tr>
+          <th>hlt</th>
+          <td>Halts execution of the program.</td>
+        </tr>
+        <tr>
+          <th>hlr</th>
+          <td> Halts execution of the program and sets the program counter to the value on the primary switches.</td>
+        </tr>
+      </tbody>
+    </table>
+  </details>
+</details>

@@ -1,8 +1,5 @@
 <ngx-monaco-editor style="height: 100%" [options]="editorOptions" (init)="onInit($event)" class="editor">
 </ngx-monaco-editor>
-<clr-alert [clrAlertType]="stateType" [clrAlertAppLevel]="true" [clrAlertClosable]="false" class="editor-footer">
-  <clr-alert-item>
-    <span class="alert-text" [innerHTML]="stateText">
-    </span>
-  </clr-alert-item>
-</clr-alert>
+<div class="editor-footer" [attr.status]="stateType" cds-layout="horizontal gap:xs align:vertical-center">
+  <span cds-text="secondary regular" [innerHTML]="stateText"></span>
+</div>

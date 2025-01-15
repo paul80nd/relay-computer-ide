@@ -1,23 +1,28 @@
-import { Component, isDevMode, ViewChild } from '@angular/core';
+import { Component, isDevMode, OnInit, ViewChild } from '@angular/core';
 import { EmulatorComponent } from './emulator/emulator.component';
 import { OutputComponent } from './output/output.component';
 import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
+import { EditorComponent } from './editor/editor.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
 
   @ViewChild(OutputComponent)
   private output!: OutputComponent;
+
+  @ViewChild(EditorComponent)
+  private editor!: EditorComponent;
 
   @ViewChild(EmulatorComponent)
   private emulator!: EmulatorComponent;
 
   showDocs = false;
   showEmu = true;
+  showExamples = false;
 
   dasm = ''
   isDevMode: boolean;
@@ -26,6 +31,18 @@ export class AppComponent {
 
   constructor(private _clipboardService: ClipboardService) {
     this.isDevMode = isDevMode();
+  }
+
+  ngOnInit() {
+    // Initially check if dark mode is enabled on system
+    const darkModeOn =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    // If dark mode is enabled then directly switch to the dark-theme
+    if (darkModeOn) {
+      document.body.setAttribute("cds-theme", "dark");
+    }
   }
 
   onEditorCodeChanged(code: string) {
@@ -78,5 +95,10 @@ export class AppComponent {
         }, 500);
       }
     }
+  }
+
+  loadExample(example: string) {
+    this.editor.loadExample(example);
+    this.showExamples = false;
   }
 }

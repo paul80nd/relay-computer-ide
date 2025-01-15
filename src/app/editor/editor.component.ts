@@ -37,7 +37,7 @@ export class EditorComponent {
     });
 
     editor.onDidChangeCursorPosition(e => {
-      this.stateText = `ok ${e.position.lineNumber}:${e.position.column}`;
+      this.stateText = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
     });
 
     const code = localStorage.getItem("code") || this.getDefaultCode();
@@ -50,7 +50,7 @@ export class EditorComponent {
       '; Welcome to Relay Computer Assembly (RCASM)',
       ';',
       '; Start typing your program below or open an example',
-      '; using the open file icon at the top right',
+      '; using the import menu at the top right',
       ';*****************************************************',
       '',
       ''].join('\n');
