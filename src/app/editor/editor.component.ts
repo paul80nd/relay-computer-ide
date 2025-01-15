@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
 
@@ -9,14 +9,14 @@ import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
     imports: [MonacoEditorModule]
 })
 export class EditorComponent {
+  private http = inject(HttpClient);
+
   @Output() codeChanged = new EventEmitter<string>();
 
   stateType: string = 'info';
   stateText: string = 'ready';
 
   editor: monaco.editor.ICodeEditor | null = null;
-
-  constructor(private http: HttpClient) { }
 
   editorOptions = <monaco.editor.IStandaloneEditorConstructionOptions>{
     language: 'rcasm',

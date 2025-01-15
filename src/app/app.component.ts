@@ -1,4 +1,4 @@
-import { Component, isDevMode, OnInit, ViewChild } from '@angular/core';
+import { Component, isDevMode, OnInit, ViewChild, inject } from '@angular/core';
 import { EmulatorComponent } from './emulator/emulator.component';
 import { OutputComponent } from './output/output.component';
 import { ClipboardService } from 'ngx-clipboard'
@@ -15,6 +15,8 @@ import { DocsComponent } from './docs/docs.component';
     imports: [ClrIconModule, ClrCheckboxModule, ClrStopEscapePropagationDirective, ClrPopoverHostDirective, ClrDropdownModule, ClrConditionalModule, DocsComponent, EditorComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, ClrSidePanelModule, ClrAccordionModule, ClrAlertModule]
 })
 export class AppComponent implements OnInit {
+  private _clipboardService = inject(ClipboardService);
+
 
   @ViewChild(OutputComponent)
   private output!: OutputComponent;
@@ -34,7 +36,7 @@ export class AppComponent implements OnInit {
   lastCompile?: Uint8Array;
   didAssemble: boolean = false;
 
-  constructor(private _clipboardService: ClipboardService) {
+  constructor() {
     this.isDevMode = isDevMode();
   }
 
