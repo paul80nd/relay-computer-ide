@@ -19,10 +19,10 @@
               <span class="tooltip-content">
                 <small> Register A</small><br />
                 <code>
-                Hex: {{ registerA | hex:"2" }}<br />
-                Bin: {{ registerA | bin:"2" }}<br />
-                Dec: {{ registerA | dec:"2" }}
-              </code>
+                  Hex: {{ registerA | hex:"2" }}<br />
+                  Bin: {{ registerA | bin:"2" }}<br />
+                  Dec: {{ registerA | dec:"2" }}
+                </code>
               </span>
             </a>
           </td>
@@ -32,10 +32,10 @@
               <span class="tooltip-content">
                 <small> Register B</small><br />
                 <code>
-                Hex: {{ registerB | hex:"2" }}<br />
-                Bin: {{ registerB | bin:"2" }}<br />
-                Dec: {{ registerB | dec:"2" }}
-              </code>
+                  Hex: {{ registerB | hex:"2" }}<br />
+                  Bin: {{ registerB | bin:"2" }}<br />
+                  Dec: {{ registerB | dec:"2" }}
+                </code>
               </span>
             </a>
           </td>
@@ -45,10 +45,10 @@
               <span class="tooltip-content">
                 <small> Register C</small><br />
                 <code>
-                Hex: {{ registerC | hex:"2" }}<br />
-                Bin: {{ registerC | bin:"2" }}<br />
-                Dec: {{ registerC | dec:"2" }}
-              </code>
+                  Hex: {{ registerC | hex:"2" }}<br />
+                  Bin: {{ registerC | bin:"2" }}<br />
+                  Dec: {{ registerC | dec:"2" }}
+                </code>
               </span>
             </a>
           </td>
@@ -58,10 +58,10 @@
               <span class="tooltip-content">
                 <small> Register D</small><br />
                 <code>
-                Hex: {{ registerD | hex:"2" }}<br />
-                Bin: {{ registerD | bin:"2" }}<br />
-                Dec: {{ registerD | dec:"2" }}
-              </code>
+                  Hex: {{ registerD | hex:"2" }}<br />
+                  Bin: {{ registerD | bin:"2" }}<br />
+                  Dec: {{ registerD | dec:"2" }}
+                </code>
               </span>
             </a>
           </td>
@@ -85,9 +85,9 @@
               <span class="tooltip-content">
                 <small>Instruction Register</small><br />
                 <code>
-                Hex: {{ registerI | hex:"2" }}<br />
-                Bin: {{ registerI | bin:"2" }}
-              </code>
+                  Hex: {{ registerI | hex:"2" }}<br />
+                  Bin: {{ registerI | bin:"2" }}
+                </code>
               </span>
             </a>
           </td>
@@ -95,157 +95,169 @@
             <a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
               <code>{{ registerPC | hex:"4"}}</code>
               <span class="tooltip-content"><small>Program
-                  Counter</small><br /><code>Hex: {{ registerPC | hex:"4"}}</code></span>
-            </a>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+                Counter</small><br /><code>Hex: {{ registerPC | hex:"4"}}</code></span>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-    <!-- 16-bit Register Display -->
-    <table class="table table-compact">
-      <thead>
-        <tr>
-          <th>M</th>
-          <th>XY</th>
-          <th>J</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
-              <code>{{ registerM | hex:"4"}}</code>
-              <span class="tooltip-content"><small>Register M
+      <!-- 16-bit Register Display -->
+      <table class="table table-compact">
+        <thead>
+          <tr>
+            <th>M</th>
+            <th>XY</th>
+            <th>J</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
+                <code>{{ registerM | hex:"4"}}</code>
+                <span class="tooltip-content"><small>Register M
                   (M1:M2)</small><br /><code>Hex: {{ registerM | hex:"4"}}<br />Dec: {{ registerM | dec:"4" }}</code></span>
-            </a>
-          </td>
-          <td>
-            <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
-              <code>{{ registerXY | hex:"4"}}</code>
-              <span class="tooltip-content"><small>Register XY
-                  (X:Y)</small><br /><code>Hex: {{ registerXY | hex:"4"}}<br />Dec: {{ registerXY | dec:"4" }}</code></span>
-            </a>
-          </td>
-          <td>
-            <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
-              <code>{{ registerJ | hex:"4"}}</code>
-              <span class="tooltip-content"><small>Register J
-                  (J1:J2)</small><br /><code>Hex: {{ registerJ | hex:"4"}}<br />Dec: {{ registerJ | dec:"4" }}</code></span>
-            </a>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+                </a>
+              </td>
+              <td>
+                <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
+                  <code>{{ registerXY | hex:"4"}}</code>
+                  <span class="tooltip-content"><small>Register XY
+                    (X:Y)</small><br /><code>Hex: {{ registerXY | hex:"4"}}<br />Dec: {{ registerXY | dec:"4" }}</code></span>
+                  </a>
+                </td>
+                <td>
+                  <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
+                    <code>{{ registerJ | hex:"4"}}</code>
+                    <span class="tooltip-content"><small>Register J
+                      (J1:J2)</small><br /><code>Hex: {{ registerJ | hex:"4"}}<br />Dec: {{ registerJ | dec:"4" }}</code></span>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-    <!-- PS Register Display -->
-    <table class="table table-compact">
-      <thead>
-        <tr>
-          <th>PS</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
-              <code>{{ primarySW | hex:"2"}}</code>
-              <span class="tooltip-content">
-                <small> Primary Switches</small><br />
-                <code>
-                Hex: {{ primarySW | hex:"2" }}<br />
-                Bin: {{ primarySW | bin:"2" }}<br />
-                Dec: {{ primarySW | dec:"2" }}
-              </code>
-              </span>
-            </a>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            <!-- PS Register Display -->
+            <table class="table table-compact">
+              <thead>
+                <tr>
+                  <th>PS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
+                      <code>{{ primarySW | hex:"2"}}</code>
+                      <span class="tooltip-content">
+                        <small> Primary Switches</small><br />
+                        <code>
+                          Hex: {{ primarySW | hex:"2" }}<br />
+                          Bin: {{ primarySW | bin:"2" }}<br />
+                          Dec: {{ primarySW | dec:"2" }}
+                        </code>
+                      </span>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-  </div>
-  <div cds-layout="horizontal gap:xs wrap:none align:horizontal-stretch">
+          </div>
+          <div cds-layout="horizontal gap:xs wrap:none align:horizontal-stretch">
 
-      <!-- Control and Panel Switches -->
-      <div cds-layout="vertical gap:xxxs">
-        <div class="btn-group btn-sm">
-          <button *ngIf="!running" (click)="run()" class="btn">Run</button>
-          <button *ngIf="running" (click)="stop()" class="btn btn-primary">Stop</button>
-          <button (click)="step()" class="btn">Step</button>
-          <button (click)="reset()" class="btn">Reset</button>
-        </div>
-        <div cds-layout="horizontal gap:xs wrap:none align:horizontal-stretch">
-            <input type="checkbox" clrCheckbox (click)="flipBit(7)" />
-            <input type="checkbox" clrCheckbox (click)="flipBit(6)" />
-            <input type="checkbox" clrCheckbox (click)="flipBit(5)" />
-            <input type="checkbox" clrCheckbox (click)="flipBit(4)" />
-            <input type="checkbox" clrCheckbox (click)="flipBit(3)" />
-            <input type="checkbox" clrCheckbox (click)="flipBit(2)" />
-            <input type="checkbox" clrCheckbox (click)="flipBit(1)" />
-            <input type="checkbox" clrCheckbox (click)="flipBit(0)" />
-        </div>
+            <!-- Control and Panel Switches -->
+            <div cds-layout="vertical gap:xxxs">
+              <div class="btn-group btn-sm">
+                @if (!running) {
+                  <button (click)="run()" class="btn">Run</button>
+                }
+                @if (running) {
+                  <button (click)="stop()" class="btn btn-primary">Stop</button>
+                }
+                <button (click)="step()" class="btn">Step</button>
+                <button (click)="reset()" class="btn">Reset</button>
+              </div>
+              <div cds-layout="horizontal gap:xs wrap:none align:horizontal-stretch">
+                <input type="checkbox" clrCheckbox (click)="flipBit(7)" />
+                <input type="checkbox" clrCheckbox (click)="flipBit(6)" />
+                <input type="checkbox" clrCheckbox (click)="flipBit(5)" />
+                <input type="checkbox" clrCheckbox (click)="flipBit(4)" />
+                <input type="checkbox" clrCheckbox (click)="flipBit(3)" />
+                <input type="checkbox" clrCheckbox (click)="flipBit(2)" />
+                <input type="checkbox" clrCheckbox (click)="flipBit(1)" />
+                <input type="checkbox" clrCheckbox (click)="flipBit(0)" />
+              </div>
+            </div>
+
+            <!-- ALU Flags Display -->
+            <table class="table table-compact alu-display">
+              <thead>
+                <tr>
+                  <th>Z</th>
+                  <th>C</th>
+                  <th>S</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
+                    <code class="dot">{{ flagZ ? "●" : "○"}}</code>
+                    <span class="tooltip-content"><small>Zero Flag</small><br/><code>{{ flagZ ? "SET" : "CLEAR"}}</code></span>
+                  </a></td>
+                  <td> <a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
+                    <code class="dot">{{ flagC ? "●" : "○"}}</code>
+                    <span class="tooltip-content"><small>Carry Flag</small><br/><code>{{ flagC ? "SET" : "CLEAR"}}</code></span>
+                  </a></td>
+                  <td> <a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
+                    <code class="dot">{{ flagS ? "●" : "○"}}</code>
+                    <span class="tooltip-content"><small>Sign Flag</small><br/><code>{{ flagS ? "SET" : "CLEAR"}}</code></span>
+                  </a></td>
+                </tr>
+              </tbody>
+            </table>
+
+          </div>
+          <!-- Memory Display -->
+          <table class="table table-compact memory-display" style="margin-top: 0;">
+            <thead>
+              <tr>
+                <th>
+                  @if (memoryOffset>=128) {
+                    <a href="#" (click)="prevOffset()">&lt;</a>
+                  }
+                </th>
+                <th colspan="14">Memory <small>(offset </small><code>{{memoryOffset | hex:"4" }}</code><small>)</small></th>
+                <th>
+                  @if (memoryOffset<32640) {
+                    <a href="#" (click)="nextOffset()">&gt;</a>
+                  }
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (idx of [0,1,2,3,4,5,6,7]; track idx) {
+                <tr>
+                  @for (sidx of [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; track sidx) {
+                    <td
+                      [class.pc-marker]="registerPC === (memoryOffset + (idx*16) + sidx)">
+                      <a href="#" role="tooltip" class="tooltip tooltip-sm" [class.tooltip-right]="sidx<=7 && idx<=3"
+                        [class.tooltip-left]="sidx>=8 && idx<=3" [class.tooltip-top-right]="sidx<=7 && idx>=4"
+                        [class.tooltip-top-left]="sidx>=8 && idx>=4">
+                        <code>{{ memoryArray[memoryOffset + (idx*16) + sidx] | hex:"2"  }}</code>
+                        <span class="tooltip-content"><small>Memory Slot</small><br /><code>
+                        Address: {{memoryOffset + (idx*16) + sidx | hex:"4"}} <br/>
+                        Hex: {{ memoryArray[memoryOffset + (idx*16) + sidx] | hex:"2" }}<br/>
+                        Bin: {{ memoryArray[memoryOffset + (idx*16) + sidx] | bin:"2" }}<br />
+                        Dec: {{ memoryArray[memoryOffset + (idx*16) + sidx] | dec:"2" }}
+                      </code></span>
+                    </a>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
-
-      <!-- ALU Flags Display -->
-      <table class="table table-compact alu-display">
-      <thead>
-        <tr>
-          <th>Z</th>
-          <th>C</th>
-          <th>S</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
-              <code class="dot">{{ flagZ ? "●" : "○"}}</code>
-              <span class="tooltip-content"><small>Zero Flag</small><br/><code>{{ flagZ ? "SET" : "CLEAR"}}</code></span>
-            </a></td>
-          <td> <a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
-              <code class="dot">{{ flagC ? "●" : "○"}}</code>
-              <span class="tooltip-content"><small>Carry Flag</small><br/><code>{{ flagC ? "SET" : "CLEAR"}}</code></span>
-            </a></td>
-          <td> <a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
-              <code class="dot">{{ flagS ? "●" : "○"}}</code>
-              <span class="tooltip-content"><small>Sign Flag</small><br/><code>{{ flagS ? "SET" : "CLEAR"}}</code></span>
-            </a></td>
-        </tr>
-      </tbody>
-    </table>
-
-  </div>
-   <!-- Memory Display -->
-   <table class="table table-compact memory-display" style="margin-top: 0;">
-    <thead>
-      <tr>
-        <th>
-          <a *ngIf="memoryOffset>=128" href="#" (click)="prevOffset()">&lt;</a>
-        </th>
-        <th colspan="14">Memory <small>(offset </small><code>{{memoryOffset | hex:"4" }}</code><small>)</small></th>
-        <th>
-          <a *ngIf="memoryOffset<32640" href="#" (click)="nextOffset()">&gt;</a>
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let idx of [0,1,2,3,4,5,6,7]">
-        <td *ngFor="let sidx of [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];"
-          [class.pc-marker]="registerPC === (memoryOffset + (idx*16) + sidx)">
-          <a href="#" role="tooltip" class="tooltip tooltip-sm" [class.tooltip-right]="sidx<=7 && idx<=3"
-            [class.tooltip-left]="sidx>=8 && idx<=3" [class.tooltip-top-right]="sidx<=7 && idx>=4"
-            [class.tooltip-top-left]="sidx>=8 && idx>=4">
-            <code>{{ memoryArray[memoryOffset + (idx*16) + sidx] | hex:"2"  }}</code>
-            <span class="tooltip-content"><small>Memory Slot</small><br /><code>
-              Address: {{memoryOffset + (idx*16) + sidx | hex:"4"}} <br/>
-              Hex: {{ memoryArray[memoryOffset + (idx*16) + sidx] | hex:"2" }}<br/>
-              Bin: {{ memoryArray[memoryOffset + (idx*16) + sidx] | bin:"2" }}<br />
-              Dec: {{ memoryArray[memoryOffset + (idx*16) + sidx] | dec:"2" }}
-            </code></span>
-          </a>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
 

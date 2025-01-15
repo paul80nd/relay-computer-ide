@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NgIf, NgFor } from '@angular/common';
+
 import { ClrCheckboxModule } from '@clr/angular';
 import { BinPipe } from './bin.pipe';
 import { DecPipe } from './dec.pipe';
@@ -9,7 +9,7 @@ import { HexPipe } from './hex.pipe';
     selector: 'app-ride-emulator',
     templateUrl: './emulator.component.html',
     standalone: true,
-    imports: [NgIf, ClrCheckboxModule, NgFor, BinPipe, DecPipe, HexPipe]
+    imports: [ClrCheckboxModule, BinPipe, DecPipe, HexPipe]
 })
 export class EmulatorComponent {
 

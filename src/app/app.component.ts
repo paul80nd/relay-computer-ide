@@ -5,14 +5,14 @@ import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
 import { EditorComponent } from './editor/editor.component';
 import { ClrIconModule, ClrCheckboxModule, ClrStopEscapePropagationDirective, ClrPopoverHostDirective, ClrDropdownModule, ClrConditionalModule, ClrVerticalNavModule, ClrSidePanelModule, ClrAccordionModule, ClrAlertModule } from '@clr/angular';
-import { NgIf } from '@angular/common';
+
 import { DocsComponent } from './docs/docs.component';
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     standalone: true,
-    imports: [ClrIconModule, ClrCheckboxModule, ClrStopEscapePropagationDirective, ClrPopoverHostDirective, ClrDropdownModule, ClrConditionalModule, NgIf, DocsComponent, EditorComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, ClrSidePanelModule, ClrAccordionModule, ClrAlertModule]
+    imports: [ClrIconModule, ClrCheckboxModule, ClrStopEscapePropagationDirective, ClrPopoverHostDirective, ClrDropdownModule, ClrConditionalModule, DocsComponent, EditorComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, ClrSidePanelModule, ClrAccordionModule, ClrAlertModule]
 })
 export class AppComponent implements OnInit {
 
