@@ -1,8 +1,11 @@
 import { Component, Input } from '@angular/core';
+import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
 
 @Component({
-  selector: 'app-ride-output',
-  templateUrl: './output.component.html'
+    selector: 'app-ride-output',
+    templateUrl: './output.component.html',
+    standalone: true,
+    imports: [MonacoEditorModule]
 })
 export class OutputComponent {
 

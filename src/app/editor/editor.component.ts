@@ -1,9 +1,12 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
 
 @Component({
-  selector: 'app-ride-editor',
-  templateUrl: './editor.component.html'
+    selector: 'app-ride-editor',
+    templateUrl: './editor.component.html',
+    standalone: true,
+    imports: [MonacoEditorModule]
 })
 export class EditorComponent {
   @Output() codeChanged = new EventEmitter<string>();

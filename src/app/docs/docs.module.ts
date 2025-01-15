@@ -14,10 +14,10 @@ import {
 ClarityIcons.addIcons(downloadCloudIcon, libraryIcon, uploadCloudIcon);
 
 @NgModule({
-  declarations: [DocsComponent],
-  imports: [
-    ClarityModule,
-  ],
-  exports: [DocsComponent]
+    imports: [
+        ClarityModule,
+        DocsComponent,
+    ],
+    exports: [DocsComponent]
 })
 export class DocsModule { }

@@ -9,12 +9,10 @@ import { HexPipe } from './hex.pipe';
 import { EmulatorComponent } from './emulator.component';
 
 @NgModule({
-  declarations: [
-    EmulatorComponent,
-    BinPipe,
-    DecPipe,
-    HexPipe],
-  imports: [BrowserModule, ClrCheckboxModule],
-  exports: [EmulatorComponent]
+    imports: [BrowserModule, ClrCheckboxModule, EmulatorComponent,
+        BinPipe,
+        DecPipe,
+        HexPipe],
+    exports: [EmulatorComponent]
 })
 export class EmulatorModule { }

@@ -5,11 +5,11 @@ import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
 import { ClarityModule } from '@clr/angular';
 
 @NgModule({
-  declarations: [EditorComponent],
-  imports: [
-    MonacoEditorModule,
-    ClarityModule
-  ],
-  exports: [EditorComponent]
+    imports: [
+        MonacoEditorModule,
+        ClarityModule,
+        EditorComponent
+    ],
+    exports: [EditorComponent]
 })
 export class EditorModule { }
