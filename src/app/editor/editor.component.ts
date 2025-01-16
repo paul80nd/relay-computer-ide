@@ -5,7 +5,6 @@ import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
 @Component({
     selector: 'app-ride-editor',
     templateUrl: './editor.component.html',
-    standalone: true,
     imports: [MonacoEditorModule]
 })
 export class EditorComponent {

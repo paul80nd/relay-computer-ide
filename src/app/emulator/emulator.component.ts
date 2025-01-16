@@ -8,7 +8,6 @@ import { HexPipe } from './hex.pipe';
 @Component({
     selector: 'app-ride-emulator',
     templateUrl: './emulator.component.html',
-    standalone: true,
     imports: [ClrCheckboxModule, BinPipe, DecPipe, HexPipe]
 })
 export class EmulatorComponent {
