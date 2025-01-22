@@ -1,0 +1,162 @@
+; ***********************************************************
+; Example of byte-by-byte long addition of 10-byte numbers:
+;
+;   32 22 22 22 22 22 22 22 22 23 (sa)
+; + 00 21 22 12 21 22 12 21 22 12 (sb)
+; = 32 43 44 34 43 44 34 43 44 35
+;
+; + 00 00 ac ef 6d c4 35 3f 38 92 (sc)
+; = 32 43 f1 23 b1 08 69 82 7c c7 (has carry at F1 and B1)
+;
+; + 00 00 05 50 38 c3 fd 3e 0f e8 (sd)
+; = 32 43 f6 73 e9 cc 66 c0 8c af
+;
+; + 00 00 00 32 6f e6 de a6 0f b8 (se)
+; = 32 43 f6 a6 59 b3 45 66 9c 67
+;
+; Expected to take 22 mins to complete at default clock speed
+; ***********************************************************
+
+; Perform each addition in turn by calling long add routine
+
+; -------------- if can load M with sa sb then don't need to do from mem
+; -------------- can then txfr m into xy and len in a through ldi
+; -------------- need shifting and lo/hi bytes compiling
+; -------------- then could use macros to simplify calling
+        jsr long_add    ; sa = sa + sb (9 bytes)
+        dfb sa, sb, 9
+
+        jsr long_add    ; sa = sa + sc (8 bytes)
+        dfb sa, sc, 8
+
+        jsr long_add    ; sa = sa + sd (8 bytes)
+        dfb sa, sd, 8
+
+        jsr long_add    ; sa = sa + se (7 bytes)
+        dfb sa, se, 7
+        hlt
+
+; Initial values in memory (bytes are little-endian ordered)
+; Values are aligned to ease visability in memory viewer
+stxy:   dfw 0           ; Stash when XY will be mutated in a function
+        org 0x20
+sa:     dfb 0x23, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x32
+        org 0x30
+sb:     dfb 0x12, 0x22, 0x21, 0x12, 0x22, 0x21, 0x12, 0x22, 0x21, 0x00
+        org 0x40
+sc:     dfb 0x92, 0x38, 0x3F, 0x35, 0xC4, 0x6D, 0xEF, 0xAC, 0x00, 0x00
+        org 0x50
+sd:     dfb 0xE8, 0x0F, 0x3E, 0xFD, 0xC3, 0x38, 0x50, 0x05, 0x00, 0x00
+        org 0x60
+se:     dfb 0xB8, 0x0F, 0xA6, 0xDE, 0xE6, 0x6F, 0x32, 0x00, 0x00, 0x00
+
+; *****************************************************
+; Byte-by-byte Long Addition: (A) = (A) + (B)
+;
+; Parameters follow jsr (XY points to first param)
+; 1) Zero page location of augend value (A)
+; 2) Zero page location of addend value (B)
+; 3) Number of bytes in addend value (B)
+;
+; Parameters and next instruction must be in same page.
+; Length of augend must be at least length of addend.
+;
+; Mutates A, B, C, D, M, XY
+; *****************************************************
+long_add:
+; ------------- have M and A
+; ------------- XY has next addr
+; ------------- CD = XY capture rtn address
+; ------------- XY = M txfr params
+; ------------- set M to rtn+1
+; ------------- write C
+; ------------- set M to rtn+2 (24c vs 30c)
+; ------------- write D
+        ; Read parameters into registers
+        mov m1,x        ; p1 -> A (augend zp address)
+        mov m2,y
+        ldr a
+        ixy             ; p2 -> B (addend zp address)
+        mov m2,y
+        ldr b
+        ixy             ; p3 -> C (addend length)
+        mov m2,y
+        ldr c
+        ixy
+
+        ; Stash return address
+        mov d,x
+        ldi m,stxy
+        str d
+        mov d,y
+        mov xy,m
+        ixy
+        mov m2,y
+        str d
+
+        ; Initialise indexing and run registers
+        mov y,a         ; Y = augend zp address
+        mov x,b         ; X = addend zp address
+        clr m1          ; M1 = zero page
+        add d           ; D = zp address after added
+
+        ; add two bytes together
+loop:   mov m2,x        ; C <- addend byte (m1y)
+        ldr c
+        mov m2,y        ; B <- augend byte (m1x)
+        ldr b
+        add             ; A = B + C
+        str a           ; A -> augend byte (m1x)
+
+        ; Branch if addition caused carry
+        bcs carry
+
+        ; increment x and y pointers
+ cont:  ixy             ; Y++ (via inc xy)
+        mov b,x         ; x++
+        inc
+        mov x,a
+
+        ; compare with target
+        mov c,d
+        mov b,a
+        cmp
+        bne loop
+
+        ; Restore return address and return
+        ldi m,stxy
+        ldr a
+        mov xy, m
+        ixy
+        mov m2,y
+        ldr d
+        mov x,a
+        mov y,d
+        rts
+        ; ---------------- rtn: jmp * ------ would allow rtn+1 to replaced
+
+carry:  ; Now need to add a 1 to next position in sum
+
+        ; increment m2 (to point at next byte in augend)
+        mov b,m2
+        inc
+        mov m2,a
+
+        ; increment augend byte (m1x)
+        ldr b
+        inc
+        str a
+
+        ; Go again if caused carry
+        bcs carry
+
+        ; Otherwise done and can continue
+        jmp cont
+
+; TODO - EDITOR
+; Scopes for variables
+; Maybe !align rather than org literal
+; suggest registers as lower case (usually are now)
+; arithmetic on pointers (will allow return address to be set) - so can use * for current
+; show cycles in hover over
+; dff to dfs (define space)
