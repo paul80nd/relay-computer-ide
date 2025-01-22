@@ -58,10 +58,22 @@
   <ul cds-text="body" cds-layout="m-t:xs">
     <li>a general purpose register: <span cds-text="code">a, b, c, d, m1, m2, x,
       y</span></li>
-      <li>a 16-bit register: <span cds-text="code">m, j, xy</span></li>
-      <li>a constant</li>
-      <li>a label (treated as a 16-bit value or the lower byte for 8-bit operands)</li>
+    <li>a 16-bit register: <span cds-text="code">m, j, xy</span></li>
+    <li>a constant</li>
+    <li>a label (treated as a 16-bit value or the lower byte for 8-bit operands)</li>
+    <li>the current address: <span cds-text="code">*</span></li>
   </ul>
+  <p cds-text="body" cds-layout="m-t:md">
+    Operators can be used with all operands except registers:
+  </p>
+  <ul cds-text="body" cds-layout="m-t:xs">
+    <li>Additive <span cds-text="code">+</span> and <span cds-text="code">-</span></li>
+  </ul>
+  <p cds-text="body" cds-layout="m-t:md">
+    A special <span cds-text="code">§</span> operator also exists that will take the lower byte
+    of the left and right operand and combine into a 16-bit value of left:right. This can be usefull
+    for 'quick loading' the <span cds-text="code">m</span> register. For example: <span cds-text="code">ldi m,label§23</span>.
+  </p>
 </details>
 <details cds-layout="m-b:md">
   <summary cds-text="subsection">Assembly Instructions</summary>
