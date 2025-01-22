@@ -1,4 +1,4 @@
-<div cds-layout="vertical gap:xs">
+<div cds-layout="vertical gap:xs" class="simulation">
   <div cds-layout="horizontal gap:xs wrap:none align:horizontal-stretch">
 
     <!-- 8-bit Register Display -->
@@ -95,169 +95,173 @@
             <a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
               <code>{{ registerPC | hex:"4"}}</code>
               <span class="tooltip-content"><small>Program
-                Counter</small><br /><code>Hex: {{ registerPC | hex:"4"}}</code></span>
-              </a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                  Counter</small><br /><code>Hex: {{ registerPC | hex:"4"}}</code></span>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-      <!-- 16-bit Register Display -->
-      <table class="table table-compact">
-        <thead>
-          <tr>
-            <th>M</th>
-            <th>XY</th>
-            <th>J</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
-                <code>{{ registerM | hex:"4"}}</code>
-                <span class="tooltip-content"><small>Register M
+    <!-- 16-bit Register Display -->
+    <table class="table table-compact">
+      <thead>
+        <tr>
+          <th>M</th>
+          <th>XY</th>
+          <th>J</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
+              <code>{{ registerM | hex:"4"}}</code>
+              <span class="tooltip-content"><small>Register M
                   (M1:M2)</small><br /><code>Hex: {{ registerM | hex:"4"}}<br />Dec: {{ registerM | dec:"4" }}</code></span>
-                </a>
-              </td>
-              <td>
-                <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
-                  <code>{{ registerXY | hex:"4"}}</code>
-                  <span class="tooltip-content"><small>Register XY
-                    (X:Y)</small><br /><code>Hex: {{ registerXY | hex:"4"}}<br />Dec: {{ registerXY | dec:"4" }}</code></span>
-                  </a>
-                </td>
-                <td>
-                  <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
-                    <code>{{ registerJ | hex:"4"}}</code>
-                    <span class="tooltip-content"><small>Register J
-                      (J1:J2)</small><br /><code>Hex: {{ registerJ | hex:"4"}}<br />Dec: {{ registerJ | dec:"4" }}</code></span>
-                    </a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            </a>
+          </td>
+          <td>
+            <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
+              <code>{{ registerXY | hex:"4"}}</code>
+              <span class="tooltip-content"><small>Register XY
+                  (X:Y)</small><br /><code>Hex: {{ registerXY | hex:"4"}}<br />Dec: {{ registerXY | dec:"4" }}</code></span>
+            </a>
+          </td>
+          <td>
+            <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
+              <code>{{ registerJ | hex:"4"}}</code>
+              <span class="tooltip-content"><small>Register J
+                  (J1:J2)</small><br /><code>Hex: {{ registerJ | hex:"4"}}<br />Dec: {{ registerJ | dec:"4" }}</code></span>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-            <!-- PS Register Display -->
-            <table class="table table-compact">
-              <thead>
-                <tr>
-                  <th>PS</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
-                      <code>{{ primarySW | hex:"2"}}</code>
-                      <span class="tooltip-content">
-                        <small> Primary Switches</small><br />
-                        <code>
+    <!-- PS Register Display -->
+    <table class="table table-compact">
+      <thead>
+        <tr>
+          <th>PS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <a href="#" role="tooltip" class="tooltip tooltip-bottom-left">
+              <code>{{ primarySW | hex:"2"}}</code>
+              <span class="tooltip-content">
+                <small> Primary Switches</small><br />
+                <code>
                           Hex: {{ primarySW | hex:"2" }}<br />
                           Bin: {{ primarySW | bin:"2" }}<br />
                           Dec: {{ primarySW | dec:"2" }}
                         </code>
-                      </span>
-                    </a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+              </span>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-          </div>
-          <div cds-layout="horizontal gap:xs wrap:none align:horizontal-stretch">
+  </div>
+  <div cds-layout="horizontal gap:xs wrap:none">
 
-            <!-- Control and Panel Switches -->
-            <div cds-layout="vertical gap:xxxs">
-              <div class="btn-group btn-sm">
-                @if (!running) {
-                  <button (click)="run()" class="btn">Run</button>
-                }
-                @if (running) {
-                  <button (click)="stop()" class="btn btn-primary">Stop</button>
-                }
-                <button (click)="step()" class="btn">Step</button>
-                <button (click)="reset()" class="btn">Reset</button>
-              </div>
-              <div cds-layout="horizontal gap:xs wrap:none align:horizontal-stretch">
-                <input type="checkbox" clrCheckbox (click)="flipBit(7)" />
-                <input type="checkbox" clrCheckbox (click)="flipBit(6)" />
-                <input type="checkbox" clrCheckbox (click)="flipBit(5)" />
-                <input type="checkbox" clrCheckbox (click)="flipBit(4)" />
-                <input type="checkbox" clrCheckbox (click)="flipBit(3)" />
-                <input type="checkbox" clrCheckbox (click)="flipBit(2)" />
-                <input type="checkbox" clrCheckbox (click)="flipBit(1)" />
-                <input type="checkbox" clrCheckbox (click)="flipBit(0)" />
-              </div>
-            </div>
+    <!-- Control and Panel Switches -->
+    <div cds-layout="vertical gap:xxxs align:stretch">
+      <div class="btn-group btn-sm" cds-layout="align:horizontal-stretch align:fill">
+        @if (!running) {
+        <button (click)="run()" class="btn">Run</button>
+        }
+        @if (running) {
+        <button (click)="stop()" class="btn btn-primary">Stop</button>
+        }
+        <button (click)="step()" class="btn">Step</button>
+        <button (click)="reset()" class="btn">Reset</button>
+      </div>
+      <div cds-layout="horizontal gap:xs wrap:none align:horizontal-stretch">
+        <div class="btn-group btn-sm" cds-layout="align:fill">
+          <div class="checkbox btn"><input type="checkbox" id="ps7" (click)="flipBit(7)" /><label for="ps7">7</label></div>
+          <div class="checkbox btn"><input type="checkbox" id="ps6" (click)="flipBit(6)" /><label for="ps6">6</label></div>
+          <div class="checkbox btn"><input type="checkbox" id="ps5" (click)="flipBit(5)" /><label for="ps5">5</label></div>
+          <div class="checkbox btn"><input type="checkbox" id="ps4" (click)="flipBit(4)" /><label for="ps4">4</label></div>
+          <div class="checkbox btn"><input type="checkbox" id="ps3" (click)="flipBit(3)" /><label for="ps3">3</label></div>
+          <div class="checkbox btn"><input type="checkbox" id="ps2" (click)="flipBit(2)" /><label for="ps2">2</label></div>
+          <div class="checkbox btn"><input type="checkbox" id="ps1" (click)="flipBit(1)" /><label for="ps1">1</label></div>
+          <div class="checkbox btn"><input type="checkbox" id="ps0" (click)="flipBit(0)" /><label for="ps0">0</label></div>
+        </div>
+      </div>
+    </div>
 
-            <!-- ALU Flags Display -->
-            <table class="table table-compact alu-display">
-              <thead>
-                <tr>
-                  <th>Z</th>
-                  <th>C</th>
-                  <th>S</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
-                    <code class="dot">{{ flagZ ? "●" : "○"}}</code>
-                    <span class="tooltip-content"><small>Zero Flag</small><br/><code>{{ flagZ ? "SET" : "CLEAR"}}</code></span>
-                  </a></td>
-                  <td> <a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
-                    <code class="dot">{{ flagC ? "●" : "○"}}</code>
-                    <span class="tooltip-content"><small>Carry Flag</small><br/><code>{{ flagC ? "SET" : "CLEAR"}}</code></span>
-                  </a></td>
-                  <td> <a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
-                    <code class="dot">{{ flagS ? "●" : "○"}}</code>
-                    <span class="tooltip-content"><small>Sign Flag</small><br/><code>{{ flagS ? "SET" : "CLEAR"}}</code></span>
-                  </a></td>
-                </tr>
-              </tbody>
-            </table>
+    <!-- ALU Flags Display -->
+    <table class="table table-compact alu-display">
+      <thead>
+        <tr>
+          <th>Z</th>
+          <th>C</th>
+          <th>S</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
+              <code class="dot">{{ flagZ ? "●" : "○"}}</code>
+              <span class="tooltip-content"><small>Zero Flag</small><br /><code>{{ flagZ ? "SET" : "CLEAR"}}</code></span>
+            </a></td>
+          <td> <a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
+              <code class="dot">{{ flagC ? "●" : "○"}}</code>
+              <span class="tooltip-content"><small>Carry Flag</small><br /><code>{{ flagC ? "SET" : "CLEAR"}}</code></span>
+            </a></td>
+          <td> <a href="#" role="tooltip" class="tooltip tooltip-bottom-right">
+              <code class="dot">{{ flagS ? "●" : "○"}}</code>
+              <span class="tooltip-content"><small>Sign Flag</small><br /><code>{{ flagS ? "SET" : "CLEAR"}}</code></span>
+            </a></td>
+        </tr>
+      </tbody>
+    </table>
 
-          </div>
-          <!-- Memory Display -->
-          <table class="table table-compact memory-display" style="margin-top: 0;">
-            <thead>
-              <tr>
-                <th>
-                  @if (memoryOffset>=128) {
-                    <a href="#" (click)="prevOffset()">&lt;</a>
-                  }
-                </th>
-                <th colspan="14">Memory <small>(offset </small><code>{{memoryOffset | hex:"4" }}</code><small>)</small></th>
-                <th>
-                  @if (memoryOffset<32640) {
-                    <a href="#" (click)="nextOffset()">&gt;</a>
-                  }
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (idx of [0,1,2,3,4,5,6,7]; track idx) {
-                <tr>
-                  @for (sidx of [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; track sidx) {
-                    <td
-                      [class.pc-marker]="registerPC === (memoryOffset + (idx*16) + sidx)">
-                      <a href="#" role="tooltip" class="tooltip tooltip-sm" [class.tooltip-right]="sidx<=7 && idx<=3"
-                        [class.tooltip-left]="sidx>=8 && idx<=3" [class.tooltip-top-right]="sidx<=7 && idx>=4"
-                        [class.tooltip-top-left]="sidx>=8 && idx>=4">
-                        <code>{{ memoryArray[memoryOffset + (idx*16) + sidx] | hex:"2"  }}</code>
-                        <span class="tooltip-content"><small>Memory Slot</small><br /><code>
+  </div>
+  <!-- Memory Display -->
+  <table class="table table-compact memory-display" style="margin-top: 0;">
+    <thead>
+      <tr>
+        <th>
+          @if (memoryOffset>=128) {
+          <a href="#" (click)="prevOffset()">&lt;</a>
+          }
+        </th>
+        <th colspan="14">Memory <small>(offset </small><code>{{memoryOffset | hex:"4" }}</code><small>)</small></th>
+        <th>
+          @if (memoryOffset<32640) {
+            <a href="#" (click)="nextOffset()">&gt;</a>
+            }
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (idx of [0,1,2,3,4,5,6,7]; track idx) {
+      <tr>
+        @for (sidx of [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; track sidx) {
+        <td [class.pc-marker]="registerPC === (memoryOffset + (idx*16) + sidx)"
+          [class.m-marker]="registerM === (memoryOffset + (idx*16) + sidx)">
+          <a href="#" role="tooltip" class="tooltip tooltip-sm" [class.tooltip-right]="sidx<=7 && idx<=3"
+            [class.tooltip-left]="sidx>=8 && idx<=3" [class.tooltip-top-right]="sidx<=7 && idx>=4"
+            [class.tooltip-top-left]="sidx>=8 && idx>=4">
+            <code>{{ memoryArray[memoryOffset + (idx*16) + sidx] | hex:"2"  }}</code>
+            <span class="tooltip-content"><small>Memory Slot</small><br /><code>
                         Address: {{memoryOffset + (idx*16) + sidx | hex:"4"}} <br/>
                         Hex: {{ memoryArray[memoryOffset + (idx*16) + sidx] | hex:"2" }}<br/>
                         Bin: {{ memoryArray[memoryOffset + (idx*16) + sidx] | bin:"2" }}<br />
                         Dec: {{ memoryArray[memoryOffset + (idx*16) + sidx] | dec:"2" }}
                       </code></span>
-                    </a>
-                  </td>
-                }
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
+          </a>
+        </td>
+        }
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
+<div class="editor-footer" [attr.status]="stateType" cds-layout="horizontal gap:xs align:vertical-center">
+  <span cds-text="secondary regular" [innerHTML]="stateText"></span>
+</div>

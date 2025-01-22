@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 
-import { ClrCheckboxModule } from '@clr/angular';
 import { BinPipe } from './bin.pipe';
 import { DecPipe } from './dec.pipe';
 import { HexPipe } from './hex.pipe';
@@ -8,7 +7,7 @@ import { HexPipe } from './hex.pipe';
 @Component({
     selector: 'app-ride-emulator',
     templateUrl: './emulator.component.html',
-    imports: [ClrCheckboxModule, BinPipe, DecPipe, HexPipe]
+    imports: [BinPipe, DecPipe, HexPipe]
 })
 export class EmulatorComponent {
 
@@ -27,6 +26,10 @@ export class EmulatorComponent {
   flagS = false;
   flagC = false;
   primarySW = 0;
+  cycleCount = 0;
+
+  stateType: string = 'info';
+  stateText: string = 'Ready';
 
   running = false;
 
@@ -43,6 +46,7 @@ export class EmulatorComponent {
 
   load(values: Uint8Array) {
     if (values.length > 2) {
+      this.reset();
       const offset = values[0] + (values[1] << 8);
       const prog = values.slice(2);
       for (let i = 0; i < prog.length; i++) {
@@ -58,6 +62,9 @@ export class EmulatorComponent {
     this.registerI = 0; this.registerPC = 0;
     this.registerM = 0; this.registerXY = 0; this.registerJ = 0;
     this.flagC = false; this.flagS = false; this.flagZ = false;
+    this.cycleCount = 0;
+    this.stateText = 'Ready';
+    this.stateType = 'info';
   }
 
   step(): boolean {
@@ -73,6 +80,7 @@ export class EmulatorComponent {
       const v = (instr & 0x10) === 0x10 ? (instr & 0x0F) + 0xF0 : (instr & 0x0F);
       if (r) { this.registerB = v; } else { this.registerA = v; }
       this.registerPC += 1;
+      this.countCycles(8);
       return true;
     }
 
@@ -83,6 +91,7 @@ export class EmulatorComponent {
       const v = (d === s) ? 0 : this.readMov8Reg[s]();
       this.setMov8Reg[d](v);
       this.registerPC += 1;
+      this.countCycles(8);
       return true;
     }
 
@@ -96,6 +105,28 @@ export class EmulatorComponent {
       this.flagS = (v & 0x80) === 0x80;
       if (r) { this.registerD = (v & 0xFF); } else { this.registerA = (v & 0xFF); }
       this.registerPC += 1;
+      this.countCycles(8);
+      return true;
+    }
+
+    if ((instr & 0xFC) === 0x90) // LOAD 100100dd
+    {
+      const d = (instr & 0x03);
+      const v = this.memoryArray[this.registerM]
+      this.registerPC += 1;
+      this.loadReg[d](v);
+      this.countCycles(12);
+      return true;
+    }
+
+
+    if ((instr & 0xFC) === 0x98) // STORE 100110ss
+    {
+      const s = (instr & 0x03);
+      const v = this.saveReg[s]();
+      this.registerPC += 1;
+      this.memoryArray[this.registerM] = v;
+      this.countCycles(12);
       return true;
     }
 
@@ -105,6 +136,7 @@ export class EmulatorComponent {
       const s = (instr & 0x03)
       const v = (d === 0 && s === 1) ? 0 : this.readMov16Reg[s]();
       this.registerPC += 1;
+      this.countCycles(10);
       this.setMov16Reg[d](v);
       return true;
     }
@@ -114,6 +146,7 @@ export class EmulatorComponent {
       const d = (instr & 0x01) === 0x01;
       if (d) { this.registerD = this.primarySW; } else { this.registerA = this.primarySW; }
       this.registerPC += 1;
+      this.countCycles(10);
       return true;
     }
 
@@ -121,8 +154,17 @@ export class EmulatorComponent {
     {
       const r = (instr & 0x01) === 0x01;
       this.registerPC += 1;
+      this.countCycles(10);
       if (r) { this.registerPC = this.primarySW; }
       return false;
+    }
+
+    if ((instr & 0xFF) === 0xB0) // INCXY 10110000
+    {
+      this.registerXY += 1;
+      this.registerPC += 1;
+      this.countCycles(14);
+      return true;
     }
 
     if ((instr & 0xC0) === 0xC0) // GOTO 11dscznx
@@ -153,10 +195,21 @@ export class EmulatorComponent {
       const jmp = (s && this.flagS) || (c && this.flagC) || (z && this.flagZ) || (n && !this.flagZ);
       if (jmp) { this.registerPC = tgt; }
 
+      this.countCycles(24);
       return true;
     }
 
     return false;
+  }
+
+  countCycles(cycles: number) {
+    this.cycleCount += cycles;
+    this.stateType = 'success'
+    const d = Math.floor(this.cycleCount / 6);  // Assuming 6 cycles per second
+    const h = Math.floor(d / 3600);
+    const m = Math.floor((d - (h * 3600)) / 60);
+    const s = d - (h * 3600) - (m * 60);
+    this.stateText = `${this.cycleCount} cycles, ${h}h ${m.toString().padStart(2,'0')}m ${s.toString().padStart(2,'0')}s runtime`;
   }
 
   run() {
@@ -176,7 +229,7 @@ export class EmulatorComponent {
     if (!this.running) { return; }
 
     if (this.step()) {
-      setTimeout(() => this.runLoop(), 10);
+      setTimeout(() => this.runLoop(), 1);
     } else {
       this.running = false;
     }
@@ -202,6 +255,21 @@ export class EmulatorComponent {
     (v) => this.registerM = (this.registerM & 0xFF00) + v,
     (v) => this.registerXY = (this.registerXY & 0x00FF) + (v << 8),
     (v) => this.registerXY = (this.registerXY & 0xFF00) + v,
+  ]
+
+  private loadReg: Array<(v: number) => void> = [
+    (v) => this.registerA = v,
+    (v) => this.registerB = v,
+    (v) => this.registerC = v,
+    (v) => this.registerD = v
+  ]
+
+  private saveReg: Array<() => number> = [
+    () => this.registerA,
+    () => this.registerB,
+    () => this.registerC,
+    () => this.registerD,
+    () => 0
   ]
 
   private readMov16Reg: Array<() => number> = [
