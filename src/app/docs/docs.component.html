@@ -56,132 +56,141 @@
     Operands can be:
   </p>
   <ul cds-text="body" cds-layout="m-t:xs">
-    <li>a general purpose register: <span cds-text="code">A, B, C, D, M1, M2, X,
-      Y</span></li>
-      <li>a 16-bit register: <span cds-text="code">M, J, XY</span></li>
+    <li>a general purpose register: <span cds-text="code">a, b, c, d, m1, m2, x,
+      y</span></li>
+      <li>a 16-bit register: <span cds-text="code">m, j, xy</span></li>
       <li>a constant</li>
+      <li>a label (treated as a 16-bit value or the lower byte for 8-bit operands)</li>
   </ul>
 </details>
-<details>
+<details cds-layout="m-b:md">
   <summary cds-text="subsection">Assembly Instructions</summary>
   <details cds-layout="m-t:md m-l:md">
     <summary cds-text="body">Register Manipulation</summary>
     <table class="table table-vertical" cds-layout="m-t:md">
       <tbody>
         <tr>
-          <th>mov <em>dest</em>,<em>src</em></th>
-          <td>Copies a value from <em>src</em> to <em>dest</em> between any of the eight general purpose registers. If
-            <em>dest</em> and <em>src</em> are the same then <em>dest</em> will be set to 0.
-          </td>
-        </tr>
-        <tr>
-          <th>clr <em>dest</em></th>
-          <td>Clears register <em>dest</em> (sets to 0). This is the equivalent of <span cds-text="code">mov
-              dest,dest</span></td>
-        </tr>
-        <tr>
-          <th>ldi <em>dest</em>,<em>val</em></th>
+          <th>mov <em>dst</em>,<em>src</em></th>
           <td>
-            <p cds-layout="m-t:none">Loads an 8-bit constant value into <em>dest</em> (register <span
-                cds-text="code">a</span> or <span cds-text="code">b</span>), <em>val</em> can be
-              only between -16 and 15.</p>
-            <p cds-layout="m-t:xxs"> Can also load a 16-bit constant value into <em>dest</em> (register <span
-                cds-text="code">m</span> or
-              <span cds-text="code">j</span>), <em>val</em> can be between <span cds-text="code">0x0000</span> and <span
-                cds-text="code">0xFFFF</span>.
-            </p>
+            <div>Copies a value from <em>src</em> to <em>dst</em> between any of the eight general purpose 8-bit registers (<span cds-text="code">a</span>, <span cds-text="code">b</span>,
+              <span cds-text="code">c</span>, <span cds-text="code">d</span>, <span cds-text="code">m1</span>, <span cds-text="code">m2</span>, <span cds-text="code">x</span> or <span cds-text="code">y</span>).
+              If <em>dst</em> and <em>src</em> are the same then <em>dst</em> will be set to 0. Duration: 8 cycles.
+            </div>
+            <div cds-layout="m-t:xxs">Alternatively a value can be copied between a 16-bit <em>src</em> register (<span cds-text="code">m</span>, <span cds-text="code">xy</span> or <span cds-text="code">j</span>) and
+              <em>dst</em> (<span cds-text="code">xy</span> or the program counter <span cds-text="code">pc</span>). If <em>dst</em> and <em>src</em> are the same then <em>dst</em> will be set to 0. Duration: 10 cycles.
+            </div>
           </td>
+        </tr>
+        <tr>
+          <th>clr <em>dst</em></th>
+          <td>
+            <div>Clears (sets to 0) general purpose 8-bit register <em>dst</em> (<span cds-text="code">a</span>, <span cds-text="code">b</span>, <span cds-text="code">c</span>, <span cds-text="code">d</span>,
+              <span cds-text="code">m1</span>, <span cds-text="code">m2</span>, <span cds-text="code">x</span> or <span cds-text="code">y</span>). This is the equivalent of <span cds-text="code">mov <em>dst</em>,<em>dst</em></span>. Duration: 8 cycles.
+            </div>
+            <div cds-layout="m-t:xxs">Alternatively the 16-bit <span cds-text="code">xy</span> register can be cleared. This is the equivalent of <span cds-text="code">mov xy,xy</span>. Duration: 10 cycles.
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th>ldi <em>dst</em>,<em>val</em></th>
+          <td>
+            <div>Loads an 8-bit constant value into <em>dst</em> (register <span cds-text="code">a</span> or <span cds-text="code">b</span>), <em>val</em> must be between -16 and 15. Duration: 8 cycles.</div>
+            <div cds-layout="m-t:xxs">Can also load a 16-bit constant value into <em>dst</em> (register <span cds-text="code">m</span> or
+              <span cds-text="code">j</span>), <em>val</em> can be between <span cds-text="code">0x0000</span> and <span cds-text="code">0xFFFF</span>. Duration: 24 cycles.
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th>ldr <em>dst</em></th>
+          <td>Loads register <em>dst</em> (<span cds-text="code">a</span>, <span cds-text="code">b</span>, <span cds-text="code">c</span> or <span cds-text="code">d</span>) with the byte in memory
+            currently referenced by register <span cds-text="code">m</span>. Duration: 12 cycles.</td>
+        </tr>
+        <tr>
+          <th>str <em>src</em></th>
+          <td>Stores register <em>src</em> (<span cds-text="code">a</span>, <span cds-text="code">b</span>, <span cds-text="code">c</span> or <span cds-text="code">d</span>) into the byte of memory
+            currently referenced by register <span cds-text="code">m</span>. Duration: 12 cycles.</td>
         </tr>
       </tbody>
     </table>
   </details>
   <details cds-layout="m-t:sm m-l:md">
-    <summary cds-text="body">Logic & Arithmetic</summary>
+    <summary cds-text="body">Arithmetic & Logic (ALU)</summary>
     <table class="table table-vertical" cds-layout="m-t:sm">
       <tbody>
         <tr>
-          <td colspan="2">
-            <p cds-layout="m-t:none">
-              For all of the following instructions the result in placed in <em>dest</em> (register <span
-                cds-text="code">A</span>
-              or
-              <span cds-text="code">D</span>). If <em>dest</em> is not specified then register <span
-                cds-text="code">A</span> is
-              assumed.
-            </p>
-            <p cds-layout="m-t:xxs">Each instruction will
-              affect the condition flags <span cds-text="code">Z</span> (zero) and <span cds-text="code">S</span> (sign
-              -
-              if most
-              significant bit set) based on
-              the
-              result of the instruction.
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <th>add <em>(dest)</em></th>
+          <th></th>
           <td>
-            Adds the contents of register <span cds-text="code">B</span> and <span cds-text="code">C</span>. Affects
-            condition flag <span cds-text="code">C</span> (carry).
+            <div>
+              For ALU instructions the result in placed in <em>dst</em> (register <span cds-text="code">a</span>
+              or <span cds-text="code">d</span>). If <em>dst</em> is not specified then register <span cds-text="code">a</span> is assumed.
+            </div>
+            <div cds-layout="m-t:xxs">Each instruction affects the condition flags <span cds-text="code">Z</span> (zero) and
+              <span cds-text="code">S</span> (sign - if most significant bit set) based on the result of the instruction.
+            </div>
+            <div cds-layout="m-t:xxs">All ALU instructions take 8 cycles to execute.</div>
           </td>
         </tr>
         <tr>
-          <th>inc <em>(dest)</em></th>
+          <th>add <em>(dst)</em></th>
+          <td>Adds the contents of register <span cds-text="code">b</span> and <span cds-text="code">c</span>. Additionally affects condition flag <span cds-text="code">C</span> (carry).</td>
+        </tr>
+        <tr>
+          <th>inc <em>(dst)</em></th>
+          <td>Adds one to the contents of register <span cds-text="code">b</span> (register <span cds-text="code">c</span> is ignored). Additionally affects condition flag <span cds-text="code">C</span> (carry).</td>
+        </tr>
+        <tr>
+          <th>and <em>(dst)</em></th>
+          <td>Performs a bitwise AND on register <span cds-text="code">b</span> and <span cds-text="code">c</span>.</td>
+        </tr>
+        <tr>
+          <th>orr <em>(dst)</em></th>
+          <td>Performs a bitwise OR on register <span cds-text="code">b</span> and <span cds-text="code">c</span>.</td>
+        </tr>
+        <tr>
+          <th>eor <em>(dst)</em></th>
+          <td>Performs a bitwise XOR (exlusive OR) on register <span cds-text="code">b</span> and <span cds-text="code">c</span>. Synonym of <span cds-text="code">cmp</span>.</td>
+        </tr>
+        <tr>
+          <th>cmp <em>(dst)</em></th>
           <td>
-            Adds one to the contents of register <span cds-text="code">B</span>. Affects condition flag <span
-              cds-text="code">C</span> (carry).
+            Compares the values in register <span cds-text="code">b</span> and <span cds-text="code">c</span> setting condition flag <span cds-text="code">Z</span> (zero)
+            if the values are the same. Synonym of <span cds-text="code">eor</span>.
           </td>
         </tr>
         <tr>
-          <th>and <em>(dest)</em></th>
-          <td> Performs a bitwise AND on register <span cds-text="code">B</span> and <span cds-text="code">C</span>.
-          </td>
+          <th>not <em>(dst)</em></th>
+          <td>Performs a bitwise NOT on register <span cds-text="code">b</span> (register <span cds-text="code">c</span> is ignored).</td>
         </tr>
         <tr>
-          <th>orr <em>(dest)</em></th>
-          <td> Performs a bitwise OR on register <span cds-text="code">B</span> and <span cds-text="code">C</span>.
-          </td>
+          <th>rol <em>(dst)</em></th>
+          <td>Performs a bitwise left-rotation on register <span cds-text="code">b</span> (register <span cds-text="code">c</span> is ignored). Every bit shifts one place to the left with the left most bit rotated around to right.</td>
         </tr>
+      </tbody>
+    </table>
+    <table class="table table-vertical" cds-layout="m-t:sm">
+      <tbody>
         <tr>
-          <th>eor <em>(dest)</em><br />cmp <em>(dest)</em></th>
-          <td> Performs a bitwise XOR (exlusive OR) on register <span cds-text="code">B</span> and <span
-              cds-text="code">C</span>. </td>
-        </tr>
-        <tr>
-          <th>not <em>(dest)</em></th>
-          <td> Performs a bitwise NOT on register <span cds-text="code">B</span>. </td>
-        </tr>
-        <tr>
-          <th>rol <em>(dest)</em></th>
-          <td> Performs a bitwise left-rotation on register <span cds-text="code">B</span>. Every bit shifts one place
-            to
-            the left with the left most bit rotated around to right. </td>
+          <th>ixy</th>
+          <td>Increments the 16-bit value in the <span cds-text="code">xy</span> register by 1. Duration: 14 cycles.</td>
         </tr>
       </tbody>
     </table>
   </details>
   <details cds-layout="m-t:sm m-l:md">
-    <summary cds-text="body">Jumps</summary>
+    <summary cds-text="body">Branching</summary>
     <table class="table table-vertical" cds-layout="m-t:sm">
       <tbody>
         <tr>
-          <td colspan="2">
-            <p cds-layout="m-t:none">
-
-              For all of the following instructions the <span cds-text="code">J</span> register is loaded with the
-              address
-              referenced by
-              <em>label</em> and then based on the condition flags <span cds-text="code">Z</span>, <span
-                cds-text="code">C</span>
-              and <span cds-text="code">S</span> the program
-              counter will be loaded from the <span cds-text="code">J</span> register if the jump is required.
-            </p>
+          <th></th>
+          <td>
+            <div>
+              For the following instructions the <span cds-text="code">j</span> register is loaded with the
+              address referenced by <em>label</em> and then based on the condition flags <span cds-text="code">Z</span>,
+              <span cds-text="code">C</span> and <span cds-text="code">S</span> the program
+              counter will be loaded from the <span cds-text="code">j</span> register if the jump is required.
+            </div>
+            <div cds-layout="m-t:xxs">All branch instructions take 24 cycles to execute.</div>
           </td>
-        </tr>
-        <tr>
-          <th>jmp <em>label</em></th>
-          <td>Unconditionally jumps to <em>label</em>. </td>
         </tr>
         <tr>
           <th>beq <em>label</em></th>
@@ -189,24 +198,35 @@
         </tr>
         <tr>
           <th>bne <em>label</em></th>
-          <td>Jumps to <em>label</em> if <span cds-text="code">Z</span> is not set (last ALU operation result was not
-            0).</td>
+          <td>Jumps to <em>label</em> if <span cds-text="code">Z</span> is not set (last ALU operation result was not 0).</td>
         </tr>
         <tr>
           <th>bcs <em>label</em></th>
-          <td> Jumps to <em>label</em> if <span cds-text="code">C</span> is set (last ALU operation resulted in a
-            carry).</td>
+          <td>Jumps to <em>label</em> if <span cds-text="code">C</span> is set (last ALU operation resulted in a carry).</td>
         </tr>
         <tr>
           <th>blt <em>label</em><br />bmi <em>label</em></th>
-          <td>Jumps to <em>label</em> if <span cds-text="code">S</span> is set (last ALU operation has most significant
-            bit set /
-            is negative).</td>
+          <td>Jumps to <em>label</em> if <span cds-text="code">S</span> is set (last ALU operation has most significant bit set / is negative).</td>
         </tr>
         <tr>
           <th>ble <em>label</em></th>
-          <td> Jumps to <em>label</em> if <span cds-text="code">S</span> or <span cds-text="code">Z</span> is set (last
-            ALU operation resulted in a zero or negative value).</td>
+          <td>Jumps to <em>label</em> if <span cds-text="code">S</span> or <span cds-text="code">Z</span> is set (last ALU operation resulted in a zero or negative value).</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="table table-vertical" cds-layout="m-t:sm">
+      <tbody>
+        <tr>
+          <th>jmp <em>label</em></th>
+          <td>Unconditionally jumps to <em>label</em> (via register <span cds-text="code">j</span>). Duration: 24 cycles.</td>
+        </tr>
+        <tr>
+          <th>jsr <em>label</em></th>
+          <td>Saves the address of the next instruction into register <span cds-text="code">xy</span> and then unconditionally jumps to <em>label</em> (via register <span cds-text="code">j</span>). Notionally behaves as a 'call subroutine' operation. Duration: 24 cycles.</td>
+        </tr>
+        <tr>
+          <th>rts</th>
+          <td>Copies the value in register <span cds-text="code">xy</span> to the program counter <span cds-text="code">pc</span>. Notionally behaves as a 'return' operation to a previous <span cds-text="code">jsr</span> call. Duration: 10 cycles.</td>
         </tr>
       </tbody>
     </table>
@@ -221,7 +241,56 @@
         </tr>
         <tr>
           <th>hlr</th>
-          <td> Halts execution of the program and sets the program counter to the value on the primary switches.</td>
+          <td>Halts execution of the program and sets the program counter to the value on the primary switches.</td>
+        </tr>
+      </tbody>
+    </table>
+  </details>
+</details>
+<details>
+  <summary cds-text="subsection">Assembly Directives</summary>
+  <details cds-layout="m-t:sm m-l:md">
+    <summary cds-text="body">Organisation</summary>
+    <table class="table table-vertical" cds-layout="m-t:md">
+      <tbody>
+        <tr>
+          <th>org <em>addr</em></th>
+          <td>
+            <div>Sets the current location of the assembler to address <em>addr</em>. The next instruction will be placed at the given address.</div>
+            <div cds-layout="m-t:xxs">An 8-bit constant may be used for <em>addr</em> and will be assumed to be in the zero page (<span cds-text="code">0x00--</span>).</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </details>
+  <details cds-layout="m-t:sm m-l:md">
+    <summary cds-text="body">Define Literals</summary>
+    <table class="table table-vertical" cds-layout="m-t:md">
+      <tbody>
+        <tr>
+          <th>dfb <em>vals</em><br />dfb "<em>str</em>"</th>
+          <td>
+            <div>Define bytes: writes the given 8-bit comma seperated <em>vals</em> directly into the assembled output. Values may be any valid 8-bit constant. Where a label is used the least significant byte of that address will be used.</div>
+            <div cds-layout="m-t:xxs">Alternatively a string may be provided within double quotes which will be output as an UTF-8 byte per character.</div>
+          </td>
+        </tr>
+        <tr>
+          <th>dfw <em>vals</em><br />dfw "<em>str</em>"</th>
+          <td>
+            <div>Define words: writes the given 16-bit comma seperated <em>vals</em> directly into the assembled output. Values may be any valid 16-bit constant. Where a label is used the addess it references will be used.</div>
+            <div cds-layout="m-t:xxs">Alternatively a string may be provided within double quotes which will be output as an UTF-16BE word per character.</div>
+          </td>
+        </tr>
+        <tr>
+          <th>dff <em>n</em>, <em>v</em></th>
+          <td>Define fill: writes the given 8-bit value <em>v</em> directly into the assembled output <em>n</em> times. Values may be any valid 8-bit constant.</td>
+        </tr>
+        <tr>
+          <th>opc <em>v</em></th>
+          <td>
+            <div>Literal opcode: writes the given 8-bit value <em>v</em> directly into the assembled output. Values may be any valid 8-bit constant.</div>
+            <div cds-layout="m-t:xxs">Typically this directive is used to issue a direct opcode that has no current assembler equivalent.</div>
+          </td>
         </tr>
       </tbody>
     </table>
