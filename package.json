@@ -26,7 +26,8 @@
     "@paul80nd/rcasm": "1.8.3",
     "ngx-clipboard": "16.0.0",
     "rxjs": "7.8.1",
-    "zone.js": "0.15.0"
+    "zone.js": "0.15.0",
+    "monaco-editor": "../monaco/monaco-editor/out/monaco-editor"
   },
   "devDependencies": {
     "@angular-eslint/builder": "19.0.2",

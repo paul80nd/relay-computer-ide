@@ -16,6 +16,9 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 ## Build
 
+This IDE is built around the Microsoft Monaco in-browser code editor. As such I have a fork at <https://github.com/paul80nd/monaco-editor> with a branch that
+adds my relay computer assembly language support. The build Monaco editor is then excpected to be found locally as per the package.json reference.
+
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
 If the built project will not be hosted at the root url then it can be built as follows, for example, `ng build  --base-href https://editor.relaycomputer.co.uk`
