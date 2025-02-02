@@ -88,9 +88,7 @@ loop:   mov m2,x        ; C <- addend byte (m1x)
         ldr b
         add             ; A = B + C
         str a           ; A -> augend byte (m1x)
-
-        ; Branch if addition caused carry
-        bcs carry
+        bcs carry       ; If add caused carry ripple it through augend
 
         ; increment x and y pointers
  cont:  ixy             ; Y++ (augend)
@@ -109,23 +107,13 @@ rtn:    jmp *
 
 carry:  ; Now need to add a 1 to next position in sum
 
-        ; increment m2 (to point at next byte in augend)
-        mov b,m2
+        mov b,m2        ; increment m2 (to point at next byte in augend)
         inc
         mov m2,a
 
-        ; increment augend byte (m1x)
-        ldr b
+        ldr b           ; increment augend byte (m1y)
         inc
         str a
 
-        ; Go again if caused carry
-        bcs carry
-
-        ; Otherwise done and can continue
-        jmp cont
-
-; TODO - EDITOR
-; Scopes for variables
-; Maybe !align rather than org literal
-; show cycles in hover over
+        bcs carry       ; Go again if caused carry
+        jmp cont        ; Otherwise done and can continue
