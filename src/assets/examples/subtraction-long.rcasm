@@ -1,0 +1,148 @@
+; *****************************************************
+;  Example of byte-by-byte long subtraction
+;   (performed by 2s complement then long addition)
+;
+;    03 c3 c3 c3 c3 c3 c3 c3 c3 c3 (sa)
+;  - 01 99 99 99 99 99 99 99 99 99 (sb)
+;    fe 66 66 66 66 66 66 66 66 67 (~sb+1)
+;  = 02 2a 2a 2a 2a 2a 2a 2a 2a 2a
+;
+;  - 00 c3 0c 30 c3 0c 30 c3 0c 30 (sc)
+;    ff 3c f3 cf 3c f3 cf 3c f3 d0 (~sb+1)
+;  = 01 67 1d f9 67 1d f9 67 1d fa
+;
+;  - 00 ba 2e 8b a2 e8 ba 2e 8b a2 (sd)
+;    ff 45 d1 74 5d 17 45 d1 74 5e (~sc+1)
+;  = 00 ac ef 6d c4 35 3f 38 92 58
+;
+;  Expected duration: 23m14s at default clock speed
+; *****************************************************
+
+; Perform each subtraction in turn by calling function
+
+        ldi m,sb§sa     ; sa = sa - sb (10 bytes)
+        ldi b,10
+        jsr long_sub
+
+        ldi m,sc§sa     ; sa = sa - sc (10 bytes)
+        ldi b,10
+        jsr long_sub
+
+        ldi m,sd§sa     ; sa = sa - sd (10 bytes)
+        ldi b,10
+        jsr long_sub
+
+        hlt
+
+; Initial values in memory (bytes are little-endian ordered)
+; Values are aligned to ease visability in memory viewer
+
+        org 0x20
+sa:     dfb 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0x03
+        org 0x30
+sb:     dfb 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x01
+        org 0x40
+sc:     dfb 0x30, 0x0C, 0xC3, 0x30, 0x0C, 0xC3, 0x30, 0x0C, 0xC3, 0x00
+        org 0x50
+sd:     dfb 0xA2, 0x8B, 0x2E, 0xBA, 0xE8, 0xA2, 0x8B, 0x2E, 0xBA, 0x00
+
+; *****************************************************
+;  Byte-by-byte Long Subtraction: (A) = (A) - (B)
+;
+;   M1: Zero page location of subtrahend value (B)
+;   M2: Zero page location of minuend value (A)
+;    B: Number of bytes in values (B)
+;
+;  Length of minuend must be the same as subtrahend.
+;  Byte following minuend will mutate with carry bit.
+;  Mutates A, B, C, D, M, XY
+; *****************************************************
+long_sub:
+
+        ; Prepare registers and set return address
+        mov c,x         ; Capture return address in CD
+        mov d,y
+        mov xy,m        ; Move M params into indexer
+        ldi m,rtn+1     ; Set return address from CD
+        str c
+        ldi m,rtn+2
+        str d
+        mov c,x         ; Set end address of subtrahend in D
+        add d
+        clr m1          ; clear M1 = zero page
+
+        ; Registers are now in the following state
+        ;  Y = minuend zero page address
+        ;  X = subtrahend zero page address
+        ;  D = zp address after subtrahend
+        ; M1 = zero page
+
+        ; To simplify the main loop we'll be using ones-complement.
+        ; Therefore to give a correct minuend we increment it by one now.
+        mov m2,y        ; B <- minuend byte (m1y)
+        ldr b
+        inc
+        str a           ; A -> minuend byte (m1x)
+        bcs carry1      ; If inc caused carry ripple it through minuend
+
+loop:   ; Main loop of byte-by-byte subtraction
+        
+        ; Take 1s complement of subtrahend
+        mov m2,x        ; B <- subtrahend byte (m1x)
+        ldr b
+        not             ; A = ~B
+        mov c,a         ; C = A
+
+        ; Add two bytes together
+        mov m2,y        ; B <- minuend byte (m1y)
+        ldr b
+        add             ; A = B + C
+        str a           ; A -> minuend byte (m1x)
+
+        ; Branch if addition caused carry
+        bcs carry2
+     
+        ; increment x and y pointers
+ cont:  ixy             ; Y++ (minuend)
+        mov b,x         ; X++ (subtrahend)
+        inc
+        mov x,a
+
+        ; compare with target
+        mov c,d
+        mov b,a
+        cmp
+        bne loop
+
+        ; Jump to return address (set earlier)
+rtn:    jmp *
+
+carry1: ; Handles a carry following the initial increment
+
+        mov b,m2        ; Incement m2 (to point at next byte in minuend)
+        inc
+        mov m2,a
+
+        ldr b           ; Increment minuend byte (m1y)
+        inc
+        str a
+
+        bcs carry1      ; Go again if caused carry
+        jmp loop        ; Otherwise done and can enter main loop
+
+carry2: ; Handles a carry following a byte-to-byte-addition
+        ; This is very similar to the carry above and could be a
+        ; subroutine but we're using the XY register.
+        ; We could use the same trick at 'rtn' but this way trades
+        ; memory against additional instructions to load the return addresses.
+
+        mov b,m2        ; increment m2 (to point at next byte in minuend)
+        inc
+        mov m2,a
+
+        ldr b           ; increment minuend byte (m1x)
+        inc
+        str a
+
+        bcs carry2      ; Go again if caused carry
+        jmp cont        ; Otherwise done and can continue
