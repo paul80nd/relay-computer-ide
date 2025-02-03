@@ -2,29 +2,27 @@
 ; Simple counter program for the relay computer
 ;******************************************************
 
-        org 0x8100
-
 ; Set number to count to in data switches before running
 ; Defaults to 8 if zero
 
-start2: lds A       ; get the desired max count
-        mov b,A
-        rol D       ; ALU inst to set condition codes
+start2: lds a       ; get the desired max count
+        mov b,a
+        rol d       ; ALU inst to set condition codes
         bne cntst2  ; ok if count not zero
         ldi b,8     ; default to 8 if count not valid
-cntst2: not D       ; invert count
-        mov b,D     ; and
-        inc D       ; convert to negative number
-        clr A
-        clr C
+cntst2: not d       ; invert count
+        mov b,d     ; and
+        inc d       ; convert to negative number
+        clr a
+        clr c
 
 ; initialization now complete
 
-loop2:  mov b,A     ; get displayed count
-        inc A       ; increment and display in A
-        mov c,A     ; also display in C
-        mov b,D     ; get loop counter
-        inc D       ; increment it
+loop2:  mov b,a     ; get displayed count
+        inc a       ; increment and display in A
+        mov c,a     ; also display in C
+        mov b,d     ; get loop counter
+        inc d       ; increment it
         beq done    ; finished if zero
         jmp loop2   ; go again
 done:   hlt         ; put new loop count in data switches

@@ -1,0 +1,119 @@
+; *****************************************************
+;  Example of byte-by-byte long addition:
+;
+;    32 22 22 22 22 22 22 22 22 23 (sa)
+;  + 00 21 22 12 21 22 12 21 22 12 (sb)
+;  = 32 43 44 34 43 44 34 43 44 35
+;
+;  + 00 00 ac ef 6d c4 35 3f 38 92 (sc)
+;  = 32 43 f1 23 b1 08 69 82 7c c7 (carry at F1 and B1)
+;
+;  + 00 00 05 50 38 c3 fd 3e 0f e8 (sd)
+;  = 32 43 f6 73 e9 cc 66 c0 8c af
+;
+;  + 00 00 00 32 6f e6 de a6 0f b8 (se)
+;  = 32 43 f6 a6 59 b3 45 66 9c 67
+;
+;  Expected duration: 19m59s at default clock speed
+; *****************************************************
+
+; Perform each addition in turn by calling long add function
+
+        ldi m,sb§sa     ; sa = sa + sb (9 bytes)
+        ldi b,9
+        jsr long_add
+
+        ldi m,sc§sa     ; sa = sa + sc (8 bytes)
+        ldi b,8
+        jsr long_add
+
+        ldi m,sd§sa     ; sa = sa + sd (8 bytes)
+        ldi b,8
+        jsr long_add
+
+        ldi m,se§sa     ; sa = sa + se (7 bytes)
+        ldi b,7
+        jsr long_add
+
+        hlt
+
+; Initial values in memory (bytes are little-endian ordered)
+; Values are aligned to ease visability in memory viewer
+
+        org 0x20
+sa:     dfb 0x23, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x32
+        org 0x30
+sb:     dfb 0x12, 0x22, 0x21, 0x12, 0x22, 0x21, 0x12, 0x22, 0x21, 0x00
+        org 0x40
+sc:     dfb 0x92, 0x38, 0x3F, 0x35, 0xC4, 0x6D, 0xEF, 0xAC, 0x00, 0x00
+        org 0x50
+sd:     dfb 0xE8, 0x0F, 0x3E, 0xFD, 0xC3, 0x38, 0x50, 0x05, 0x00, 0x00
+        org 0x60
+se:     dfb 0xB8, 0x0F, 0xA6, 0xDE, 0xE6, 0x6F, 0x32, 0x00, 0x00, 0x00
+
+; *****************************************************
+;  Byte-by-byte Long Addition: (A) = (A) + (B)
+;
+;   M1: Zero page location of addend value (B)
+;   M2: Zero page location of augend value (A)
+;    B: Number of bytes in addend value (B)
+;
+;  Length of augend must be at least length of addend.
+;  Mutates A, B, C, D, M, XY
+; *****************************************************
+long_add:
+
+        ; Prepare registers and set return address
+        mov c,x         ; Capture return address in CD
+        mov d,y
+        mov xy,m        ; Move M params into indexer
+        ldi m,rtn+1     ; Set return address from CD
+        str c
+        ldi m,rtn+2
+        str d
+        mov c,x         ; Set end address of addend in D
+        add d
+        clr m1          ; clear M1 = zero page
+
+        ; Registers are now in the following state
+        ;  Y = augend zero page address
+        ;  X = addend zero page address
+        ;  D = zp address after addend
+        ; M1 = zero page
+
+        ; add two bytes together
+loop:   mov m2,x        ; C <- addend byte (m1x)
+        ldr c
+        mov m2,y        ; B <- augend byte (m1y)
+        ldr b
+        add             ; A = B + C
+        str a           ; A -> augend byte (m1x)
+        bcs carry       ; If add caused carry ripple it through augend
+
+        ; increment x and y pointers
+ cont:  ixy             ; Y++ (augend)
+        mov b,x         ; X++ (addend)
+        inc
+        mov x,a
+
+        ; compare with target
+        mov c,d
+        mov b,a
+        cmp
+        bne loop
+
+        ; Jump to return address (set earlier)
+rtn:    jmp *
+
+carry:  ; Now need to add a 1 to next position in sum
+
+        mov b,m2        ; increment m2 (to point at next byte in augend)
+        inc
+        mov m2,a
+
+        ldr b           ; increment augend byte (m1y)
+        inc
+        str a
+
+        bcs carry       ; Go again if caused carry
+        jmp cont        ; Otherwise done and can continue

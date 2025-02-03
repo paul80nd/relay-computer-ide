@@ -688,7 +688,7 @@ ${this._themeCSS}`,this._styleElements.forEach(h=>h.textContent=this._allCSS)}ge
 
 "use strict";/*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.44.0(0528bcdfa41725e806ab6b214d284b49ef87231d)
+ * Version: 0.44.0(f8845af2367f0e63e32e4797c28ec8585b5fbb1d)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
@@ -699,7 +699,7 @@ return moduleExports;
 
 "use strict";/*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.44.0(0528bcdfa41725e806ab6b214d284b49ef87231d)
+ * Version: 0.44.0(f8845af2367f0e63e32e4797c28ec8585b5fbb1d)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
