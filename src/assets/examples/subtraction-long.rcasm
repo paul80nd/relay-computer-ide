@@ -8,11 +8,11 @@
 ;  = 02 2a 2a 2a 2a 2a 2a 2a 2a 2a
 ;
 ;  - 00 c3 0c 30 c3 0c 30 c3 0c 30 (sc)
-;    ff 3c f3 cf 3c f3 cf 3c f3 d0 (~sb+1)
+;    ff 3c f3 cf 3c f3 cf 3c f3 d0 (~sc+1)
 ;  = 01 67 1d f9 67 1d f9 67 1d fa
 ;
 ;  - 00 ba 2e 8b a2 e8 ba 2e 8b a2 (sd)
-;    ff 45 d1 74 5d 17 45 d1 74 5e (~sc+1)
+;    ff 45 d1 74 5d 17 45 d1 74 5e (~sd+1)
 ;  = 00 ac ef 6d c4 35 3f 38 92 58
 ;
 ;  Expected duration: 23m14s at default clock speed
@@ -86,7 +86,7 @@ long_sub:
         bcs carry1      ; If inc caused carry ripple it through minuend
 
 loop:   ; Main loop of byte-by-byte subtraction
-        
+
         ; Take 1s complement of subtrahend
         mov m2,x        ; B <- subtrahend byte (m1x)
         ldr b
@@ -101,7 +101,7 @@ loop:   ; Main loop of byte-by-byte subtraction
 
         ; Branch if addition caused carry
         bcs carry2
-     
+
         ; increment x and y pointers
  cont:  ixy             ; Y++ (minuend)
         mov b,x         ; X++ (subtrahend)
