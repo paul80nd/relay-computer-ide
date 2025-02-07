@@ -2,23 +2,23 @@
   <h3 class="side-panel-title">Example Programs</h3>
   <div class="side-panel-body">
     <p cds-layout="m-t:none">This is a curated example programs that can be loaded into the IDE. Select a program from
-    the lists below and then click 'Load'</p>
+      the lists below and then click 'Load'</p>
 
     <clr-accordion cds-layout="m-t:md" [clrAccordionMultiPanel]="true">
       <clr-accordion-panel [clrAccordionPanelOpen]="true">
         <clr-accordion-title>Simple Examples</clr-accordion-title>
         <clr-accordion-content *clrIfExpanded>
           <p cds-text="body" cds-layout="m-y:sm">These example programs are deliberately simple to
-          demonstrate some common concepts and provide an introduction to my assembly language:</p>
+            demonstrate some common concepts and provide an introduction to my assembly language:</p>
           @if (isDevMode) {
-            <button class="btn btn-link" (click)="loadExample('counter.rcasm')">Countdown Timer</button>
+          <button class="btn btn-link" (click)="loadExample('counter.rcasm')">Countdown Timer</button>
           }
           <button class="btn btn-link" (click)="loadExample('fibonacci.rcasm')">Fibonacci Series</button>
           @if (isDevMode) {
-            <button class="btn btn-link" (click)="loadExample('hello-world.rcasm')">Hello World</button>
+          <button class="btn btn-link" (click)="loadExample('hello-world.rcasm')">Hello World</button>
           }
           @if (isDevMode) {
-            <button class="btn btn-link" (click)="loadExample('memory-test.rcasm')">Memory Test</button>
+          <button class="btn btn-link" (click)="loadExample('memory-test.rcasm')">Memory Test</button>
           }
         </clr-accordion-content>
       </clr-accordion-panel>
@@ -26,19 +26,27 @@
         <clr-accordion-title>Mathematical Operations</clr-accordion-title>
         <clr-accordion-content *clrIfExpanded>
           <p cds-text="body" cds-layout="m-y:sm">These example programs demonstrate how to perform common
-          mathematical operations that aren't native to my relay computer:</p>
+            mathematical operations that aren't native to my relay computer:</p>
           <button class="btn btn-link" (click)="loadExample('subtract-8.rcasm')">8-bit Subtract</button>
           @if (isDevMode) {
-            <button class="btn btn-link" (click)="loadExample('subtract-16.rcasm')">16-bit
+          <button class="btn btn-link" (click)="loadExample('subtract-16.rcasm')">16-bit
             Subtract</button>
-            <button class="btn btn-link" (click)="loadExample('addition-long.rcasm')">Long Addition</button>
-            <button class="btn btn-link" (click)="loadExample('subtraction-long.rcasm')">Long Subtraction</button>
+          <button class="btn btn-link" (click)="loadExample('addition-long.rcasm')">Long Addition</button>
+          <button class="btn btn-link" (click)="loadExample('subtraction-long.rcasm')">Long Subtraction</button>
           }
           <button class="btn btn-link" (click)="loadExample('multiply-8.rcasm')">8-bit Multiply</button>
           @if (isDevMode) {
-            <button class="btn btn-link" (click)="loadExample('multiply-16.rcasm')">16-bit
+          <button class="btn btn-link" (click)="loadExample('multiply-16.rcasm')">16-bit
             Multiply</button>
           }
+        </clr-accordion-content>
+      </clr-accordion-panel>
+      <clr-accordion-panel>
+        <clr-accordion-title>Handy Routines</clr-accordion-title>
+        <clr-accordion-content *clrIfExpanded>
+          <p cds-text="body" cds-layout="m-y:sm">These example programs demonstrate some common handy routines
+            for manipulating data in memory:</p>
+            <button class="btn btn-link" (click)="loadExample('convert-endian.rcasm')">Convert Endianness</button>
         </clr-accordion-content>
       </clr-accordion-panel>
     </clr-accordion>
