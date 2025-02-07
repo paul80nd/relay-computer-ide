@@ -29,15 +29,14 @@
             mathematical operations that aren't native to my relay computer:</p>
           <button class="btn btn-link" (click)="loadExample('subtract-8.rcasm')">8-bit Subtract</button>
           @if (isDevMode) {
-          <button class="btn btn-link" (click)="loadExample('subtract-16.rcasm')">16-bit
-            Subtract</button>
+          <button class="btn btn-link" (click)="loadExample('subtract-16.rcasm')">16-bit Subtract</button>
           <button class="btn btn-link" (click)="loadExample('addition-long.rcasm')">Long Addition</button>
           <button class="btn btn-link" (click)="loadExample('subtraction-long.rcasm')">Long Subtraction</button>
           }
           <button class="btn btn-link" (click)="loadExample('multiply-8.rcasm')">8-bit Multiply</button>
           @if (isDevMode) {
-          <button class="btn btn-link" (click)="loadExample('multiply-16.rcasm')">16-bit
-            Multiply</button>
+          <button class="btn btn-link" (click)="loadExample('multiply-16.rcasm')">16-bit Multiply</button>
+          <button class="btn btn-link" (click)="loadExample('reciprocal-long.rcasm')">Long Reciprocal</button>
           }
         </clr-accordion-content>
       </clr-accordion-panel>
@@ -46,7 +45,7 @@
         <clr-accordion-content *clrIfExpanded>
           <p cds-text="body" cds-layout="m-y:sm">These example programs demonstrate some common handy routines
             for manipulating data in memory:</p>
-            <button class="btn btn-link" (click)="loadExample('convert-endian.rcasm')">Convert Endianness</button>
+          <button class="btn btn-link" (click)="loadExample('convert-endian.rcasm')">Convert Endianness</button>
         </clr-accordion-content>
       </clr-accordion-panel>
     </clr-accordion>
