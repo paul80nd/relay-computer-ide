@@ -185,6 +185,19 @@ header {
   color: white;
 }
 
+.simulation clr-signpost-content .signpost-content-body {
+  margin-left: .25rem;
+  margin-right: .25rem;
+}
+
+.simulation clr-signpost-content.signpost-content {
+  min-width: 7rem;
+}
+
+.simulation clr-signpost-content .signpost-content-header {
+  display: none;
+}
+
 
 .documentation table th {
   min-width: 4rem;

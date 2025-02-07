@@ -3,11 +3,12 @@ import { Component } from '@angular/core';
 import { BinPipe } from './bin.pipe';
 import { DecPipe } from './dec.pipe';
 import { HexPipe } from './hex.pipe';
+import { ClrSignpostModule } from '@clr/angular';
 
 @Component({
-    selector: 'app-ride-emulator',
-    templateUrl: './emulator.component.html',
-    imports: [BinPipe, DecPipe, HexPipe]
+  selector: 'app-ride-emulator',
+  templateUrl: './emulator.component.html',
+  imports: [BinPipe, DecPipe, HexPipe, ClrSignpostModule]
 })
 export class EmulatorComponent {
 
@@ -27,6 +28,25 @@ export class EmulatorComponent {
   flagC = false;
   primarySW = 0;
   cycleCount = 0;
+
+  get registerM1(): number {
+    return (this.registerM & 0xFF00) >> 8;
+  }
+  get registerM2(): number {
+    return this.registerM & 0x00FF;
+  }
+  get registerX(): number {
+    return (this.registerXY & 0xFF00) >> 8;
+  }
+  get registerY(): number {
+    return this.registerXY & 0x00FF;
+  }
+  get registerJ1(): number {
+    return (this.registerJ & 0xFF00) >> 8;
+  }
+  get registerJ2(): number {
+    return this.registerJ & 0x00FF;
+  }
 
   stateType: string = 'info';
   stateText: string = 'Ready';
@@ -209,7 +229,7 @@ export class EmulatorComponent {
     const h = Math.floor(d / 3600);
     const m = Math.floor((d - (h * 3600)) / 60);
     const s = d - (h * 3600) - (m * 60);
-    this.stateText = `${this.cycleCount} cycles, ${h}h ${m.toString().padStart(2,'0')}m ${s.toString().padStart(2,'0')}s runtime`;
+    this.stateText = `${this.cycleCount} cycles, ${h}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s runtime`;
   }
 
   run() {
@@ -222,7 +242,7 @@ export class EmulatorComponent {
   }
 
   flipBit(position: number) {
-    this.primarySW = this.primarySW ^ Math.pow(2,position);
+    this.primarySW = this.primarySW ^ Math.pow(2, position);
   }
 
   private runLoop() {
