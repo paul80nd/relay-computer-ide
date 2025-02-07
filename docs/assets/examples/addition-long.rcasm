@@ -18,6 +18,8 @@
 ; *****************************************************
 
 ; Perform each addition in turn by calling long add function
+; Note we use the special '§' operator to pack two 8-bit
+; values into the 16-bit M register in the form M1§M2
 
         ldi m,sb§sa     ; sa = sa + sb (9 bytes)
         ldi b,9
@@ -58,12 +60,16 @@ se:     dfb 0xB8, 0x0F, 0xA6, 0xDE, 0xE6, 0x6F, 0x32, 0x00, 0x00, 0x00
 ;   M2: Zero page location of augend value (A)
 ;    B: Number of bytes in addend value (B)
 ;
+;  Values must be in little-endian order.
 ;  Length of augend must be at least length of addend.
+;
 ;  Mutates A, B, C, D, M, XY
 ; *****************************************************
 long_add:
 
-        ; Prepare registers and set return address
+        ; Because we'll be using XY as a general register we write the
+        ; return address directly in to the jump instruction at rtn.
+        ; That also means a bit of juggling to prepare our registers.
         mov c,x         ; Capture return address in CD
         mov d,y
         mov xy,m        ; Move M params into indexer
@@ -74,6 +80,10 @@ long_add:
         mov c,x         ; Set end address of addend in D
         add d
         clr m1          ; clear M1 = zero page
+
+        ; Although register XY is typically used for indexing memory
+        ; here we cheat a little and use it for tracking two locations.
+        ; This does mean though the addresses must be in the same page.
 
         ; Registers are now in the following state
         ;  Y = augend zero page address
@@ -105,7 +115,9 @@ loop:   mov m2,x        ; C <- addend byte (m1x)
         ; Jump to return address (set earlier)
 rtn:    jmp *
 
-carry:  ; Now need to add a 1 to next position in sum
+carry:  ; For the carry scenario we need to add 1 to the byte. It's
+        ; possible though that could cause a carry in that byte and
+        ; so on so we iterate here until no carry.
 
         mov b,m2        ; increment m2 (to point at next byte in augend)
         inc

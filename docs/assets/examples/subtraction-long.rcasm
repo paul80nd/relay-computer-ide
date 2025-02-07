@@ -19,6 +19,8 @@
 ; *****************************************************
 
 ; Perform each subtraction in turn by calling function
+; Note we use the special '§' operator to pack two 8-bit
+; values into the 16-bit M register in the form M1§M2
 
         ldi m,sb§sa     ; sa = sa - sb (10 bytes)
         ldi b,10

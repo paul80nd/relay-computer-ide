@@ -1,0 +1,107 @@
+; *****************************************************
+;  Example of endian conversion (reverse bytes):
+;
+;     12 34 56 78                   (ca)
+;  -> 78 56 34 12
+;
+;     f6 73 e9 cc 66 c0 8c          (cb)
+;  -> 8c c0 66 cc e9 73 f6
+;
+;     32 43 f6 a6 59 b3 45 66 9c 67 (cc)
+;  -> 67 9c 66 45 b3 59 a6 f6 43 32
+;
+;  Expected duration: 6m56s at default clock speed
+; *****************************************************
+
+; Perform each conversion in turn by calling reverse function
+
+        ldi m,ca        ; reverse(ca) (4 bytes)
+        ldi b,4
+        jsr reverse
+
+        ldi m,cb        ; reverse(cb) (7 bytes)
+        ldi b,7
+        jsr reverse
+
+        ldi m,cc        ; reverse(cc) (10 bytes)
+        ldi b,10
+        jsr reverse
+
+        hlt
+
+; Initial values in memory - values will be reversed in-place
+; Values are aligned to ease visability in memory viewer
+
+        org 0x20
+ca:     dfb 0x12, 0x34, 0x56, 0x78
+        dfs 5,0
+cb:     dfb 0xf6, 0x73, 0xe9, 0xcc, 0x66, 0xc0, 0x8c
+cc:     dfb 0x32, 0x43, 0xf6, 0xa6, 0x59, 0xb3, 0x45, 0x66, 0x9c, 0x67
+        org 0x50
+
+; *****************************************************
+;  Byte-by-byte endian conversion (reverse bytes)
+;
+;   M: Location of value start
+;   B: Length of value
+;
+;  Value will be converted in-place and must be within
+;  single memory page.
+;
+;  Mutates ABCD and M
+; *****************************************************
+reverse:
+
+        ; Set up first and last byte pointers (A and D)
+        mov a,m2        ; A is just M2
+        mov c,m2        ; D is M2+C-1
+        add d
+        ldi b,-1
+        mov c,d
+        add d
+
+        ; Registers are in the following state
+        ;  A = low address of first byte
+        ;  D = low address of last byte
+        ;  M = address of first byte
+        ; XY = return address
+
+        ; On entry to the loop M is pointing at 1st of pair.
+        ; M2 = A and D is low address of 2nd of pair.
+        ; We now just need to swap them via B and C registers.
+loop:   ldr b
+        mov m2,d
+        ldr c
+        str b
+        mov m2,a
+        str c
+
+        ; We now need to increment A and decrement D
+        mov b,a
+        inc a
+        ldi b,-1
+        mov c,d
+        add d
+
+        ; We now take A from D however this needs a bit of
+        ; juggling to keep in registers
+        mov c,d         ; take A and D to ALU
+        mov b,a
+        not d           ; negate B via D
+        mov b,d
+        inc d
+        mov b,d
+        add d           ; subtract
+        mov d,c         ; restore D
+
+        ; If result is less than or equal to 0 we're done
+        ; Even swaps set sign flag and odds zero flag hence ble.
+        ble rtn
+
+        ; Otherwise we're going for another loop so set M2 = A
+        mov m2,a
+        jmp loop
+
+        ; Jump to return address held in XY register
+rtn:    rts
+

@@ -1,0 +1,231 @@
+; ******************************************************
+;  Example of byte-by-byte long reciprocal using the
+;  non-restoring unsigned integer division method
+;
+;    01 / 05            (ra = 1/5 to 4 bytes)
+;  = 33 33 33 33
+;
+;    01 / 0e            (rb = 1/14 to 6 bytes)
+;  = 12 49 24 92 49 24
+;
+;    02 / 2d            (rc = 1/45 to 8 bytes)
+;  = 05 b0 5b 05 b0 5b 05 b0
+;
+;    01 / 7d            (rd = 1/125 to 10 bytes)
+;  = 02 0c 49 ba 5e 35 3f 7c ed 91
+;
+;  Expected duration: 2h38m53s at default clock speed
+; *******************************************************
+
+; Perform each reciprocal in turn by calling function
+; Note we use the special '§' operator to pack two 8-bit
+; values into the 16-bit M register in the form M1§M2
+
+        ldi m,5§ra         ; sa = 1/5 (4 bytes)
+        ldi b,4
+        jsr long_rcp
+
+        ldi m,14§rb        ; rb = 1/14 (6 bytes)
+        ldi b,6
+        jsr long_rcp
+
+        ldi m,45§rc        ; rc = 1/45 (8 bytes)
+        ldi b,8
+        jsr long_rcp
+
+        ldi m,125§rd       ; rd = 1/125 (10 bytes)
+        ldi b,10
+        jsr long_rcp
+
+        hlt
+
+; Reserve values in memory (bytes are little-endian ordered)
+; Values are aligned and initialised to 1s-4s for da-dd
+; respectively to ease visability in memory viewer
+
+        org 0x20
+ra:     dfs 4, 0x11
+        dfs 2, 0
+rd:     dfs 10, 0x44
+rb:     dfs 6, 0x22
+        dfs 2,0
+rc:     dfs 8, 0x33
+
+; *****************************************************
+;  Byte-by-byte Long Reciprocal: (M) = 1 / M1
+;
+;    M1: Divisor value (max 127)
+;    M2: Location to store result (zero page)
+;     B: Number of bytes to calculate result to
+;
+;  Resulting reciprocal is big-endian and consists of
+;  only the fractional part (integral is assummed 0).
+;  Operates on the zero page so M2 + B must be in ZP.
+;
+;  Mutates A, B, C, D, M, XY
+; *****************************************************
+long_rcp:
+
+        ; Terms
+        ;   A = remainder (register A - ongoing)
+        ;   Q = quotient (register D - current byte)
+        ;   V = divisor (register X)
+        ;  -V = negated divisor (register M1)
+
+        ; Because we'll be using XY as a general register we write the
+        ; return address directly in to the jump instruction at rtn.
+        ; That also means a bit of juggling to prepare our registers.
+        mov c,x         ; Capture return address in CD
+        mov d,y
+        mov xy,m        ; Preserve M in XY
+        ldi m,rtn+1     ; Set return address from CD
+        str c
+        ldi m,rtn+2
+        str d
+        mov m2,y        ; Set result location
+        mov c,y         ; Set end address in Y (M2+B)
+        add d
+        mov y,d
+
+        ; We now prepare for the first loop iteration. Result is built up
+        ; byte-by-byte in the A loop and within that bit-by-bit in the B loop.
+        ; For speed we set up -V in M1 for later subtractions.
+        mov b,x         ; Calculate -V into M1
+        not d
+        mov b,d
+        inc d
+        mov m1,d
+        ldi b,1         ; Place inital Q in D
+        mov d,b
+        ldi b,0         ; A=1 and set ALU flags
+        inc a
+
+        ; Registers are now in the following state
+        ;   A = 1 = remainder with 1 'shifted' in (A)
+        ;   D = Initial quotient with stop flag bit set (Q)
+        ;  M1 = Negative divisor value (-V)
+        ;  M2 = result location (zero page)
+        ;  X = divisor value (V)
+        ;  Y = address after result (zero page)
+        ; Now in state of 1 'shifted' into A and flags set
+
+a_loop: ; A loop building reciprocal byte-by-byte
+
+b_loop: ; B loop building next reciprocal byte bit-by-bit
+
+        ; At this point register A = remainder (S flag updated), D = quotient (Q)
+        ; A is ready for addition/subtraction of V and the sign flag is correct
+        ; following initialiation or shift left at the end of this B loop.
+        bmi b_add
+
+        ; If sign flag is clear we shift A left and subtract V (by adding -V)
+b_subt: mov b,a         ; A << 1 (via x2)
+        mov c,a
+        add a
+        mov b,a         ; A = A + -V
+        mov c,m1
+        add
+        jmp b_set
+
+        ; If sign flag is set we shift A left and add V
+        ; We repeat the shift left code from above trading extra
+        ; jumps and logic for additional memory use
+b_add:  mov b,a         ; A << 1 (no rotate)
+        mov c,a
+        add a
+        mov b,a         ; A = A + V
+        mov c,x
+        add
+
+        ; As a result of the add or subtract the sign flag is updated.
+        ; We now set C = 0 if sign flag set or C = 1 if sign clear.
+b_set:  clr c           ; C = 0 if S = 1 else C = 1
+        bmi b_tst
+        ldi b,1
+        mov c,b
+
+        ; Here we're using a bit set in Q to detect when we've completed
+        ; the current byte. Each time we shift Q that bit gets closer to
+        ; the msb and when it does we exit the loop here.
+ b_tst: mov b,d         ; Test msb of Q (byte complete)
+        orr d           ; !! B now holds true Q and D is mutated
+        bmi b_end
+
+        ; We can now shift Q left and apply the 1 or 0 in register C
+        ; Q is in register B and we know from above the msb is 0 so can use rotate
+        rol d           ; (Q << 1) + C
+        mov b,d
+        add d
+
+        ; We now prepare for the next iteration by performing a 'junk'
+        ; ALU operation to ensure the sign flag is set for value in A
+        mov b,a         ; Set sign flag for next iteration
+        orr a
+        mov a,b
+        jmp b_loop
+
+ b_end: ; This is the B loop 'off ramp'. The last bit of the current byte is in C
+        ; so we need to shift Q left and apply C. The complexity is that Q has the
+        ; msb set (which is how we knew to exit the loop). The remainder in A also
+        ; needs preserving for the next byte.
+
+        ; Registers are now in the following state
+        ;   A = remainder needed for next byte (A)
+        ;   B = Quotient needing shift left and C applying (Q)
+        ;   C = Final bit of byte (0 or 1)
+        ;   D = Mutated!
+        ;  M1 = Negative divisor value (-V)
+        ;  M2 = result location (zero page)
+        ;  X = divisor value (V)
+        ;  Y = address after result (zero page)
+
+        ; Here we haven't enough spare registers to left shift Q (via x2) so instead we
+        ; rotate it (which means the set msb is now in the lsb) and then add C (which
+        ; will be 0 or 1). Either way our Q is now 1 too high but we can now subtract 1
+        ; given C is freed up by that point. Throughout we need to preserve A.
+        rol d           ; Q now has lsb set
+        mov b,d         ; Add 0 or 1 in C
+        add d           ; (Q is now one too high because of rotate)
+        ldi b,-1        ; so correct by subtracting 1
+        mov c,d
+        add d
+
+        ; D now contains our complete byte so we'll store it in memory. To this though we
+        ; need to preserve the -V in M1 and set M1 to zero page. Afterwards we can restore -V.
+        mov c,m1        ; Preserve -V
+        clr m1          ; Store byte result (Q)
+        str d
+        mov m1,c        ; Restore -V
+
+
+        ; We can now bump M2 to point at the next location in memory and check if we've
+        ; completed the reciprocal by checking the end address in Y. Note that the 'beq *'
+        ; will be replaced by the actual return address at the beginning of this routine.
+        ; We do this because we want to use register XY which would otherwise hold the address.
+        mov b, m2       ; bump M2
+        inc d
+        mov m2,d
+        mov b,d         ; Check if gone past last byte (M2=Y)
+        mov c,y
+        eor d
+rtn:    beq *           ; Done if so
+
+        ; We're now heading for the next byte of the overall result so
+        ; we need to re-initialise. We reset Q with the stop flag at lsb
+        ; and we update the sign flag based on the remainder A.
+        ldi b,1         ; Set up next quotient (Q)
+        mov d,b
+        mov b,a         ; Set sign flag for next iteration
+        inc a
+        mov a,b         ; Restore remainder
+
+        ; By this point our registers are in the following state:
+        ;   A = remainder so far (A)
+        ;   D = Initial quotient with stop flag bit set (Q)
+        ;  M1 = Negative divisor value (-V)
+        ;  M2 = next byte result location (zero page)
+        ;  X = divisor value (V)
+        ;  Y = address after overall result (zero page)
+        ; and Sign flag updated for remainder A
+        ; i.e. we're good to loop
+        jmp a_loop
