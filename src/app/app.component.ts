@@ -4,18 +4,17 @@ import { OutputComponent } from './output/output.component';
 import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
 import { EditorComponent } from './editor/editor.component';
-import { ClrIconModule, ClrCheckboxModule, ClrStopEscapePropagationDirective, ClrPopoverHostDirective, ClrDropdownModule, ClrConditionalModule, ClrVerticalNavModule, ClrSidePanelModule, ClrAccordionModule, ClrAlertModule } from '@clr/angular';
-
+import { ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule } from '@clr/angular';
 import { DocsComponent } from './docs/docs.component';
+import { ExamplesComponent } from './examples/examples.component';
 
 @Component({
-    selector: 'app-root',
-    templateUrl: './app.component.html',
-    imports: [ClrIconModule, ClrCheckboxModule, ClrStopEscapePropagationDirective, ClrPopoverHostDirective, ClrDropdownModule, ClrConditionalModule, DocsComponent, EditorComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, ClrSidePanelModule, ClrAccordionModule, ClrAlertModule]
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, EditorComponent, ExamplesComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent]
 })
 export class AppComponent implements OnInit {
   private _clipboardService = inject(ClipboardService);
-
 
   @ViewChild(OutputComponent)
   private output!: OutputComponent;
@@ -28,7 +27,6 @@ export class AppComponent implements OnInit {
 
   showDocs = false;
   showEmu = true;
-  showExamples = false;
 
   dasm = ''
   isDevMode: boolean;
@@ -103,8 +101,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  loadExample(example: string) {
+  onExampleRequested(example: string) {
     this.editor.loadExample(example);
-    this.showExamples = false;
   }
 }
