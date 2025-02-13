@@ -28,16 +28,16 @@ hcont:  ldi m,mesg      ; get base of msg array
         jmp hello       ; release halt to repeat
 
         org 0x8419
-mesg:   dfb "Hello "
-        dfb "world!"
-        dfb 0x0D
-        dfb 0x0D
-        dfb "Relay "
-        dfb "here. "
-        dfb 0x0D
-        dfb 0x0D
-        dfb 0x0D
-        dfb 0x0D
+mesg:   !byte "Hello "
+        !byte "world!"
+        !byte 0x0D
+        !byte 0x0D
+        !byte "Relay "
+        !byte "here. "
+        !byte 0x0D
+        !byte 0x0D
+        !byte 0x0D
+        !byte 0x0D
 
 ;******************************************************
 ; Negate subroutine for relay computer

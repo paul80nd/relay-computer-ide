@@ -284,21 +284,21 @@
     <table class="table table-vertical" cds-layout="m-t:md">
       <tbody>
         <tr>
-          <th>dfb <em>vals</em><br />dfb "<em>str</em>"</th>
+          <th>!byte <em>vals</em><br />!byte "<em>str</em>"</th>
           <td>
             <div>Define bytes: writes the given 8-bit comma seperated <em>vals</em> directly into the assembled output. Values may be any valid 8-bit constant. Where a label is used the least significant byte of that address will be used.</div>
             <div cds-layout="m-t:xxs">Alternatively a string may be provided within double quotes which will be output as an UTF-8 byte per character.</div>
           </td>
         </tr>
         <tr>
-          <th>dfw <em>vals</em><br />dfw "<em>str</em>"</th>
+          <th>!word <em>vals</em><br />!word "<em>str</em>"</th>
           <td>
             <div>Define words: writes the given 16-bit comma seperated <em>vals</em> directly into the assembled output. Values may be any valid 16-bit constant. Where a label is used the addess it references will be used.</div>
             <div cds-layout="m-t:xxs">Alternatively a string may be provided within double quotes which will be output as an UTF-16BE word per character.</div>
           </td>
         </tr>
         <tr>
-          <th>dfs <em>n</em>, <em>v</em></th>
+          <th>!fill <em>n</em>, <em>v</em></th>
           <td>Define fill space: writes the given 8-bit value <em>v</em> directly into the assembled output <em>n</em> times. Values may be any valid 8-bit constant.</td>
         </tr>
         <tr>
