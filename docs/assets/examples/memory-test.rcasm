@@ -57,7 +57,7 @@ blkset: mov m1,a         ; set MSB of memory address
         mov m2,a         ; put it back in M for next iteration
         jmp loop         ; go around again
 
- faila: ;hlt              ; failed test pattern A
+ faila: hlt              ; failed test pattern A
                          ; note address of failure, then RESTART
         jmp goto5        ; continue testing with pattern 5
  fail5: hlt              ; failed test pattern 5
