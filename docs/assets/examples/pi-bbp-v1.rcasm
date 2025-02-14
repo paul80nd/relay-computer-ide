@@ -1,0 +1,174 @@
+; *****************************************************************************************
+;  Calculation of Pi to 20 decimal places
+;
+;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
+;  Expected duration: 6m42s at default clock speed.
+;
+;              ◯◯
+;            ┌───╮  ┏         ╭                                          ╮  ┓
+;   ┳━┳  ━━   ╲     ┃    1    │    4          2          1          1    │  ┃
+;   ┃ ┃  ━━   ╱     ┃  ─────  │  ─────  ━━  ─────  ━━  ─────  ━━  ─────  │  ┃
+;            ╰───╯  ┃  16 ^k  │  8 k+1      8k +4      8k +5      8k +6  │  ┃
+;             k=0   ┗         ╰                                          ╯  ┛
+;
+;  Result is correct to 17 hex places (by calculating to 19hp over 16 iterations of BBP)
+;  which when converted to decimal provides 20dp result. Target of program is to produce:
+;
+;    32 43 f6 a8 88 5a 30 8d 31     (pi)        [9 byte Big Endian Q4.68]
+;
+;  After each BBP iteration the value of Pi will build up in ps as follows with accuracy
+;  to n hex digits following n iterations. Remaining digits are partial results.
+;
+;    39 31 8d 30 5a 88 a8 f6 43 32  (ps)        [10 byte Little Endian Q4.76]
+;
+;  In each BBP iteration the fractions are calculated first (as reciprocals) to required
+;  precision - i.e. no more than 1/16^k right shift would throw away:
+;  (example values from 7th iteration at k=6)
+;
+;    01 4e 5e 0a 72 f0 53           (pa = 4/49 >> 24)   [7 byte BE]
+;    00 9d 89 d8 9d 89 d8           (pb = 2/52 >> 24)   [7 byte BE]
+;    00 4d 48 73 ec ad e3           (pc = 1/53 >> 24)   [7 byte BE]
+;    00 4b da 12 f6 84 bd           (pd = 1/54 >> 24)   [7 byte BE]
+;
+;  These values are then converted to little endian (LE) in preparation for long addition
+;  and pb, pc and pd are two's complemented to effect subtraction through addition:
+;
+;    53 f0 72 0a 5e 4e 01           (pa = pa)           [7 byte LE]
+;    28 76 62 27 76 62 ff           (pb = -pb)          [7 byte LE]
+;    1d 52 13 8c b7 b2 ff           (pc = -pc)          [7 byte LE]
+;    43 7b 09 ed 25 b4 ff           (pd = -pd)          [7 byte LE]
+;
+;  Long addition is then performed for pb, pc and pd accumulating into pa:
+;
+;    db 33 f2 aa b1 17 00           (pa = pa-pb-pc-pd)  [7 byte LE]
+;
+;  Finally the result of pa is added to ps completing the BBP iteration.
+;
+; *****************************************************************************************
+
+        jmp start       ; jump to start of program (keep zero page free for major variables)
+
+; Major variables of Pi calculation.
+; We keep these early (and aligned) in the zero page of memory to ease viewing in the computer
+; and emulator. Aligns & orgs can be removed to shorten the assembled output.
+
+        org 0x07
+pi:     !fill 9,0xaa    ; final result of Pi [9 byte Big Endian Q4.68] (area marked with 0xaa for visibility)
+ps:     !fill 10,0      ; intermediate sum of Pi [10 byte Little Endian Q4.76]
+
+        !align 16       ; expected final ps value (used purely for sight check - can be deleted without impact)
+ps_exp: !byte 0x39, 0x31, 0x8d, 0x30, 0x5a, 0x88, 0xa8, 0xf6, 0x43, 0x32
+
+        !align 16
+pa:     !fill 10,0      ; first BBP fraction and iteration accumulator [max 10 byte LE/BE]
+pb:     !fill 10,0      ; second BBP fraction
+pc:     !fill 10,0      ; third BBP fraction
+pd:     !fill 10,0      ; fourth BBP fraction
+
+; Pi calculation program starts here
+start:
+
+        ; We now have Pi to 19hp LE in ps!
+        ; Last step is to copy and truncate to 17hp then convert to BE
+
+        ldi m,ps§ps_exp ; Copy 10 bytes of ps_exp to ps
+        ldi b,10
+        jsr copy_zp
+
+        ldi m,pi§ps+1   ; Copy 9 bytes of ps to pi ignoring first LE byte
+        ldi b,9
+        jsr copy_zp
+
+        ldi m,pi        ; Convert LE to BE
+        ldi b,9
+        jsr reverse_sp
+
+        hlt
+
+; ************************************************************
+;  End of main program ... subroutines follow
+; ************************************************************
+
+; ************************************************************
+;  Description: Copy block of memory within zero page
+;
+;  Input:       M1 = Location of target block start (low byte)
+;               M2 = Location of source block start (low byte)
+;                B = Number of bytes to copy
+;
+;  Clobbered:   ABCD and M
+; ************************************************************
+copy_zp: {
+        not             ; set up loop counter in D
+        mov b,a
+        inc d
+        mov b,m1        ; capture target in M1
+        clr m1
+
+  loop: ldr a           ; copy byte (B is tgt, M2 is src)
+        mov c,m2
+        mov m2,b
+        str a
+
+        mov b,d         ; bump loop - exit when 0
+        inc d
+        beq done
+
+        mov b,c         ; bump src (C is src, M2 is tgt)
+        inc
+        mov b,m2        ; swap src and tgt
+        mov m2,a
+        inc             ; bump tgt
+        mov b,a
+        jmp loop
+
+  done: rts
+}
+
+; ************************************************************
+;  Description: Byte-by-byte endian conversion (reverse bytes)
+;
+;  Input:       M = Location of value start
+;               B = Length of value in bytes
+;
+;  Notes:       Value will be converted in-place and must be
+;               within single memory page.
+;
+;  Clobbered:   ABCD and M
+; *****************************************************
+reverse_sp: {
+        mov a,m2        ; setup first byte pointer (in A)
+        mov c,m2        ; setup last byte pointer (in D)
+        add d
+        ldi b,-1
+        mov c,d
+        add d
+
+  loop: ldr b           ; swap bytes
+        mov m2,d
+        ldr c
+        str b
+        mov m2,a
+        str c
+
+        mov b,a         ; increment A
+        inc a
+        ldi b,-1        ; decrement D
+        mov c,d
+        add d
+
+        mov c,d         ; preserve D in C
+        mov b,a         ; compare D-A
+        not d
+        mov b,d
+        inc d
+        mov b,d
+        add d
+        mov d,c         ; restore D from C
+        ble done        ; done if D-A <= 0
+
+        mov m2,a        ; loop again (set M2 = A)
+        jmp loop
+
+  done: rts
+}
