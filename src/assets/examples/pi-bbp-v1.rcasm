@@ -2,7 +2,7 @@
 ;  Calculation of Pi to 20 decimal places
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
-;  Expected duration: 6m42s at default clock speed. Version v0.4
+;  Expected duration: 6m42s at default clock speed. Version v0.5
 ;
 ;              ◯◯
 ;            ┌───╮  ┏         ╭                                          ╮  ┓
@@ -87,9 +87,10 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
 
         ; Calculate the four reciprocals
 
-        ldi m,fra§dv      ; fra = 1/dv (1 / 8k+1)
-        ldi b,2
-        jsr long_rcp
+        ldi m,fra§dv      ; fra = (4 / 8k+1)
+        ldi b,2           ; 3 bytes
+        ldi a,0
+        jsr long_rcp::x4
 
         ldi m,dv          ; dv += 3
         ldr c
@@ -97,8 +98,19 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
         add
         str a
 
-        ldi m,frb§dv      ; frb = 1/dv (1 / 8k+4)
-        ldi b,2
+        ldi m,frb§dv      ; frb = (2 / 8k+4)
+        ldi b,2           ; 3 bytes
+        ldi a,0
+        jsr long_rcp::x2
+
+        ldi m,dv          ; dv++
+        ldr b
+        inc
+        str a
+
+        ldi m,frc§dv      ; frc = (1 / 8k+5)
+        ldi b,2           ; 3 bytes
+        ldi a,0
         jsr long_rcp
 
         ldi m,dv          ; dv++
@@ -106,21 +118,13 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
         inc
         str a
 
-        ldi m,frc§dv      ; frc = 1/dv (1 / 8k+5)
-        ldi b,2
-        jsr long_rcp
-
-        ldi m,dv          ; dv++
-        ldr b
-        inc
-        str a
-
-        ldi m,frd§dv      ; frd = 1/dv (1 / 8k+6)
-        ldi b,2
+        ldi m,frd§dv      ; frd = (1 / 8k+6)
+        ldi b,2           ; 3 bytes
+        ldi a,0
         jsr long_rcp
 
 hlt
-;k = 15 -- 32m47s
+;k = 15 -- 35m34s
 ;    ···············0876 (4/121) >> 60
 ;  - ···············0421 (2/124) >> 60
 ;  - ···············020c (1/125) >> 60
@@ -253,14 +257,22 @@ reverse: {
 }
 
 ; ***************************************************************
-;  Purpose:   Byte-by-byte long reciprocal: (M) = 1 / M1
+;  Purpose:   Byte-by-byte long reciprocal (restoring division)
+;             Incorporates bit shifting of result to x8/x4/x2
 ;
-;  Inputs:    M1 = Location to store result (zero page)
-;             M2 = Location of divisor value (zero page - max 127)
-;              B = Number of bytes to calculate result to
+;  Inputs:    M1 = Address to store result (zero page)
+;             M2 = Address of divisor value (zero page - max 127)
+;              B = Number of bytes (B+1) / Last byte address (M1+B)
+;              A = Integral size:
+;                  0: 8-bit - Result is in form Q8.(B*8)
+;                  1: 4-bit - Result is in form Q4.((B*8)+4)
+;                  Effectively 4-bit result is 8-bit result << 4
 ;
-;  Notes:     Resulting reciprocal is little-endian and consists of
-;             only the fractional part (integral is assummed 0).
+;  Variants:  long_rcp       calculates 1/x
+;             long_rcp::x2   calculates 2/x
+;             long_rcp::x4   calculates 4/x
+;
+;  Notes:     Resulting reciprocal is little-endian
 ;             Operates on the zero page so M1 + B must be in ZP.
 ;
 ;  Clobbered: ABCD, M and XY
@@ -285,8 +297,8 @@ long_rcp: {
         mov c,x         ; Preserve X in C (result location)
         mov m2,y        ; Load divisor in to X
         clr m1
-        ldr a
-        mov x,a
+        ldr d
+        mov x,d
         mov y,c         ; Set end address in Y (C)
         add d           ; Set result start location (C+B)
         mov m2,d
@@ -298,31 +310,89 @@ long_rcp: {
         mov b,d
         inc d
         mov x,d
-        ldi a,1         ; A=1
-        clr m1          ; M1=0 (zero page)
+        clr d           ; D=0
 
         ; Registers are now in the following state
-        ;   A = 1 = remainder with 1 'shifted' in (A)
-        ;   D = Initial quotient of 0 (Q)
-        ;  M1 = 0 (zero page)
-        ;  M2 = result location (zero page)
+        ;  A = 1 = remainder with 1 'shifted' in (A)
+        ;  D = Initial quotient of 0 (Q)
+        ;  M = next result byte address (zero page)
         ;  X = divisor value (-V)
-        ;  Y = address after result (zero page)
-        ; Now in state of 1 'shifted' into A and flags set
+        ;  Y = first address of result (zero page)
 
-        ; Because we start at location (C+B) we're one cell further than intended
-        ; Therefore we move the M2 decrement to the start of the loop rather than the end
-a_loop: mov c,m2        ; decrement M2
+        ; Jump into initial byte loop depending on option in A
+        ldi b,1
+        mov c,a
+        cmp
+        ldi a,1         ; A=1
+        beq _3          ; 1/v >> 4
+        jmp b_end       ; 1/v >> 8
+
+        ; ******* x2 variant - repeats above exactly but with different jump at end
+    x2: mov c,x         ; Set return and result addresses
+        mov d,y
+        mov xy,m
+        ldi m,rtn+1
+        str c
+        ldi m,rtn+2
+        str d
+        mov c,x
+        mov m2,y
+        clr m1
+        ldr d
+        mov x,d
+        mov y,c
+        add d
+        mov m2,d
+        mov b,x         ; Negate -V in X
+        not d
+        mov b,d
+        inc d
+        mov x,d
+        clr d           ; D=0
+        ldi b,1         ; Jump into initial byte loop depending on option in A
+        mov c,a
+        cmp
+        ldi a,1         ; A=1
+        beq _4          ; 2/v >> 4
+        jmp _0          ; 2/v >> 8
+
+        ; ******* x4 variant - repeats above exactly but with different jump at end
+    x4: mov c,x         ; Set return and result addresses
+        mov d,y
+        mov xy,m
+        ldi m,rtn+1
+        str c
+        ldi m,rtn+2
+        str d
+        mov c,x
+        mov m2,y
+        clr m1
+        ldr d
+        mov x,d
+        mov y,c
+        add d
+        mov m2,d
+        mov b,x         ; Negate -V in X
+        not d
+        mov b,d
+        inc d
+        mov x,d
+        clr d           ; D=0
+        ldi b,1         ; Jump into initial byte loop depending on option in A
+        mov c,a
+        cmp
+        ldi a,1         ; A=1
+        beq _5          ; 4/v >> 4
+        jmp _1          ; 4/v >> 8
+
+        ; ******* A loop - building up each byte of overall result
+a_loop: mov c,m2        ; decrement M (via M2--)
         ldi b,-1
         add d
         mov m2,d
+        clr d           ; Set up next quotient (Q)
 
-        ; Set up for the next byte of the overall result with reset Q.
-        ldi b,0         ; Set up next quotient (Q)
-        mov d,b
-
-b_loop: ; Original B loop is unrolled here (duplicated 8 times) to
-        ; build reciprocal bit-by-bit at expense of duplicated code
+b_loop: ; ******* B loop (unrolled) - building up each bit of each byte
 
         ; Shift remainder and perform trial subtraction of V
         ; If negative then C=0 and restore else C=1 and keep
@@ -347,8 +417,7 @@ b_loop: ; Original B loop is unrolled here (duplicated 8 times) to
         mov b,d
         add d
 
-        ; Following are now just the above repeated another times
-        ; thereby 'unrolling the loop'
+        ; Repeated another 7 times thereby 'unrolling the loop'
 
     _6: mov b,a
         mov c,a
