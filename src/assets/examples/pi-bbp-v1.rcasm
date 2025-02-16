@@ -2,7 +2,7 @@
 ;  Calculation of Pi to 20 decimal places
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
-;  Expected duration: 6m42s at default clock speed. Version v0.5
+;  Expected duration: 44m24s at default clock speed. Version v0.6
 ;
 ;              ◯◯
 ;            ┌───╮  ┏         ╭                                          ╮  ┓
@@ -89,8 +89,8 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
 
         ldi m,fra§dv      ; fra = (4 / 8k+1)
         ldi b,2           ; 3 bytes
-        ldi a,0
-        jsr long_rcp::x4
+        ldi a,0           ; Q8 format
+        jsr long_reciprocal::x4
 
         ldi m,dv          ; dv += 3
         ldr c
@@ -101,7 +101,7 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
         ldi m,frb§dv      ; frb = (2 / 8k+4)
         ldi b,2           ; 3 bytes
         ldi a,0
-        jsr long_rcp::x2
+        jsr long_reciprocal::x2
 
         ldi m,dv          ; dv++
         ldr b
@@ -111,7 +111,7 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
         ldi m,frc§dv      ; frc = (1 / 8k+5)
         ldi b,2           ; 3 bytes
         ldi a,0
-        jsr long_rcp
+        jsr long_reciprocal
 
         ldi m,dv          ; dv++
         ldr b
@@ -121,10 +121,30 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
         ldi m,frd§dv      ; frd = (1 / 8k+6)
         ldi b,2           ; 3 bytes
         ldi a,0
-        jsr long_rcp
+        jsr long_reciprocal
+
+        ; Calulate fra = fra - frb - frc - frd
+
+        ldi m,frb§fra     ; fra -= frb
+        ldi b,2           ; 3 bytes
+        jsr long_subtract
+
+        ldi m,frc§fra     ; fra -= frc
+        ldi b,2           ; 3 bytes
+        jsr long_subtract
+
+        ldi m,frd§fra     ; fra -= frd
+        ldi b,2           ; 3 bytes
+        jsr long_subtract
+
+        ; Calculate psum = psum + fra
+        
+        ldi m,fra§psum    ; psum += fra
+        ldi b,2
+        jsr long_add
 
 hlt
-;k = 15 -- 35m34s
+;k = 15 -- 51m03s
 ;    ···············0876 (4/121) >> 60
 ;  - ···············0421 (2/124) >> 60
 ;  - ···············020c (1/125) >> 60
@@ -257,27 +277,208 @@ reverse: {
 }
 
 ; ***************************************************************
+;  Purpose:   Byte-by-byte long addition: (A) = (A) + (B)
+;
+;  Inputs:    M1 = Zero page location of addend value (B)
+;             M2 = Zero page location of augend value (A)
+;              B = Number of bytes in addend value (B)
+;
+;  Notes:     Values must be in little-endian order.
+;             Length of augend must be at least length of addend.
+;
+;  Clobbered: ABCD, M and XY
+; ***************************************************************
+long_add: {
+
+        ; Because we'll be using XY as a general register we write the
+        ; return address directly in to the jump instruction at rtn.
+        ; That also means a bit of juggling to prepare our registers.
+        mov c,x         ; Capture return address in CD
+        mov d,y
+        mov xy,m        ; Move M params into indexer
+        ldi m,rtn+1     ; Set return address from CD
+        str c
+        ldi m,rtn+2
+        str d
+        mov c,x         ; Set end address of addend in D
+        add d
+        clr m1          ; clear M1 = zero page
+
+        ; Although register XY is typically used for indexing memory
+        ; here we cheat a little and use it for tracking two locations.
+        ; This does mean though the addresses must be in the same page.
+
+        ; Registers are now in the following state
+        ;  Y = augend zero page address
+        ;  X = addend zero page address
+        ;  D = zp address after addend
+        ; M1 = zero page
+
+        ; add two bytes together
+loop:   mov m2,x        ; C <- addend byte (m1x)
+        ldr c
+        mov m2,y        ; B <- augend byte (m1y)
+        ldr b
+        add             ; A = B + C
+        str a           ; A -> augend byte (m1x)
+        bcs carry       ; If add caused carry ripple it through augend
+
+        ; increment x and y pointers
+cont:   ixy             ; Y++ (augend)
+        mov b,x         ; X++ (addend)
+        inc
+        mov x,a
+
+        ; compare with target
+        mov c,d
+        mov b,a
+        cmp
+        bne loop
+
+        ; Jump to return address (set earlier)
+rtn:    jmp *
+
+carry:  ; For the carry scenario we need to add 1 to the byte. It's
+        ; possible though that could cause a carry in that byte and
+        ; so on so we iterate here until no carry.
+
+        mov b,m2        ; increment m2 (to point at next byte in augend)
+        inc
+        mov m2,a
+
+        ldr b           ; increment augend byte (m1y)
+        inc
+        str a
+
+        bcs carry       ; Go again if caused carry
+        jmp cont        ; Otherwise done and can continue
+}
+
+; ***************************************************************
+;  Purpose:   Byte-by-byte long subtraction (A) = (A) - (B)
+;
+;  Inputs:    M1 = Zero page location of subtrahend value (B)
+;             M2 = Zero page location of minuend value (A)
+;              B = Number of bytes in values (B)
+;
+;  Notes:     Length of minuend must be the same as subtrahend.
+;             Byte following minuend will mutate with carry bit.
+;
+;  Clobbered: ABCD, M and XY
+; ***************************************************************
+long_subtract: {
+
+        ; Prepare registers and set return address
+        mov c,x         ; Capture return address in CD
+        mov d,y
+        mov xy,m        ; Move M params into indexer
+        ldi m,rtn+1     ; Set return address from CD
+        str c
+        ldi m,rtn+2
+        str d
+        mov c,x         ; Set end address of subtrahend in D
+        add d
+        clr m1          ; clear M1 = zero page
+
+        ; Registers are now in the following state
+        ;  Y = minuend zero page address
+        ;  X = subtrahend zero page address
+        ;  D = zp address after subtrahend
+        ; M1 = zero page
+
+        ; To simplify the main loop we'll be using ones-complement.
+        ; Therefore to give a correct minuend we increment it by one now.
+        mov m2,y        ; B <- minuend byte (m1y)
+        ldr b
+        inc
+        str a           ; A -> minuend byte (m1x)
+        bcs carry1      ; If inc caused carry ripple it through minuend
+
+loop:   ; Main loop of byte-by-byte subtraction
+
+        ; Take 1s complement of subtrahend
+        mov m2,x        ; B <- subtrahend byte (m1x)
+        ldr b
+        not             ; A = ~B
+        mov c,a         ; C = A
+
+        ; Add two bytes together
+        mov m2,y        ; B <- minuend byte (m1y)
+        ldr b
+        add             ; A = B + C
+        str a           ; A -> minuend byte (m1x)
+
+        ; Branch if addition caused carry
+        bcs carry2
+
+        ; increment x and y pointers
+ cont:  ixy             ; Y++ (minuend)
+        mov b,x         ; X++ (subtrahend)
+        inc
+        mov x,a
+
+        ; compare with target
+        mov c,d
+        mov b,a
+        cmp
+        bne loop
+
+        ; Jump to return address (set earlier)
+rtn:    jmp *
+
+carry1: ; Handles a carry following the initial increment
+
+        mov b,m2        ; Incement m2 (to point at next byte in minuend)
+        inc
+        mov m2,a
+
+        ldr b           ; Increment minuend byte (m1y)
+        inc
+        str a
+
+        bcs carry1      ; Go again if caused carry
+        jmp loop        ; Otherwise done and can enter main loop
+
+carry2: ; Handles a carry following a byte-to-byte-addition
+        ; This is very similar to the carry above and could be a
+        ; subroutine but we're using the XY register.
+        ; We could use the same trick at 'rtn' but this way trades
+        ; memory against additional instructions to load the return addresses.
+
+        mov b,m2        ; increment m2 (to point at next byte in minuend)
+        inc
+        mov m2,a
+
+        ldr b           ; increment minuend byte (m1x)
+        inc
+        str a
+
+        bcs carry2      ; Go again if caused carry
+        jmp cont        ; Otherwise done and can continue
+}
+
+; ***************************************************************
 ;  Purpose:   Byte-by-byte long reciprocal (restoring division)
 ;             Incorporates bit shifting of result to x8/x4/x2
 ;
 ;  Inputs:    M1 = Address to store result (zero page)
 ;             M2 = Address of divisor value (zero page - max 127)
 ;              B = Number of bytes (B+1) / Last byte address (M1+B)
-;              A = Integral size:
+;              A = Integral size:  
 ;                  0: 8-bit - Result is in form Q8.(B*8)
 ;                  1: 4-bit - Result is in form Q4.((B*8)+4)
 ;                  Effectively 4-bit result is 8-bit result << 4
 ;
-;  Variants:  long_rcp       calculates 1/x
-;             long_rcp::x2   calculates 2/x
-;             long_rcp::x4   calculates 4/x
+;  Variants:  reciprocal       calculates 1/x
+;             reciprocal::x2   calculates 2/x 
+;             reciprocal::x4   calculates 4/x
 ;
 ;  Notes:     Resulting reciprocal is little-endian
 ;             Operates on the zero page so M1 + B must be in ZP.
 ;
 ;  Clobbered: ABCD, M and XY
 ; ***************************************************************
-long_rcp: {
+long_reciprocal: {
 
         ; Terms
         ;   A = remainder (register A - ongoing)
@@ -330,7 +531,7 @@ long_rcp: {
         ; ******* x2 variant - repeats above exactly but with different jump at end
     x2: mov c,x         ; Set return and result addresses
         mov d,y
-        mov xy,m
+        mov xy,m 
         ldi m,rtn+1
         str c
         ldi m,rtn+2
@@ -359,7 +560,7 @@ long_rcp: {
         ; ******* x4 variant - repeats above exactly but with different jump at end
     x4: mov c,x         ; Set return and result addresses
         mov d,y
-        mov xy,m
+        mov xy,m 
         ldi m,rtn+1
         str c
         ldi m,rtn+2
