@@ -2,7 +2,7 @@
 ;  Calculation of Pi to 20 decimal places
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
-;  Expected duration: 6m42s at default clock speed. Version v0.2
+;  Expected duration: 6m42s at default clock speed. Version v0.3
 ;
 ;              ◯◯
 ;            ┌───╮  ┏         ╭                                          ╮  ┓
@@ -66,7 +66,7 @@ psum:   !fill 10,0      ; intermediate sum of Pi [10 byte Little Endian Q4.76]
 psexp:  !byte 0x39, 0x31, 0x8d, 0x30, 0x5a, 0x88, 0xa8, 0xf6, 0x43, 0x32
 
         !align 16
-fra:    !fill 10,0      ; first BBP fraction and iteration accumulator [max 10 byte LE/BE]
+fra:    !fill 10,0      ; first BBP fraction and iteration accumulator [max 10 byte LE]
         !align 16
 frb:    !fill 10,0      ; second BBP fraction
         !align 16
@@ -83,13 +83,13 @@ cheat:  !byte 0xf8, 0x30, 0x8d, 0x30, 0x5a, 0x88, 0xa8, 0xf6, 0x43, 0x32
 
 start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
         ldi b,10
-        jsr copy_zp
+        jsr copy
 
         ; Calculate the four reciprocals
 
         ldi m,fra§dv      ; fra = 1/dv (1 / 8k+1)
         ldi b,2
-        jsr long_rcp_zp
+        jsr long_rcp
 
         ldi m,dv          ; dv += 3
         ldr c
@@ -99,7 +99,7 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
 
         ldi m,frb§dv      ; frb = 1/dv (1 / 8k+4)
         ldi b,2
-        jsr long_rcp_zp
+        jsr long_rcp
 
         ldi m,dv          ; dv++
         ldr b
@@ -108,7 +108,7 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
 
         ldi m,frc§dv      ; frc = 1/dv (1 / 8k+5)
         ldi b,2
-        jsr long_rcp_zp
+        jsr long_rcp
 
         ldi m,dv          ; dv++
         ldr b
@@ -117,28 +117,10 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
 
         ldi m,frd§dv      ; frd = 1/dv (1 / 8k+6)
         ldi b,2
-        jsr long_rcp_zp
-
-        ; Convert the four reciprocals to little endian form
-
-        ldi m,fra         ; fra to LE
-        ldi b,2
-        jsr reverse_sp
-
-        ldi m,frb         ; frb to LE
-        ldi b,2
-        jsr reverse_sp
-
-        ldi m,frc         ; frc to LE
-        ldi b,2
-        jsr reverse_sp
-
-        ldi m,frd         ; frc to LE
-        ldi b,2
-        jsr reverse_sp
+        jsr long_rcp
 
 hlt
-;k = 15 -- 36m22s
+;k = 15 -- 34m07s
 ;    ···············0876 (4/121) >> 60
 ;  - ···············0421 (2/124) >> 60
 ;  - ···············020c (1/125) >> 60
@@ -154,11 +136,11 @@ hlt
 
         ldi m,pi§psum+1 ; Copy 9 bytes of psum to pi ignoring first LE byte
         ldi b,9
-        jsr copy_zp
+        jsr copy
 
         ldi m,pi        ; Convert pi LE to BE
         ldi b,9
-        jsr reverse_sp
+        jsr reverse
 
         hlt
 
@@ -176,7 +158,7 @@ hlt
 ;
 ;  Clobbered: ABCD and M
 ; ***************************************************************
-copy_zp: {
+copy: {
         not             ; set up loop counter in D
         mov b,a
         inc d
@@ -214,7 +196,7 @@ copy_zp: {
 ;
 ;  Clobbered: ABCD and M
 ; ***************************************************************
-reverse_sp: {
+reverse: {
 
         ; Set up first and last byte pointers (A and D)
         mov a,m2        ; A is just M2
@@ -273,17 +255,18 @@ reverse_sp: {
 ; ***************************************************************
 ;  Purpose:   Byte-by-byte long reciprocal: (M) = 1 / M1
 ;
-;  Inputs:    M1 = Location to store result (zero page)
+;  Inputs:    M1 = Location to store result (zero page - >0)
 ;             M2 = Location of divisor value (zero page - max 127)
 ;              B = Number of bytes to calculate result to
 ;
-;  Notes:     Resulting reciprocal is big-endian and consists of
+;  Notes:     Resulting reciprocal is little-endian and consists of
 ;             only the fractional part (integral is assummed 0).
 ;             Operates on the zero page so M1 + B must be in ZP.
+;             M1 must be greater than 0 to permit M1-1 end stop.
 ;
 ;  Clobbered: ABCD, M and XY
 ; ***************************************************************
-long_rcp_zp: {
+long_rcp: {
 
         ; Terms
         ;   A = remainder (register A - ongoing)
@@ -305,8 +288,10 @@ long_rcp_zp: {
         clr m1
         ldr a
         mov x,a
-        mov m2,c        ; Set result location
-        add d           ; Set end address in Y (M2+B)
+        add d           ; Set result start location (C+B)
+        mov m2,d
+        ldi b,-1        ; Set end address in Y (C-1)
+        add d
         mov y,d
 
         ; We now prepare for the first loop iteration. Result is built up byte-by-byte
@@ -316,10 +301,7 @@ long_rcp_zp: {
         mov b,d
         inc d
         mov x,d
-        ldi b,0         ; Place inital Q in D
-        mov d,b
-        ldi b,0         ; A=1 and set ALU flags
-        inc a
+        ldi a,1         ; A=1
         clr m1          ; M1=0 (zero page)
 
         ; Registers are now in the following state
@@ -331,7 +313,26 @@ long_rcp_zp: {
         ;  Y = address after result (zero page)
         ; Now in state of 1 'shifted' into A and flags set
 
-a_loop: ; A loop building reciprocal byte-by-byte
+        ; Because we start at location (C+B) we're one cell further than intended
+        ; Therefore we move the M2 decrement to the start of the loop rather than the end
+
+a_loop: ; We can now decrement M2 to point at the next location in memory and check if we've
+        ; completed the reciprocal by checking the end address in Y. Note that the 'beq *'
+        ; will be replaced by the actual return address at the beginning of this routine.
+        ; We do this because we want to use register XY which would otherwise hold the address.
+        mov c,m2        ; dec M2
+        ldi b,-1
+        add d
+        mov m2,d
+        mov b,d         ; Check if gone past last byte (M2=Y)
+        mov c,y
+        eor d
+rtn:    beq *           ; Done if so
+
+        ; We're now heading for the next byte of the overall result so we need to
+        ; re-initialise. We reset Q and we update the sign flag based on the remainder A.
+        ldi b,0         ; Set up next quotient (Q)
+        mov d,b
 
 b_loop: ; Original B loop is unrolled here (duplicated 8 times) to
         ; build reciprocal bit-by-bit at expense of duplicated code
@@ -481,37 +482,6 @@ b_loop: ; Original B loop is unrolled here (duplicated 8 times) to
         mov b,d
         add d
 
- b_end: ; D now contains our complete byte so we'll store it in memory.
-        str d
-
-        ; We can now bump M2 to point at the next location in memory and check if we've
-        ; completed the reciprocal by checking the end address in Y. Note that the 'beq *'
-        ; will be replaced by the actual return address at the beginning of this routine.
-        ; We do this because we want to use register XY which would otherwise hold the address.
-        mov b, m2       ; bump M2
-        inc d
-        mov m2,d
-        mov b,d         ; Check if gone past last byte (M2=Y)
-        mov c,y
-        eor d
-rtn:    beq *           ; Done if so
-
-        ; We're now heading for the next byte of the overall result so we need to
-        ; re-initialise. We reset Q and we update the sign flag based on the remainder A.
-        ldi b,0         ; Set up next quotient (Q)
-        mov d,b
-        mov b,a         ; Set sign flag for next iteration
-        inc a
-        mov a,b         ; Restore remainder
-
-        ; By this point our registers are in the following state:
-        ;   A = remainder so far (A)
-        ;   D = Initial quotient of zero (Q)
-        ;  M1 = 0 (zero page)
-        ;  M2 = next byte result location (zero page)
-        ;  X = divisor value (-V)
-        ;  Y = address after overall result (zero page)
-        ; and Sign flag updated for remainder A
-        ; i.e. we're good to loop
-        jmp a_loop
+ b_end: str d           ; D now contains our complete byte so we'll store it in memory
+        jmp a_loop      ; ... and loop.
 }
