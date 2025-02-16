@@ -2,7 +2,7 @@
 ;  Calculation of Pi to 20 decimal places
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
-;  Expected duration: 44m24s at default clock speed. Version v0.6
+;  Expected duration: 44m24s at default clock speed. Version v0.7
 ;
 ;              ◯◯
 ;            ┌───╮  ┏         ╭                                          ╮  ┓
@@ -56,7 +56,9 @@
 ;  can be removed to shorten the assembled output.
 ; ***************************************************************
 
-dv:     !byte 121       ; divisor (representing 8k+1 at start of each iteration)
+parr:                   ; the following values form a parameter array for functions
+dv:     !byte 120       ; divisor (representing 8k at start of each iteration)
+fsz:    !byte 2         ; fraction byte size (decreases every 2 iterations)
 
         org 0x07
 pi:     !fill 9,0xaa    ; final result of Pi [9 byte Big Endian Q4.68] (area marked with 0xaa for visibility)
@@ -85,43 +87,23 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
         ldi b,10
         jsr copy
 
-        ; Calculate the four reciprocals
+        ; Calculate the four fractions
 
-        ldi m,fra§dv      ; fra = (4 / 8k+1)
-        ldi b,2           ; 3 bytes
+        ldi m,fra§parr    ; fra = (4 / 8k+1)
         ldi a,0           ; Q8 format
-        jsr long_reciprocal::x4
+        jsr bbp_fraction::vA
 
-        ldi m,dv          ; dv += 3
-        ldr c
-        ldi b,3
-        add
-        str a
-
-        ldi m,frb§dv      ; frb = (2 / 8k+4)
-        ldi b,2           ; 3 bytes
+        ldi m,frb§parr    ; frb = (2 / 8k+4)
         ldi a,0
-        jsr long_reciprocal::x2
+        jsr bbp_fraction::vB
 
-        ldi m,dv          ; dv++
-        ldr b
-        inc
-        str a
-
-        ldi m,frc§dv      ; frc = (1 / 8k+5)
-        ldi b,2           ; 3 bytes
+        ldi m,frc§parr    ; frc = (1 / 8k+5)
         ldi a,0
-        jsr long_reciprocal
+        jsr bbp_fraction::vC
 
-        ldi m,dv          ; dv++
-        ldr b
-        inc
-        str a
-
-        ldi m,frd§dv      ; frd = (1 / 8k+6)
-        ldi b,2           ; 3 bytes
+        ldi m,frd§parr    ; frd = (1 / 8k+6) 1010
         ldi a,0
-        jsr long_reciprocal
+        jsr bbp_fraction::vD
 
         ; Calulate fra = fra - frb - frc - frd
 
@@ -138,7 +120,7 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 14 into psum
         jsr long_subtract
 
         ; Calculate psum = psum + fra
-        
+
         ldi m,fra§psum    ; psum += fra
         ldi b,2
         jsr long_add
@@ -167,6 +149,8 @@ hlt
         jsr reverse
 
         hlt
+
+
 
 ; ***************************************************************
 ;  End of main program ... subroutines follow ...
@@ -458,27 +442,28 @@ carry2: ; Handles a carry following a byte-to-byte-addition
 }
 
 ; ***************************************************************
-;  Purpose:   Byte-by-byte long reciprocal (restoring division)
-;             Incorporates bit shifting of result to x8/x4/x2
+;  Purpose:   Byte-by-byte BBP fraction (restoring division)
 ;
 ;  Inputs:    M1 = Address to store result (zero page)
-;             M2 = Address of divisor value (zero page - max 127)
-;              B = Number of bytes (B+1) / Last byte address (M1+B)
-;              A = Integral size:  
+;             M2 = Address of paramter array (zero page)
+;                  byte 0: divisor value dv (max 127)
+;                  byte 1: byte precision / result end address (M1+B)
+;              A = Integral size:
 ;                  0: 8-bit - Result is in form Q8.(B*8)
 ;                  1: 4-bit - Result is in form Q4.((B*8)+4)
 ;                  Effectively 4-bit result is 8-bit result << 4
 ;
-;  Variants:  reciprocal       calculates 1/x
-;             reciprocal::x2   calculates 2/x 
-;             reciprocal::x4   calculates 4/x
+;  Variants:  bbp_fraction::vA   calculates 4 / dv+1
+;             bbp_fraction::vB   calculates 2 / dv+4
+;             bbp_fraction::vC   calculates 1 / dv+5
+;             bbp_fraction::vD   calculates 1 / dv+6 (default)
 ;
-;  Notes:     Resulting reciprocal is little-endian
+;  Notes:     Resulting BBP fraction is little-endian
 ;             Operates on the zero page so M1 + B must be in ZP.
 ;
 ;  Clobbered: ABCD, M and XY
 ; ***************************************************************
-long_reciprocal: {
+bbp_fraction: {
 
         ; Terms
         ;   A = remainder (register A - ongoing)
@@ -488,7 +473,7 @@ long_reciprocal: {
         ; Because we'll be using XY as a general register we write the
         ; return address directly in to the jump instruction at rtn.
         ; That also means a bit of juggling to prepare our registers.
-        mov c,x         ; Capture return address in CD
+    vD: mov c,x         ; Capture return address in CD
         mov d,y
         mov xy,m        ; Preserve M in XY
         ldi m,rtn+1     ; Set return address from CD
@@ -500,18 +485,21 @@ long_reciprocal: {
         clr m1
         ldr d
         mov x,d
+        ixy             ; Load size in to B
+        mov m2,y
+        ldr b
         mov y,c         ; Set end address in Y (C)
         add d           ; Set result start location (C+B)
         mov m2,d
 
         ; We now prepare for the first loop iteration. Result is built up byte-by-byte
         ; in the A loop and within that bit-by-bit in an unrolled B loop.
-        mov b,x         ; Negate -V in X
-        not d
+        mov c,x         ; Negate -(V+6) in X
+        ldi b,5
+        add d
         mov b,d
-        inc d
+        not d
         mov x,d
-        clr d           ; D=0
 
         ; Registers are now in the following state
         ;  A = 1 = remainder with 1 'shifted' in (A)
@@ -528,10 +516,10 @@ long_reciprocal: {
         beq _3          ; 1/v >> 4
         jmp b_end       ; 1/v >> 8
 
-        ; ******* x2 variant - repeats above exactly but with different jump at end
-    x2: mov c,x         ; Set return and result addresses
+        ; ******* C variant - repeats above with dv+5
+    vC: mov c,x         ; Set return and result addresses
         mov d,y
-        mov xy,m 
+        mov xy,m
         ldi m,rtn+1
         str c
         ldi m,rtn+2
@@ -541,13 +529,50 @@ long_reciprocal: {
         clr m1
         ldr d
         mov x,d
+        ixy
+        mov m2,y
+        ldr b
         mov y,c
         add d
         mov m2,d
-        mov b,x         ; Negate -V in X
-        not d
+        mov c,x         ; Negate -(V+5) in X
+        ldi b,4
+        add d
         mov b,d
-        inc d
+        not d
+        mov x,d
+        clr d           ; D=0
+        ldi b,1         ; Jump into initial byte loop depending on option in A
+        mov c,a
+        cmp
+        ldi a,1         ; A=1
+        beq _3          ; 1/v >> 4
+        jmp b_end       ; 1/v >> 8
+
+        ; ******* B variant - repeats above with dv+4 and x2
+    vB: mov c,x         ; Set return and result addresses
+        mov d,y
+        mov xy,m
+        ldi m,rtn+1
+        str c
+        ldi m,rtn+2
+        str d
+        mov c,x
+        mov m2,y
+        clr m1
+        ldr d
+        mov x,d
+        ixy
+        mov m2,y
+        ldr b
+        mov y,c
+        add d
+        mov m2,d
+        mov c,x         ; Negate -(V+4) in X
+        ldi b,3
+        add d
+        mov b,d
+        not d
         mov x,d
         clr d           ; D=0
         ldi b,1         ; Jump into initial byte loop depending on option in A
@@ -557,10 +582,10 @@ long_reciprocal: {
         beq _4          ; 2/v >> 4
         jmp _0          ; 2/v >> 8
 
-        ; ******* x4 variant - repeats above exactly but with different jump at end
-    x4: mov c,x         ; Set return and result addresses
+        ; ******* A variant - repeats above with dv+1 and x4
+    vA: mov c,x         ; Set return and result addresses
         mov d,y
-        mov xy,m 
+        mov xy,m
         ldi m,rtn+1
         str c
         ldi m,rtn+2
@@ -570,13 +595,15 @@ long_reciprocal: {
         clr m1
         ldr d
         mov x,d
+        ixy
+        mov m2,y
+        ldr b
         mov y,c
         add d
         mov m2,d
-        mov b,x         ; Negate -V in X
+        mov b,x         ; Negate -(V+1) in X
         not d
         mov b,d
-        inc d
         mov x,d
         clr d           ; D=0
         ldi b,1         ; Jump into initial byte loop depending on option in A
