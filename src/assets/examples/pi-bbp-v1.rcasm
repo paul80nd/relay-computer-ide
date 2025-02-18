@@ -2,7 +2,7 @@
 ;  Calculation of Pi to 20 decimal places
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
-;  Expected duration: 9h15m31s at default clock speed. Version v0.13
+;  Expected duration: 25h31m43s at default clock speed. Version v0.14
 ;
 ;              ◯◯
 ;            ┌───╮  ┏         ╭                                          ╮  ┓
@@ -63,13 +63,13 @@ fopts:  !byte 0         ; BBP fraction option flags
 
         org 0x07
 pi:     !fill 9,0xaa    ; final result of Pi [9 byte Big Endian Q4.68] (area marked with 0xaa for visibility)
-psum:   !fill 10,0      ; intermediate sum of Pi [10 byte Little Endian Q4.76]
+psum:   !fill 11,0      ; intermediate sum of Pi [10 byte Little Endian Q4.76 + 1 overflow]
 
         !align 16       ; expected final psum value (used purely for sight check - can be deleted without impact)
 psexp:  !byte 0x39, 0x31, 0x8d, 0x30, 0x5a, 0x88, 0xa8, 0xf6, 0x43, 0x32
 
         !align 16
-fra:    !fill 10,0      ; first BBP fraction and iteration accumulator [max 10 byte LE]
+fra:    !fill 11,0      ; first BBP fraction and iteration accumulator [max 10 byte LE + 1 overflow]
         !align 16
 frb:    !fill 10,0      ; second BBP fraction
         !align 16
@@ -81,18 +81,54 @@ frd:    !fill 10,0      ; fourth BBP fraction
 ;  Start of main program ... core Pi calculation follows ...
 ; ***************************************************************
 
-        ; cheat start at k = 1 result (used whilst building the program up)
-cheat:  !byte 0x23, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x32
-
-start:  ldi m,psum§cheat   ; Copy cheat k = 1 into psum
-        ldi b,10
-        jsr copy
-
+start:  
         ; ******************* K 00
-        ; *** 8K = 0
+        ; *** 8K = 0, 9 bytes div, 10 byte add, shift
         ; *** Tgt 32 22 22 22 22 22 22 22 22 23
 
-hlt;
+k0: {
+        ; Set Options
+        ldi m,fopts
+        ldi b,1
+        str b
+
+        ; Calculate the four fractions
+
+        ldi m,0x40        ; fra = 4 (Q4.76)
+        mov b,m2
+        ldi m,fra+9
+        str b
+
+        ldi m,frb+9       ; frb = 2/4 = 0.5 (Q4.76)
+        ldi b,8
+        str b
+
+        ldi m,frc§parr    ; frc = (1 / 8k+5)
+        jsr bbp_fraction::vC
+
+        ldi m,frd§parr    ; frd = (1 / 8k+6)
+        jsr bbp_fraction::vD
+
+        ; Calulate fra = fra - frb - frc - frd
+
+        ldi m,frb§fra     ; fra -= frb
+        ldi b,10          ; 10 bytes
+        jsr long_subtract
+
+        ldi m,frc§fra     ; fra -= frc
+        ldi b,10          ; 10 bytes
+        jsr long_subtract
+
+        ldi m,frd§fra     ; fra -= frd
+        ldi b,10          ; 10 bytes
+        jsr long_subtract
+
+        ; Calculate psum = psum + fra
+
+        ldi m,fra§psum    ; psum += fra
+        ldi b,10
+        jsr long_add
+}
 
         ; ******************* K 01
         ; *** 8K = 8, 9 byte div, 9 byte add, no shift
