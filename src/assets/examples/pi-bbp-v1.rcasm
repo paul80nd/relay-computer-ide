@@ -2,7 +2,7 @@
 ;  Calculation of Pi to 20 decimal places
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
-;  Expected duration: 25h31m43s at default clock speed. Version v0.14
+;  Expected duration: 25h31m43s at default clock speed. Version v0.15
 ;
 ;              ◯◯
 ;            ┌───╮  ┏         ╭                                          ╮  ┓
@@ -80,11 +80,29 @@ frd:    !fill 10,0      ; fourth BBP fraction
 ; ***************************************************************
 ;  Start of main program ... core Pi calculation follows ...
 ; ***************************************************************
+;
+;   ╔════╤═════╤═════╤═════╤═══════╤═══════════════════════════════╗
+;   ║ k  │ 8k  │ fsz │ ssz │ fopts │ resulting psum                ║
+;   ╟────┼─────┼─────┼─────┼───────┼───────────────────────────────╢
+;   ║  0 │   0 │   9 │  10 │  0x01 │ 32 22 22 22 22 22 22 22 22 23 ║
+;   ║  1 │   8 │   9 │   9 │  0x00 │ 32 43 44 34 43 44 34 43 44 36 ║
+;   ║  2 │  16 │   8 │   9 │  0x01 │ 32 43 f1 23 b1 08 69 82 7c c9 ║
+;   ║  3 │  24 │   8 │   8 │  0x00 │ 32 43 f6 73 e9 cc 66 c0 8c b2 ║
+;   ║  4 │  32 │   7 │   8 │  0x01 │ 32 43 f6 a6 59 b3 45 66 9c 6c ║
+;   ║  5 │  40 │   7 │   7 │  0x00 │ 32 43 f6 a8 6f 7e fe e1 06 65 ║
+;   ║  6 │  48 │   6 │   7 │  0x01 │ 32 43 f6 a8 87 30 a9 d3 3a 40 ║
+;   ║  7 │  56 │   6 │   6 │  0x00 │ 32 43 f6 a8 88 4b c1 32 73 1d ║
+;   ║  8 │  64 │   5 │   6 │  0x01 │ 32 43 f6 a8 88 59 78 11 ce be ║
+;   ║  9 │  72 │   5 │   5 │  0x00 │ 32 43 f6 a8 88 5a 27 21 32 01 ║
+;   ║ 10 │  80 │   4 │   5 │  0x01 │ 32 43 f6 a8 88 5a 30 0f b2 d4 ║
+;   ║ 11 │  88 │   4 │   4 │  0x00 │ 32 43 f6 a8 88 5a 30 86 8f bb ║
+;   ║ 12 │  96 │   3 │   4 │  0x01 │ 32 43 f6 a8 88 5a 30 8c d6 5d ║
+;   ║ 13 │ 104 │   3 │   3 │  0x00 │ 32 43 f6 a8 88 5a 30 8d 2c 51 ║
+;   ║ 14 │ 112 │   2 │   3 │  0x01 │ 32 43 f6 a8 88 5a 30 8d 30 f8 ║
+;   ║ 15 │ 120 │   2 │   2 │  0x00 │ 32 43 f6 a8 88 5a 30 8d 31 39 ║
+;   ╚════╧═════╧═════╧═════╧═══════╧═══════════════════════════════╝
 
-start:  
-        ; ******************* K 00
-        ; *** 8K = 0, 9 bytes div, 10 byte add, shift
-        ; *** Tgt 32 22 22 22 22 22 22 22 22 23
+start:
 
 k0: {
         ; Set Options
@@ -129,10 +147,6 @@ k0: {
         ldi b,10
         jsr long_add
 }
-
-        ; ******************* K 01
-        ; *** 8K = 8, 9 byte div, 9 byte add, no shift
-        ; *** Tgt 32 43 44 34 43 44 34 43 44 36
 
 k1: {
         ; Increase DV by 8
@@ -181,10 +195,6 @@ k1: {
         ldi b,9
         jsr long_add
 }
-
-        ; ******************* K 02
-        ; *** 8K = 16, 8 bytes div, 9 byte add, shift
-        ; *** Tgt 32 43 f1 23 b1 08 69 82 7c c9
 
 k2: {
         ; Increase DV by 8
@@ -241,10 +251,6 @@ k2: {
         jsr long_add
 }
 
-        ; ******************* K 03
-        ; *** 8K = 24, 8 byte div, 8 byte add, no shift
-        ; *** Tgt 32 43 f6 73 e9 cc 66 c0 8c b2
-
 k3: {
         ; Increase DV by 8
         ldi m,dv
@@ -292,10 +298,6 @@ k3: {
         ldi b,8
         jsr long_add
 }
-
-        ; ******************* K 04
-        ; *** 8K = 32, 7 bytes div, 8 byte add, shift
-        ; *** Tgt 32 43 f6 a6 59 b3 45 66 9c 6c
 
 k4: {
         ; Increase DV by 8
@@ -352,10 +354,6 @@ k4: {
         jsr long_add
 }
 
-        ; ******************* K 05
-        ; *** 8K = 40, 7 byte div, 7 byte add, no shift
-        ; *** Tgt 32 43 f6 a8 6f 7e fe e1 06 65
-
 k5: {
         ; Increase DV by 8
         ldi m,dv
@@ -403,10 +401,6 @@ k5: {
         ldi b,7
         jsr long_add
 }
-
-        ; ******************* K 06
-        ; *** 8K = 48, 6 bytes div, 7 byte add, shift
-        ; *** Tgt 32 43 f6 a8 87 30 a9 d3 3a 40
 
 k6: {
         ; Increase DV by 8
@@ -463,10 +457,6 @@ k6: {
         jsr long_add
 }
 
-        ; ******************* K 07
-        ; *** 8K = 56, 6 byte div, 6 byte add, no shift
-        ; *** Tgt 32 43 f6 a8 88 4b c1 32 73 1d
-
 k7: {
         ; Increase DV by 8
         ldi m,dv
@@ -514,10 +504,6 @@ k7: {
         ldi b,6
         jsr long_add
 }
-
-        ; ******************* K 08
-        ; *** 8K = 64, 5 bytes div, 6 byte add, shift
-        ; *** Tgt 32 43 f6 a8 88 59 78 11 ce be
 
 k8: {
         ; Increase DV by 8
@@ -574,10 +560,6 @@ k8: {
         jsr long_add
 }
 
-        ; ******************* K 09
-        ; *** 8K = 72, 5 byte div, 5 byte add, no shift
-        ; *** Tgt 32 43 f6 a8 88 5a 27 21 32 01
-
 k9: {
         ; Increase DV by 8
         ldi m,dv
@@ -625,10 +607,6 @@ k9: {
         ldi b,5
         jsr long_add
 }
-
-        ; ******************* K 10
-        ; *** 8K = 80, 4 bytes div, 5 byte add, shift
-        ; *** Tgt 32 43 f6 a8 88 5a 30 0f b2 d4
 
 k10: {
         ; Increase DV by 8
@@ -685,10 +663,6 @@ k10: {
         jsr long_add
 }
 
-        ; ******************* K 11
-        ; *** 8K = 88, 4 byte div, 4 byte add, no shift
-        ; *** Tgt 32 43 f6 a8 88 5a 30 86 8f bb
-
 k11: {
         ; Increase DV by 8
         ldi m,dv
@@ -737,9 +711,6 @@ k11: {
         jsr long_add
 }
 
-        ; ******************* K 12
-        ; *** 8K = 96, 3 bytes div, 4 byte add, shift
-        ; *** Tgt 32 43 f6 a8 88 5a 30 8c d6 5d
 k12: {
         ; Increase DV by 8
         ldi m,dv
@@ -795,9 +766,6 @@ k12: {
         jsr long_add
 }
 
-        ; ******************* K 13
-        ; *** 8K = 104, 3 byte div, 3 byte add, no shift
-        ; *** Tgt 32 43 f6 a8 88 5a 30 8d 2c 51
 k13: {
         ; Increase DV by 8
         ldi m,dv
@@ -846,9 +814,6 @@ k13: {
         jsr long_add
 }
 
-        ; ******************* K 14
-        ; *** 8K = 112, 2 bytes div, 3 byte add, shift
-        ; *** Tgt 32 43 f6 a8 88 5a 30 8d 30 f8
 k14: {
         ; Increase DV by 8
         ldi m,dv
@@ -904,9 +869,6 @@ k14: {
         jsr long_add
 }
 
-        ; ******************* K 15
-        ; *** 8K = 120, 2 byte div, 2 byte add, no shift
-        ; *** Tgt 32 43 f6 a8 88 5a 30 8d 31 39
 k15: {
         ; Increase DV by 8
         ldi m,dv
