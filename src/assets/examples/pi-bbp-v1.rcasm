@@ -2,7 +2,7 @@
 ;  Calculation of Pi to 20 decimal places
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
-;  Expected duration: 9h15m31s at default clock speed. Version v0.12
+;  Expected duration: 9h15m31s at default clock speed. Version v0.13
 ;
 ;              ◯◯
 ;            ┌───╮  ┏         ╭                                          ╮  ┓
@@ -57,8 +57,8 @@
 ; ***************************************************************
 
 parr:                   ; the following values form a parameter array for BBP fraction function
-dv:     !byte 56        ; BBP divisor (representing 8k at start of each iteration)
-fsz:    !byte 6         ; BBP fraction byte size (decreases every 2 iterations)
+dv:     !byte 0         ; BBP divisor (representing 8k at start of each iteration)
+fsz:    !byte 9         ; BBP fraction byte size (decreases every 2 iterations)
 fopts:  !byte 0         ; BBP fraction option flags
 
         org 0x07
@@ -81,10 +81,10 @@ frd:    !fill 10,0      ; fourth BBP fraction
 ;  Start of main program ... core Pi calculation follows ...
 ; ***************************************************************
 
-        ; cheat start at k = 7 result (used whilst building the program up)
-cheat:  !byte 0x1d, 0x73, 0x32, 0xc1, 0x4b, 0x88, 0xa8, 0xf6, 0x43, 0x32
+        ; cheat start at k = 1 result (used whilst building the program up)
+cheat:  !byte 0x23, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x32
 
-start:  ldi m,psum§cheat   ; Copy cheat k = 7 into psum
+start:  ldi m,psum§cheat   ; Copy cheat k = 1 into psum
         ldi b,10
         jsr copy
 
@@ -92,33 +92,392 @@ start:  ldi m,psum§cheat   ; Copy cheat k = 7 into psum
         ; *** 8K = 0
         ; *** Tgt 32 22 22 22 22 22 22 22 22 23
 
+hlt;
+
         ; ******************* K 01
-        ; *** 8K = 8
+        ; *** 8K = 8, 9 byte div, 9 byte add, no shift
         ; *** Tgt 32 43 44 34 43 44 34 43 44 36
 
+k1: {
+        ; Increase DV by 8
+        ldi m,dv
+        ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Clear Options
+        ldi m,fopts
+        clr b
+        str b
+
+        ; Calculate the four fractions
+
+        ldi m,fra§parr    ; fra = (4 / 8k+1)
+        jsr bbp_fraction::vA
+
+        ldi m,frb§parr    ; frb = (2 / 8k+4)
+        jsr bbp_fraction::vB
+
+        ldi m,frc§parr    ; frc = (1 / 8k+5)
+        jsr bbp_fraction::vC
+
+        ldi m,frd§parr    ; frd = (1 / 8k+6)
+        jsr bbp_fraction::vD
+
+        ; Calulate fra = fra - frb - frc - frd
+
+        ldi m,frb§fra     ; fra -= frb
+        ldi b,9           ; 9 bytes
+        jsr long_subtract
+
+        ldi m,frc§fra     ; fra -= frc
+        ldi b,9           ; 9 bytes
+        jsr long_subtract
+
+        ldi m,frd§fra     ; fra -= frd
+        ldi b,9           ; 9 bytes
+        jsr long_subtract
+
+        ; Calculate psum = psum + fra
+
+        ldi m,fra§psum    ; psum += fra
+        ldi b,9
+        jsr long_add
+}
+
         ; ******************* K 02
-        ; *** 8K = 16
+        ; *** 8K = 16, 8 bytes div, 9 byte add, shift
         ; *** Tgt 32 43 f1 23 b1 08 69 82 7c c9
 
+k2: {
+        ; Increase DV by 8
+        ldi m,dv
+        ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Decrement Byte Size
+        ldi m,fsz
+        ldi b,-1
+        ldr c
+        add
+        str a
+
+        ; Set Options
+        ldi m,fopts
+        ldi b,1
+        str b
+
+        ; Calculate the four fractions
+
+        ldi m,fra§parr    ; fra = (4 / 8k+1)
+        jsr bbp_fraction::vA
+
+        ldi m,frb§parr    ; frb = (2 / 8k+4)
+        jsr bbp_fraction::vB
+
+        ldi m,frc§parr    ; frc = (1 / 8k+5)
+        jsr bbp_fraction::vC
+
+        ldi m,frd§parr    ; frd = (1 / 8k+6)
+        jsr bbp_fraction::vD
+
+        ; Calulate fra = fra - frb - frc - frd
+
+        ldi m,frb§fra     ; fra -= frb
+        ldi b,9           ; 9 bytes
+        jsr long_subtract
+
+        ldi m,frc§fra     ; fra -= frc
+        ldi b,9           ; 9 bytes
+        jsr long_subtract
+
+        ldi m,frd§fra     ; fra -= frd
+        ldi b,9           ; 9 bytes
+        jsr long_subtract
+
+        ; Calculate psum = psum + fra
+
+        ldi m,fra§psum    ; psum += fra
+        ldi b,9
+        jsr long_add
+}
+
         ; ******************* K 03
-        ; *** 8K = 24
+        ; *** 8K = 24, 8 byte div, 8 byte add, no shift
         ; *** Tgt 32 43 f6 73 e9 cc 66 c0 8c b2
 
+k3: {
+        ; Increase DV by 8
+        ldi m,dv
+        ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Clear Options
+        ldi m,fopts
+        clr b
+        str b
+
+        ; Calculate the four fractions
+
+        ldi m,fra§parr    ; fra = (4 / 8k+1)
+        jsr bbp_fraction::vA
+
+        ldi m,frb§parr    ; frb = (2 / 8k+4)
+        jsr bbp_fraction::vB
+
+        ldi m,frc§parr    ; frc = (1 / 8k+5)
+        jsr bbp_fraction::vC
+
+        ldi m,frd§parr    ; frd = (1 / 8k+6)
+        jsr bbp_fraction::vD
+
+        ; Calulate fra = fra - frb - frc - frd
+
+        ldi m,frb§fra     ; fra -= frb
+        ldi b,8           ; 8 bytes
+        jsr long_subtract
+
+        ldi m,frc§fra     ; fra -= frc
+        ldi b,8           ; 8 bytes
+        jsr long_subtract
+
+        ldi m,frd§fra     ; fra -= frd
+        ldi b,8           ; 8 bytes
+        jsr long_subtract
+
+        ; Calculate psum = psum + fra
+
+        ldi m,fra§psum    ; psum += fra
+        ldi b,8
+        jsr long_add
+}
+
         ; ******************* K 04
-        ; *** 8K = 32
+        ; *** 8K = 32, 7 bytes div, 8 byte add, shift
         ; *** Tgt 32 43 f6 a6 59 b3 45 66 9c 6c
 
+k4: {
+        ; Increase DV by 8
+        ldi m,dv
+        ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Decrement Byte Size
+        ldi m,fsz
+        ldi b,-1
+        ldr c
+        add
+        str a
+
+        ; Set Options
+        ldi m,fopts
+        ldi b,1
+        str b
+
+        ; Calculate the four fractions
+
+        ldi m,fra§parr    ; fra = (4 / 8k+1)
+        jsr bbp_fraction::vA
+
+        ldi m,frb§parr    ; frb = (2 / 8k+4)
+        jsr bbp_fraction::vB
+
+        ldi m,frc§parr    ; frc = (1 / 8k+5)
+        jsr bbp_fraction::vC
+
+        ldi m,frd§parr    ; frd = (1 / 8k+6)
+        jsr bbp_fraction::vD
+
+        ; Calulate fra = fra - frb - frc - frd
+
+        ldi m,frb§fra     ; fra -= frb
+        ldi b,8           ; 8 bytes
+        jsr long_subtract
+
+        ldi m,frc§fra     ; fra -= frc
+        ldi b,8           ; 8 bytes
+        jsr long_subtract
+
+        ldi m,frd§fra     ; fra -= frd
+        ldi b,8           ; 8 bytes
+        jsr long_subtract
+
+        ; Calculate psum = psum + fra
+
+        ldi m,fra§psum    ; psum += fra
+        ldi b,8
+        jsr long_add
+}
+
         ; ******************* K 05
-        ; *** 8K = 40
+        ; *** 8K = 40, 7 byte div, 7 byte add, no shift
         ; *** Tgt 32 43 f6 a8 6f 7e fe e1 06 65
 
+k5: {
+        ; Increase DV by 8
+        ldi m,dv
+        ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Clear Options
+        ldi m,fopts
+        clr b
+        str b
+
+        ; Calculate the four fractions
+
+        ldi m,fra§parr    ; fra = (4 / 8k+1)
+        jsr bbp_fraction::vA
+
+        ldi m,frb§parr    ; frb = (2 / 8k+4)
+        jsr bbp_fraction::vB
+
+        ldi m,frc§parr    ; frc = (1 / 8k+5)
+        jsr bbp_fraction::vC
+
+        ldi m,frd§parr    ; frd = (1 / 8k+6)
+        jsr bbp_fraction::vD
+
+        ; Calulate fra = fra - frb - frc - frd
+
+        ldi m,frb§fra     ; fra -= frb
+        ldi b,7           ; 7 bytes
+        jsr long_subtract
+
+        ldi m,frc§fra     ; fra -= frc
+        ldi b,7           ; 7 bytes
+        jsr long_subtract
+
+        ldi m,frd§fra     ; fra -= frd
+        ldi b,7           ; 7 bytes
+        jsr long_subtract
+
+        ; Calculate psum = psum + fra
+
+        ldi m,fra§psum    ; psum += fra
+        ldi b,7
+        jsr long_add
+}
+
         ; ******************* K 06
-        ; *** 8K = 48
+        ; *** 8K = 48, 6 bytes div, 7 byte add, shift
         ; *** Tgt 32 43 f6 a8 87 30 a9 d3 3a 40
 
+k6: {
+        ; Increase DV by 8
+        ldi m,dv
+        ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Decrement Byte Size
+        ldi m,fsz
+        ldi b,-1
+        ldr c
+        add
+        str a
+
+        ; Set Options
+        ldi m,fopts
+        ldi b,1
+        str b
+
+        ; Calculate the four fractions
+
+        ldi m,fra§parr    ; fra = (4 / 8k+1)
+        jsr bbp_fraction::vA
+
+        ldi m,frb§parr    ; frb = (2 / 8k+4)
+        jsr bbp_fraction::vB
+
+        ldi m,frc§parr    ; frc = (1 / 8k+5)
+        jsr bbp_fraction::vC
+
+        ldi m,frd§parr    ; frd = (1 / 8k+6)
+        jsr bbp_fraction::vD
+
+        ; Calulate fra = fra - frb - frc - frd
+
+        ldi m,frb§fra     ; fra -= frb
+        ldi b,7           ; 7 bytes
+        jsr long_subtract
+
+        ldi m,frc§fra     ; fra -= frc
+        ldi b,7           ; 7 bytes
+        jsr long_subtract
+
+        ldi m,frd§fra     ; fra -= frd
+        ldi b,7           ; 7 bytes
+        jsr long_subtract
+
+        ; Calculate psum = psum + fra
+
+        ldi m,fra§psum    ; psum += fra
+        ldi b,7
+        jsr long_add
+}
+
         ; ******************* K 07
-        ; *** 8K = 56
+        ; *** 8K = 56, 6 byte div, 6 byte add, no shift
         ; *** Tgt 32 43 f6 a8 88 4b c1 32 73 1d
+
+k7: {
+        ; Increase DV by 8
+        ldi m,dv
+        ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Clear Options
+        ldi m,fopts
+        clr b
+        str b
+
+        ; Calculate the four fractions
+
+        ldi m,fra§parr    ; fra = (4 / 8k+1)
+        jsr bbp_fraction::vA
+
+        ldi m,frb§parr    ; frb = (2 / 8k+4)
+        jsr bbp_fraction::vB
+
+        ldi m,frc§parr    ; frc = (1 / 8k+5)
+        jsr bbp_fraction::vC
+
+        ldi m,frd§parr    ; frd = (1 / 8k+6)
+        jsr bbp_fraction::vD
+
+        ; Calulate fra = fra - frb - frc - frd
+
+        ldi m,frb§fra     ; fra -= frb
+        ldi b,6           ; 6 bytes
+        jsr long_subtract
+
+        ldi m,frc§fra     ; fra -= frc
+        ldi b,6           ; 6 bytes
+        jsr long_subtract
+
+        ldi m,frd§fra     ; fra -= frd
+        ldi b,6           ; 6 bytes
+        jsr long_subtract
+
+        ; Calculate psum = psum + fra
+
+        ldi m,fra§psum    ; psum += fra
+        ldi b,6
+        jsr long_add
+}
 
         ; ******************* K 08
         ; *** 8K = 64, 5 bytes div, 6 byte add, shift
@@ -178,16 +537,6 @@ k8: {
         ldi b,6
         jsr long_add
 }
-
-; k = 08
-;     ········0 fc 0f c0 fc 0f (4/065) >> 32
-;   - ········07878787878 (2/068) >> 32
-;   - ········03b5cc0ed73 (1/069) >> 32
-;   - ········03a83a83a83 (1/070) >> 32
-;   = ········00db6df5ba1
-;   + 3243f6a8884bc132731d
-;   = 3243f6a888597811cebe
-hlt;
 
         ; ******************* K 09
         ; *** 8K = 72, 5 byte div, 5 byte add, no shift
