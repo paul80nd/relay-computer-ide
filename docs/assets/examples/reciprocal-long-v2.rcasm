@@ -17,12 +17,12 @@
 ;  Changes over original version:
 ;    * unrolled inner bit-by-bit loop (saving 28m)
 ;    * dropped sentinel bit loop tracking (saving 4m)
-;    * used restoring division algorithm (saving 30m)
+;    * used restoring division algorithm (saving 31m)
 ;  Overall method is still very slow division approach but this
 ;  demonstrates the savings of loop unrolling in some cases.
 ;
 ;  Original expected duration: 2h38m53s at default clock speed
-;  Revised expected duration: 1h34m51s at default clock speed
+;  Revised expected duration: 1h33m15s at default clock speed
 ; *************************************************************
 
 ; Perform each reciprocal in turn by calling function
@@ -285,9 +285,6 @@ rtn:    beq *           ; Done if so
         ; re-initialise. We reset Q and we update the sign flag based on the remainder A.
         ldi b,0         ; Set up next quotient (Q)
         mov d,b
-        mov b,a         ; Set sign flag for next iteration
-        inc a
-        mov a,b         ; Restore remainder
 
         ; By this point our registers are in the following state:
         ;   A = remainder so far (A)
