@@ -1,4 +1,4 @@
-import { Component, isDevMode, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, isDevMode, OnInit, inject, viewChild } from '@angular/core';
 import { EmulatorComponent } from './emulator/emulator.component';
 import { OutputComponent } from './output/output.component';
 import { ClipboardService } from 'ngx-clipboard'
@@ -16,14 +16,11 @@ import { ExamplesComponent } from './examples/examples.component';
 export class AppComponent implements OnInit {
   private _clipboardService = inject(ClipboardService);
 
-  @ViewChild(OutputComponent)
-  private output!: OutputComponent;
+  readonly output = viewChild.required(OutputComponent);
 
-  @ViewChild(EditorComponent)
-  private editor!: EditorComponent;
+  readonly editor = viewChild.required(EditorComponent);
 
-  @ViewChild(EmulatorComponent)
-  private emulator!: EmulatorComponent;
+  readonly emulator = viewChild.required(EmulatorComponent);
 
   showDocs = false;
   showEmu = true;
@@ -54,7 +51,7 @@ export class AppComponent implements OnInit {
     this.lastCompile = prg;
     if (errors.length > 0) {
       this.didAssemble = false;
-      this.output.setStateAssembledWithErrors(errors.length, warnings.length);
+      this.output().setStateAssembledWithErrors(errors.length, warnings.length);
       this.dasm = errors.map(w => `❌ ${w.loc.start.line}:${w.loc.start.column} ${w.msg}`).join('\n');
       this.dasm += '\n'
       this.dasm += warnings.map(w => `🔸 ${w.loc.start.line}:${w.loc.start.column} ${w.msg}`).join('\n');
@@ -62,15 +59,15 @@ export class AppComponent implements OnInit {
       this.didAssemble = true;
       if (warnings.length > 0) {
         const msg = `Assembled with ${warnings.length} warning${warnings.length === 1 ? '' : 's'}`;
-        this.output.setStateAssembledWithWarnings(warnings.length);
+        this.output().setStateAssembledWithWarnings(warnings.length);
         this.dasm = warnings.map(w => `🔸 ${w.loc.start.line}:${w.loc.start.column} ${w.msg}`).join('\n');
         this.dasm += '\n\n'
       } else {
-        this.output.setStateAssembledOk();
+        this.output().setStateAssembledOk();
         this.dasm = '';
       }
       this.dasm += rcasm.disassemble(prg, { isInstruction: debugInfo!.info().isInstruction }).join('\n');
-      this.emulator.load(this.lastCompile);
+      this.emulator().load(this.lastCompile);
     }
   }
 
@@ -78,7 +75,7 @@ export class AppComponent implements OnInit {
     if (this.didAssemble && this.lastCompile) {
       const hex = [...this.lastCompile].map(x => x.toString(16).padStart(2, "0")).join('')
       this._clipboardService.copy(hex);
-      this.output.setStateInformation(`Copied ${hex.length > 14 ? hex.substring(0, 14) + '...' : hex} to the clipboard`);
+      this.output().setStateInformation(`Copied ${hex.length > 14 ? hex.substring(0, 14) + '...' : hex} to the clipboard`);
     }
   }
 
@@ -102,6 +99,6 @@ export class AppComponent implements OnInit {
   }
 
   onExampleRequested(example: string) {
-    this.editor.loadExample(example);
+    this.editor().loadExample(example);
   }
 }
