@@ -2,7 +2,7 @@
 ;  Calculation of Pi to 20 decimal places
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
-;  Expected duration: 25h37m48s at default clock speed. Version v0.17
+;  Expected duration: 25h38m59s at default clock speed. Version v1.0
 ;
 ;              ◯◯
 ;            ┌───╮  ┏         ╭                                          ╮  ┓
@@ -75,974 +75,210 @@ frd:    !fill 10,0      ; fourth BBP fraction
 ; ***************************************************************
 ;  Start of main program ... core Pi calculation follows ...
 ; ***************************************************************
-;
-;   ╔════╤═════╤═════╤═════╤═══════╤════════════════════════════════╤═══════╗
-;   ║ k  │ 8k  │ fsz │ ssz │ fopts │ resulting psum                 │ rp†   ║
-;   ╟────┼─────┼─────┼─────┼───────┼────────────────────────────────┼───────╢
-;   ║  0 │   0 │   9 │  10 │  0x01 │ 3.2 22 22 22 22 22 22 22 22 23 │  1 hp ║
-;   ║  1 │   8 │   9 │   9 │  0x00 │ 3.2 43 44 34 43 44 34 43 44 36 │  3 hp ║
-;   ║  2 │  16 │   8 │   9 │  0x01 │ 3.2 43 f1 23 b1 08 69 82 7c c9 │  4 hp ║
-;   ║  3 │  24 │   8 │   8 │  0x00 │ 3.2 43 f6 73 e9 cc 66 c0 8c b2 │  5 hp ║
-;   ║  4 │  32 │   7 │   8 │  0x01 │ 3.2 43 f6 a6 59 b3 45 66 9c 6c │  6 hp ║
-;   ║  5 │  40 │   7 │   7 │  0x00 │ 3.2 43 f6 a8 6f 7e fe e1 06 65 │  7 hp ║
-;   ║  6 │  48 │   6 │   7 │  0x01 │ 3.2 43 f6 a8 87 30 a9 d3 3a 40 │  8 hp ║
-;   ║  7 │  56 │   6 │   6 │  0x00 │ 3.2 43 f6 a8 88 4b c1 32 73 1d │  9 hp ║
-;   ║  8 │  64 │   5 │   6 │  0x01 │ 3.2 43 f6 a8 88 59 78 11 ce be │ 10 hp ║
-;   ║  9 │  72 │   5 │   5 │  0x00 │ 3.2 43 f6 a8 88 5a 27 21 32 01 │ 11 hp ║
-;   ║ 10 │  80 │   4 │   5 │  0x01 │ 3.2 43 f6 a8 88 5a 30 0f b2 d4 │ 13 hp ║
-;   ║ 11 │  88 │   4 │   4 │  0x00 │ 3.2 43 f6 a8 88 5a 30 86 8f bb │ 14 hp ║
-;   ║ 12 │  96 │   3 │   4 │  0x01 │ 3.2 43 f6 a8 88 5a 30 8c d6 5d │ 14 hp ║
-;   ║ 13 │ 104 │   3 │   3 │  0x00 │ 3.2 43 f6 a8 88 5a 30 8d 2c 51 │ 15 hp ║
-;   ║ 14 │ 112 │   2 │   3 │  0x01 │ 3.2 43 f6 a8 88 5a 30 8d 30 f8 │ 16 hp ║
-;   ║ 15 │ 120 │   2 │   2 │  0x00 │ 3.2 43 f6 a8 88 5a 30 8d 31 39 │ 18 hp ║
-;   ╚════╧═════╧═════╧═════╧═══════╧════════════════════════════════╧═══════╝
-;       † result precision (hexadecimal places) compared to known result of Pi in hex.
 
-start:
+start:  ;   ╔════╤═════╤═════╤═════╤═══════╤════════════════════════════════╤═══════╗
+        ;   ║ k  │ 8k  │ fsz │ ssz │ fopts │ resulting psum                 │ rp†   ║
+        ;   ╟────┼─────┼─────┼─────┼───────┼────────────────────────────────┼───────╢
+        ;   ║  0 │   0 │   9 │  10 │  0x01 │ 3.2 22 22 22 22 22 22 22 22 23 │  1 hp ║
+        ;   ║  1 │   8 │   9 │   9 │  0x00 │ 3.2 43 44 34 43 44 34 43 44 36 │  3 hp ║
+        ;   ║  2 │  16 │   8 │   9 │  0x01 │ 3.2 43 f1 23 b1 08 69 82 7c c9 │  4 hp ║
+        ;   ║  3 │  24 │   8 │   8 │  0x00 │ 3.2 43 f6 73 e9 cc 66 c0 8c b2 │  5 hp ║
+        ;   ║  4 │  32 │   7 │   8 │  0x01 │ 3.2 43 f6 a6 59 b3 45 66 9c 6c │  6 hp ║
+        ;   ║  5 │  40 │   7 │   7 │  0x00 │ 3.2 43 f6 a8 6f 7e fe e1 06 65 │  7 hp ║
+        ;   ║  6 │  48 │   6 │   7 │  0x01 │ 3.2 43 f6 a8 87 30 a9 d3 3a 40 │  8 hp ║
+        ;   ║  7 │  56 │   6 │   6 │  0x00 │ 3.2 43 f6 a8 88 4b c1 32 73 1d │  9 hp ║
+        ;   ║  8 │  64 │   5 │   6 │  0x01 │ 3.2 43 f6 a8 88 59 78 11 ce be │ 10 hp ║
+        ;   ║  9 │  72 │   5 │   5 │  0x00 │ 3.2 43 f6 a8 88 5a 27 21 32 01 │ 11 hp ║
+        ;   ║ 10 │  80 │   4 │   5 │  0x01 │ 3.2 43 f6 a8 88 5a 30 0f b2 d4 │ 13 hp ║
+        ;   ║ 11 │  88 │   4 │   4 │  0x00 │ 3.2 43 f6 a8 88 5a 30 86 8f bb │ 14 hp ║
+        ;   ║ 12 │  96 │   3 │   4 │  0x01 │ 3.2 43 f6 a8 88 5a 30 8c d6 5d │ 14 hp ║
+        ;   ║ 13 │ 104 │   3 │   3 │  0x00 │ 3.2 43 f6 a8 88 5a 30 8d 2c 51 │ 15 hp ║
+        ;   ║ 14 │ 112 │   2 │   3 │  0x01 │ 3.2 43 f6 a8 88 5a 30 8d 30 f8 │ 16 hp ║
+        ;   ║ 15 │ 120 │   2 │   2 │  0x00 │ 3.2 43 f6 a8 88 5a 30 8d 31 39 │ 18 hp ║
+        ;   ╚════╧═════╧═════╧═════╧═══════╧════════════════════════════════╧═══════╝
+        ;       † result precision (hexadecimal places) compared to known result of Pi in hex.
 
-k0: {
-        ; Set Options
-        ldi m,fopts
+
+        ; We go straight into the first BBP iteration which is coded out differently to the others
+        ; as it uses a literal fra = 4 and frb = 0.5 to save time on long reciprocal calculations
+k_0: {
+        ldi m,fopts             ; Set Options
         ldi b,1
         str b
 
-        ; Calculate the four fractions
+        ; Calculate the four BBP fractions
 
-        ldi m,0x40        ; fra = 4 (Q4.76)
+        ldi m,0x40              ; fra = 4 (Q4.76)
         mov b,m2
         ldi m,fra+9
         str b
 
-        ldi m,frb+9       ; frb = 2/4 = 0.5 (Q4.76)
+        ldi m,frb+9             ; frb = 2/4 = 0.5 (Q4.76)
         ldi b,8
         str b
 
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
+        ldi m,frc§parr          ; frc = (1 / 8k+5)
         jsr bbp_fraction::vC
 
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
+        ldi m,frd§parr          ; frd = (1 / 8k+6)
         jsr bbp_fraction::vD
 
         ; Calulate fra = fra - frb - frc - frd
+        ; We use fixed literals for b = 10 to save time in first stage before in the loop
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,10          ; 10 bytes
+        ldi m,frb§fra           ; fra -= frb
+        ldi b,10                ; 10 bytes
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,10          ; 10 bytes
+        ldi m,frc§fra           ; fra -= frc
+        ldi b,10                ; 10 bytes
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,10          ; 10 bytes
+        ldi m,frd§fra           ; fra -= frd
+        ldi b,10                ; 10 bytes
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,10
+        ldi m,fra§psum          ; psum += fra
+        ldi b,10                ; 10 bytes
         jsr long_add
 }
 
-k1: {
-        ; Increase DV by 8
-        ldi m,dv
+        ; Perform a BBP iteration where k is odd. Loop starts here.
+        ; At the start we increase dv by 8, decrement ssz and clear fopts
+k_odd: {  
+        ldi m,dv                ; Increase dv by 8
         ldi b,8
         ldr c
         add
         str a
-
-        ; Decrement Sum Size
-        ldi m,ssz
+        
+        ldi m,ssz               ; Decrement Sum Size
         ldi b,-1
         ldr c
         add
         str a
 
-        ; Clear Options
-        ldi m,fopts
+        ldi m,fopts             ; Clear Options
         clr b
         str b
 
         ; Calculate the four fractions
 
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
+        ldi m,fra§parr          ; fra = (4 / 8k+1)
         jsr bbp_fraction::vA
 
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
+        ldi m,frb§parr          ; frb = (2 / 8k+4)
         jsr bbp_fraction::vB
 
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
+        ldi m,frc§parr          ; frc = (1 / 8k+5)
         jsr bbp_fraction::vC
 
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
+        ldi m,frd§parr          ; frd = (1 / 8k+6)
         jsr bbp_fraction::vD
-
+        
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,ssz         ; fra -= frb
+        ldi m,ssz                ; fra -= frb
         ldr b
         ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,ssz         ; fra -= frc
+        ldi m,ssz               ; fra -= frc
         ldr b
         ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,ssz         ; fra -= frd
+        ldi m,ssz               ; fra -= frd
         ldr b
         ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,ssz         ; psum += fra
+        ldi m,ssz               ; psum += fra
         ldr b
         ldi m,fra§psum
         jsr long_add
 }
 
-k2: {
-        ; Increase DV by 8
-        ldi m,dv
+        ; Perform a BBP iteration where k is even. Loop exits here when dv = 128.
+        ; At the start we increase dv by 8, decrement fsz and set fopts (shifting reciprocals << 4)
+k_even: {
+        ldi m,dv                ; Increase DV by 8
         ldi b,8
         ldr c
         add
         str a
+        bmi k_end               ; Exit when sign flag set (dv = 128)
 
-        ; Decrement Byte Size
-        ldi m,fsz
+        ldi m,fsz               ; Decrement Byte Size
         ldi b,-1
         ldr c
         add
         str a
 
-        ; Set Options
-        ldi m,fopts
+        ldi m,fopts             ; Set Options
         ldi b,1
         str b
 
         ; Calculate the four fractions
 
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
+        ldi m,fra§parr          ; fra = (4 / 8k+1)
         jsr bbp_fraction::vA
 
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
+        ldi m,frb§parr          ; frb = (2 / 8k+4)
         jsr bbp_fraction::vB
 
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
+        ldi m,frc§parr          ; frc = (1 / 8k+5)
         jsr bbp_fraction::vC
 
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
+        ldi m,frd§parr          ; frd = (1 / 8k+6)
         jsr bbp_fraction::vD
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,ssz         ; fra -= frb
+        ldi m,ssz               ; fra -= frb
         ldr b
         ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,ssz         ; fra -= frc
+        ldi m,ssz               ; fra -= frc
         ldr b
         ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,ssz         ; fra -= frd
+        ldi m,ssz               ; fra -= frd
         ldr b
         ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,ssz         ; psum += fra
+        ldi m,ssz               ; psum += fra
         ldr b
         ldi m,fra§psum
         jsr long_add
 }
 
-k3: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
+        ; Can now continue on to the next odd BBP iteration
+        jmp k_odd
 
-        ; Decrement Sum Size
-        ldi m,ssz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Clear Options
-        ldi m,fopts
-        clr b
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-k4: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
-
-        ; Decrement Byte Size
-        ldi m,fsz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Set Options
-        ldi m,fopts
-        ldi b,1
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-k5: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
-
-        ; Decrement Sum Size
-        ldi m,ssz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Clear Options
-        ldi m,fopts
-        clr b
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-k6: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
-
-        ; Decrement Byte Size
-        ldi m,fsz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Set Options
-        ldi m,fopts
-        ldi b,1
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-k7: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
-
-        ; Decrement Sum Size
-        ldi m,ssz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Clear Options
-        ldi m,fopts
-        clr b
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-k8: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
-
-        ; Decrement Byte Size
-        ldi m,fsz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Set Options
-        ldi m,fopts
-        ldi b,1
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-k9: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
-
-        ; Decrement Sum Size
-        ldi m,ssz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Clear Options
-        ldi m,fopts
-        clr b
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-k10: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
-
-        ; Decrement Byte Size
-        ldi m,fsz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Set Options
-        ldi m,fopts
-        ldi b,1
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-k11: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
-
-        ; Decrement Sum Size
-        ldi m,ssz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Clear Options
-        ldi m,fopts
-        clr b
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-k12: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
-
-        ; Decrement Byte Size
-        ldi m,fsz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Set Options
-        ldi m,fopts
-        ldi b,1
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-k13: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
-
-        ; Decrement Sum Size
-        ldi m,ssz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Clear Options
-        ldi m,fopts
-        clr b
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-k14: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
-
-        ; Decrement Byte Size
-        ldi m,fsz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Set Options
-        ldi m,fopts
-        ldi b,1
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-k15: {
-        ; Increase DV by 8
-        ldi m,dv
-        ldi b,8
-        ldr c
-        add
-        str a
-
-        ; Decrement Sum Size
-        ldi m,ssz
-        ldi b,-1
-        ldr c
-        add
-        str a
-
-        ; Clear Options
-        ldi m,fopts
-        clr b
-        str b
-
-        ; Calculate the four fractions
-
-        ldi m,fra§parr    ; fra = (4 / 8k+1)
-        jsr bbp_fraction::vA
-
-        ldi m,frb§parr    ; frb = (2 / 8k+4)
-        jsr bbp_fraction::vB
-
-        ldi m,frc§parr    ; frc = (1 / 8k+5)
-        jsr bbp_fraction::vC
-
-        ldi m,frd§parr    ; frd = (1 / 8k+6)
-        jsr bbp_fraction::vD
-
-        ; Calulate fra = fra - frb - frc - frd
-
-        ldi m,ssz         ; fra -= frb
-        ldr b
-        ldi m,frb§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frc
-        ldr b
-        ldi m,frc§fra
-        jsr long_subtract
-
-        ldi m,ssz         ; fra -= frd
-        ldr b
-        ldi m,frd§fra
-        jsr long_subtract
-
-        ; Calculate psum = psum + fra
-
-        ldi m,ssz         ; psum += fra
-        ldr b
-        ldi m,fra§psum
-        jsr long_add
-}
-
-        ; ******************* COMPLETE
-
-        ; We now have Pi to 19hp LE in psum!
+        ; BBP iterations are now complete and we have Pi to 19hp LE in psum!
         ; Last step is to copy and truncate to 17hp then convert to BE
-
-        ldi m,pi§psum+1 ; Copy 9 bytes of psum to pi ignoring first LE byte
+k_end: {
+        ldi m,pi§psum+1         ; Copy 9 bytes of psum to pi ignoring first LE byte
         ldi b,9
         jsr copy
 
-        ldi m,pi        ; Convert pi LE to BE
+        ldi m,pi                ; Convert pi LE to BE
         ldi b,9
         jsr reverse
+}
 
-        ldi m,pi        ; Position on start of result
+        ; Fin - mission accomplished
+        ldi m,pi                ; Position on start of result
         hlt
 
 ; ***************************************************************
