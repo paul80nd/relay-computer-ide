@@ -6,7 +6,10 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { AppComponent } from './app/app.component';
 import {
   ClarityIcons,
+  cogIcon,
   libraryIcon,
+  minusIcon,
+  plusIcon,
   terminalIcon,
   importIcon,
   exportIcon
@@ -16,7 +19,7 @@ if (environment.production) {
   enableProdMode();
 }
 
-ClarityIcons.addIcons(libraryIcon, terminalIcon, importIcon, exportIcon);
+ClarityIcons.addIcons(cogIcon, libraryIcon, minusIcon, plusIcon, terminalIcon, importIcon, exportIcon);
 
 bootstrapApplication(AppComponent, {
     providers: [

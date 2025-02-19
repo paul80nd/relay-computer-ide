@@ -1,16 +1,17 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 
 import { BinPipe } from './bin.pipe';
 import { DecPipe } from './dec.pipe';
 import { HexPipe } from './hex.pipe';
-import { ClrSignpostModule } from '@clr/angular';
+import { ClrIconModule, ClrSignpostModule } from '@clr/angular';
 
 @Component({
   selector: 'app-ride-emulator',
   templateUrl: './emulator.component.html',
-  imports: [BinPipe, DecPipe, HexPipe, ClrSignpostModule]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [BinPipe, DecPipe, HexPipe, ClrSignpostModule, ClrIconModule]
 })
-export class EmulatorComponent {
+export class EmulatorComponent implements OnInit {
 
   memoryOffset = 0;
   memoryArray: number[];
@@ -28,6 +29,9 @@ export class EmulatorComponent {
   flagC = false;
   primarySW = 0;
   cycleCount = 0;
+
+  options = false;
+  ipr = 1;
 
   get registerM1(): number {
     return (this.registerM & 0xFF00) >> 8;
@@ -53,8 +57,17 @@ export class EmulatorComponent {
 
   running = false;
 
-  constructor() {
+  constructor(private cdr: ChangeDetectorRef) {
     this.memoryArray = new Array(32768);
+  }
+
+  ngOnInit() {
+    this.ipr = parseInt(localStorage.getItem("emu_ipr") || "1") || 1;
+  }
+
+  setIpr(value: number) {
+    this.ipr = value;
+    localStorage.setItem("emu_ipr", this.ipr.toString());
   }
 
   prevOffset() {
@@ -73,6 +86,7 @@ export class EmulatorComponent {
         this.memoryArray[offset + i] = prog[i];
       }
       this.registerPC = offset;
+      this.cdr.detectChanges()
     }
   }
 
@@ -248,11 +262,19 @@ export class EmulatorComponent {
   private runLoop() {
     if (!this.running) { return; }
 
-    if (this.step()) {
+    let stillRun = true;
+    for (let i = 0; i < this.ipr; i++) {
+      stillRun = this.step();
+      if (!stillRun || !this.running) { break; }
+    }
+
+    if (stillRun) {
       setTimeout(() => this.runLoop(), 1);
     } else {
       this.running = false;
     }
+
+    this.cdr.detectChanges();
   }
 
   private readMov8Reg: Array<() => number> = [

@@ -239,17 +239,28 @@
         }
         <button (click)="step()" class="btn">Step</button>
         <button (click)="reset()" class="btn">Reset</button>
+        <button (click)="options = !options" class="btn" [class.btn-primary]="options" cds-layout="align:shrink">
+          <cds-icon shape="cog"></cds-icon>
+        </button>
       </div>
       <div cds-layout="horizontal gap:xs wrap:none align:horizontal-stretch">
         <div class="btn-group btn-sm" cds-layout="align:fill">
-          <div class="checkbox btn"><input type="checkbox" id="ps7" (click)="flipBit(7)" /><label for="ps7">7</label></div>
-          <div class="checkbox btn"><input type="checkbox" id="ps6" (click)="flipBit(6)" /><label for="ps6">6</label></div>
-          <div class="checkbox btn"><input type="checkbox" id="ps5" (click)="flipBit(5)" /><label for="ps5">5</label></div>
-          <div class="checkbox btn"><input type="checkbox" id="ps4" (click)="flipBit(4)" /><label for="ps4">4</label></div>
-          <div class="checkbox btn"><input type="checkbox" id="ps3" (click)="flipBit(3)" /><label for="ps3">3</label></div>
-          <div class="checkbox btn"><input type="checkbox" id="ps2" (click)="flipBit(2)" /><label for="ps2">2</label></div>
-          <div class="checkbox btn"><input type="checkbox" id="ps1" (click)="flipBit(1)" /><label for="ps1">1</label></div>
-          <div class="checkbox btn"><input type="checkbox" id="ps0" (click)="flipBit(0)" /><label for="ps0">0</label></div>
+          <div class="checkbox btn"><input type="checkbox" id="ps7" (click)="flipBit(7)" /><label for="ps7">7</label>
+          </div>
+          <div class="checkbox btn"><input type="checkbox" id="ps6" (click)="flipBit(6)" /><label for="ps6">6</label>
+          </div>
+          <div class="checkbox btn"><input type="checkbox" id="ps5" (click)="flipBit(5)" /><label for="ps5">5</label>
+          </div>
+          <div class="checkbox btn"><input type="checkbox" id="ps4" (click)="flipBit(4)" /><label for="ps4">4</label>
+          </div>
+          <div class="checkbox btn"><input type="checkbox" id="ps3" (click)="flipBit(3)" /><label for="ps3">3</label>
+          </div>
+          <div class="checkbox btn"><input type="checkbox" id="ps2" (click)="flipBit(2)" /><label for="ps2">2</label>
+          </div>
+          <div class="checkbox btn"><input type="checkbox" id="ps1" (click)="flipBit(1)" /><label for="ps1">1</label>
+          </div>
+          <div class="checkbox btn"><input type="checkbox" id="ps0" (click)="flipBit(0)" /><label for="ps0">0</label>
+          </div>
         </div>
       </div>
     </div>
@@ -297,6 +308,34 @@
     </table>
 
   </div>
+
+  <!-- Options Panel -->
+  @if(options) {
+  <table class="table table-compact" style="margin-top: 0;">
+    <thead>
+      <tr>
+        <th><span role="tooltip" class="tooltip tooltip-bottom-right">
+            IPR
+            <span class="tooltip-content">Instructions per (UI) Refresh. Higher number makes emulation run
+              quicker.</span>
+          </span>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <button class="btn btn-link btn-icon btn-sm" [disabled]="ipr == 1" cds-layout="m:none"
+            (click)="setIpr(ipr / 2)"> <cds-icon shape="minus"></cds-icon></button>
+          {{ipr}}
+          <button class="btn btn-link btn-icon btn-sm" [disabled]="ipr == 32" cds-layout="m:none"
+            (click)="setIpr(ipr * 2)"> <cds-icon shape="plus"></cds-icon></button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  }
+
   <!-- Memory Display -->
   <table class="table table-compact memory-display" style="margin-top: 0;">
     <thead>
