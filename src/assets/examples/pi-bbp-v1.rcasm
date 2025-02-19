@@ -2,7 +2,7 @@
 ;  Calculation of Pi to 20 decimal places
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
-;  Expected duration: 25h31m43s at default clock speed. Version v0.16
+;  Expected duration: 25h37m48s at default clock speed. Version v0.17
 ;
 ;              ◯◯
 ;            ┌───╮  ┏         ╭                                          ╮  ┓
@@ -16,8 +16,8 @@
 ;
 ;    32 43 f6 a8 88 5a 30 8d 31     (pi)       [9 byte Big Endian Q4.68]
 ;
-;  After each BBP iteration the value of Pi will build up in ps_s as follows with accuracy
-;  to n hex digits following n iterations. Remaining digits are partial results.
+;  After each BBP iteration the value of Pi will build up in psum as follows with accuracy
+;  to at least n hex digits following n iterations. Remaining digits are partial results.
 ;
 ;    39 31 8d 30 5a 88 a8 f6 43 32  (psum)     [10 byte Little Endian Q4.76]
 ;
@@ -25,20 +25,13 @@
 ;  precision - i.e. no more than 1/16^k right shift would throw away:
 ;  (example values from 7th iteration at k=6)
 ;
-;    01 4e 5e 0a 72 f0 53           (fra = 4/49 >> 24)      [7 byte BE]
-;    00 9d 89 d8 9d 89 d8           (frb = 2/52 >> 24)      [7 byte BE]
-;    00 4d 48 73 ec ad e3           (frc = 1/53 >> 24)      [7 byte BE]
-;    00 4b da 12 f6 84 bd           (frd = 1/54 >> 24)      [7 byte BE]
+;    53 f0 72 0a 5e 4e 01           (fra = 4/49 >> 24)      [7 byte LE]
+;    d7 89 9d d8 89 9d 00           (frb = 2/52 >> 24)      [7 byte LE]
+;    e3 ad ec 73 48 4d 00           (frc = 1/53 >> 24)      [7 byte LE]
+;    bd 84 f6 12 da 4b 00           (frd = 1/54 >> 24)      [7 byte LE]
 ;
-;  These values are then converted to little endian (LE) in preparation for long addition
-;  and pb, pc and pd are two's complemented to effect subtraction through addition:
-;
-;    53 f0 72 0a 5e 4e 01           (fra = fra)             [7 byte LE]
-;    28 76 62 27 76 62 ff           (frb = -frb)            [7 byte LE]
-;    1d 52 13 8c b7 b2 ff           (frc = -frc)            [7 byte LE]
-;    43 7b 09 ed 25 b4 ff           (frd = -frd)            [7 byte LE]
-;
-;  Long addition is then performed for frb, frc and frd accumulating into fra:
+;  Long addition is then performed for frb, frc and frd accumulating into fra (with frb,
+;  frc and frd negated via two's complement to effect subtraction through addition):
 ;
 ;    db 33 f2 aa b1 17 00           (fra = fra-frb-frc-frd) [7 byte LE]
 ;
@@ -56,10 +49,12 @@
 ;  can be removed to shorten the assembled output.
 ; ***************************************************************
 
-parr:                   ; the following values form a parameter array for BBP fraction function
+parr:                   ; the following three values form a parameter array for BBP fraction function
 dv:     !byte 0         ; BBP divisor (representing 8k at start of each iteration)
-fsz:    !byte 9         ; BBP fraction byte size (decreases every 2 iterations)
+fsz:    !byte 9         ; BBP fraction byte size (decreases every even iteration)
 fopts:  !byte 0         ; BBP fraction option flags
+
+ssz:    !byte 10        ; BBP sum byte size (decreases every odd iteration)
 
         org 0x07
 pi:     !fill 9,0xaa    ; final result of Pi [9 byte Big Endian Q4.68] (area marked with 0xaa for visibility)
@@ -157,6 +152,13 @@ k1: {
         add
         str a
 
+        ; Decrement Sum Size
+        ldi m,ssz
+        ldi b,-1
+        ldr c
+        add
+        str a
+
         ; Clear Options
         ldi m,fopts
         clr b
@@ -178,22 +180,26 @@ k1: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,9           ; 9 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,9           ; 9 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,9           ; 9 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,9
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -233,22 +239,26 @@ k2: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,9           ; 9 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,9           ; 9 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,9           ; 9 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,9
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -256,6 +266,13 @@ k3: {
         ; Increase DV by 8
         ldi m,dv
         ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Decrement Sum Size
+        ldi m,ssz
+        ldi b,-1
         ldr c
         add
         str a
@@ -281,22 +298,26 @@ k3: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,8           ; 8 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,8           ; 8 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,8           ; 8 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,8
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -336,22 +357,26 @@ k4: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,8           ; 8 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,8           ; 8 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,8           ; 8 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,8
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -359,6 +384,13 @@ k5: {
         ; Increase DV by 8
         ldi m,dv
         ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Decrement Sum Size
+        ldi m,ssz
+        ldi b,-1
         ldr c
         add
         str a
@@ -384,22 +416,26 @@ k5: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,7           ; 7 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,7           ; 7 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,7           ; 7 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,7
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -439,22 +475,26 @@ k6: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,7           ; 7 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,7           ; 7 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,7           ; 7 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,7
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -462,6 +502,13 @@ k7: {
         ; Increase DV by 8
         ldi m,dv
         ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Decrement Sum Size
+        ldi m,ssz
+        ldi b,-1
         ldr c
         add
         str a
@@ -487,22 +534,26 @@ k7: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,6           ; 6 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,6           ; 6 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,6           ; 6 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,6
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -542,22 +593,26 @@ k8: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,6           ; 6 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,6           ; 6 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,6           ; 6 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,6
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -565,6 +620,13 @@ k9: {
         ; Increase DV by 8
         ldi m,dv
         ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Decrement Sum Size
+        ldi m,ssz
+        ldi b,-1
         ldr c
         add
         str a
@@ -590,22 +652,26 @@ k9: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,5           ; 5 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,5           ; 5 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,5           ; 5 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,5
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -645,22 +711,26 @@ k10: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,5           ; 5 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,5           ; 5 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,5           ; 5 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,5
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -668,6 +738,13 @@ k11: {
         ; Increase DV by 8
         ldi m,dv
         ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Decrement Sum Size
+        ldi m,ssz
+        ldi b,-1
         ldr c
         add
         str a
@@ -693,22 +770,26 @@ k11: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,4           ; 4 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,4           ; 4 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,4           ; 4 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,4
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -748,22 +829,26 @@ k12: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,4           ; 4 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,4           ; 4 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,4           ; 4 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,4
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -771,6 +856,13 @@ k13: {
         ; Increase DV by 8
         ldi m,dv
         ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Decrement Sum Size
+        ldi m,ssz
+        ldi b,-1
         ldr c
         add
         str a
@@ -796,22 +888,26 @@ k13: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,3           ; 3 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,3           ; 3 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,3           ; 3 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,3
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -851,22 +947,26 @@ k14: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,3           ; 3 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,3           ; 3 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,3           ; 3 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,3
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
@@ -874,6 +974,13 @@ k15: {
         ; Increase DV by 8
         ldi m,dv
         ldi b,8
+        ldr c
+        add
+        str a
+
+        ; Decrement Sum Size
+        ldi m,ssz
+        ldi b,-1
         ldr c
         add
         str a
@@ -899,22 +1006,26 @@ k15: {
 
         ; Calulate fra = fra - frb - frc - frd
 
-        ldi m,frb§fra     ; fra -= frb
-        ldi b,2           ; 2 bytes
+        ldi m,ssz         ; fra -= frb
+        ldr b
+        ldi m,frb§fra
         jsr long_subtract
 
-        ldi m,frc§fra     ; fra -= frc
-        ldi b,2           ; 2 bytes
+        ldi m,ssz         ; fra -= frc
+        ldr b
+        ldi m,frc§fra
         jsr long_subtract
 
-        ldi m,frd§fra     ; fra -= frd
-        ldi b,2           ; 2 bytes
+        ldi m,ssz         ; fra -= frd
+        ldr b
+        ldi m,frd§fra
         jsr long_subtract
 
         ; Calculate psum = psum + fra
 
-        ldi m,fra§psum    ; psum += fra
-        ldi b,2
+        ldi m,ssz         ; psum += fra
+        ldr b
+        ldi m,fra§psum
         jsr long_add
 }
 
