@@ -22,6 +22,15 @@
           }
         </clr-accordion-content>
       </clr-accordion-panel>
+      @if(isDevMode) {
+      <clr-accordion-panel [clrAccordionPanelOpen]="true">
+        <clr-accordion-title>Complex Examples</clr-accordion-title>
+        <clr-accordion-content *clrIfExpanded>
+          <p cds-text="body" cds-layout="m-y:sm">These example programs are much fuller (and therefore more complex):</p>
+          <button class="btn btn-link" (click)="loadExample('pi-bbp-v1.rcasm')">Pi Calculation (BBP)</button>
+        </clr-accordion-content>
+      </clr-accordion-panel>
+      }
       <clr-accordion-panel>
         <clr-accordion-title>Mathematical Operations</clr-accordion-title>
         <clr-accordion-content *clrIfExpanded>
