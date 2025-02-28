@@ -1,7 +1,7 @@
 body {
   background-color: white;
   color: black;
-  font-family: "Lucida Console", Monaco, monospace;
+  font-family: "Source Code Pro", monospace;
 }
 
 .wrapper {
@@ -147,75 +147,75 @@ li.blank {
   display: inline-block;
   width: 10mm;
   height: 4mm;
-  font-size: 1.5mm;
+  font-size: 2mm;
   vertical-align: top;
-  padding-top: .8mm;
-  padding-left: 2mm;
+  padding-top: .2mm;
+  padding-left: 3mm;
   line-height: 1.8mm;
 }
 
 .b0000 {
-  background: repeating-linear-gradient(90deg, #fff, #fff 16mm);
+  background: linear-gradient(90deg, #fff, #fff 16mm);
 }
 
 .b0001 {
-  background: repeating-linear-gradient(90deg, #fff, #fff 12mm, #000 12mm, #000 16mm);
+  background: linear-gradient(90deg, #fff, #fff 12mm, #000 12mm, #000 16mm);
 }
 
 .b0010 {
-  background: repeating-linear-gradient(90deg, #fff, #fff 8mm, #000 8mm, #000 12mm, #fff 12mm, #fff 16mm);
+  background: linear-gradient(90deg, #fff, #fff 8mm, #000 8mm, #000 12mm, #fff 12mm, #fff 16mm);
 }
 
 .b0011 {
-  background: repeating-linear-gradient(90deg, #fff, #fff 8mm, #000 8mm, #000 16mm);
+  background: linear-gradient(90deg, #fff, #fff 8mm, #000 8mm, #000 16mm);
 }
 
 .b0100 {
-  background: repeating-linear-gradient(90deg, #fff, #fff 4mm, #000 4mm, #000 8mm, #fff 8mm, #fff 16mm);
+  background: linear-gradient(90deg, #fff, #fff 4mm, #000 4mm, #000 8mm, #fff 8mm, #fff 16mm);
 }
 
 .b0101 {
-  background: repeating-linear-gradient(90deg, #fff, #fff 4mm, #000 4mm, #000 8mm, #fff 8mm, #fff 12mm, #000 12mm, #000 16mm);
+  background: linear-gradient(90deg, #fff, #fff 4mm, #000 4mm, #000 8mm, #fff 8mm, #fff 12mm, #000 12mm, #000 16mm);
 }
 
 .b0110 {
-  background: repeating-linear-gradient(90deg, #fff, #fff 4mm, #000 4mm, #000 12mm, #fff 12mm, #fff 16mm);
+  background: linear-gradient(90deg, #fff, #fff 4mm, #000 4mm, #000 12mm, #fff 12mm, #fff 16mm);
 }
 
 .b0111 {
-  background: repeating-linear-gradient(90deg, #fff, #fff 4mm, #000 4mm, #000 16mm);
+  background: linear-gradient(90deg, #fff, #fff 4mm, #000 4mm, #000 16mm);
 }
 
 .b1000 {
-  background: repeating-linear-gradient(90deg, #000, #000 4mm, #fff 4mm, #fff 16mm);
+  background: linear-gradient(90deg, #000, #000 4mm, #fff 4mm, #fff 16mm);
 }
 
 .b1001 {
-  background: repeating-linear-gradient(90deg, #000, #000 4mm, #fff 4mm, #fff 12mm, #000 12mm, #000 16mm);
+  background: linear-gradient(90deg, #000, #000 4mm, #fff 4mm, #fff 12mm, #000 12mm, #000 16mm);
 }
 
 .b1010 {
-  background: repeating-linear-gradient(90deg, #000, #000 4mm, #fff 4mm, #fff 8mm, #000 8mm, #000 12mm, #fff 12mm, #fff 16mm);
+  background: linear-gradient(90deg, #000, #000 4mm, #fff 4mm, #fff 8mm, #000 8mm, #000 12mm, #fff 12mm, #fff 16mm);
 }
 
 .b1011 {
-  background: repeating-linear-gradient(90deg, #000, #000 4mm, #fff 4mm, #fff 8mm, #000 8mm, #000 16mm);
+  background: linear-gradient(90deg, #000, #000 4mm, #fff 4mm, #fff 8mm, #000 8mm, #000 16mm);
 }
 
 .b1100 {
-  background: repeating-linear-gradient(90deg, #000, #000 8mm, #fff 8mm, #fff 16mm);
+  background: linear-gradient(90deg, #000, #000 8mm, #fff 8mm, #fff 16mm);
 }
 
 .b1101 {
-  background: repeating-linear-gradient(90deg, #000, #000 8mm, #fff 8mm, #fff 12mm, #000 12mm, #000 16mm);
+  background: linear-gradient(90deg, #000, #000 8mm, #fff 8mm, #fff 12mm, #000 12mm, #000 16mm);
 }
 
 .b1110 {
-  background: repeating-linear-gradient(90deg, #000, #000 12mm, #fff 12mm, #fff 16mm);
+  background: linear-gradient(90deg, #000, #000 12mm, #fff 12mm, #fff 16mm);
 }
 
 .b1111 {
-  background: repeating-linear-gradient(90deg, #000, #000 16mm);
+  background: linear-gradient(90deg, #000, #000 16mm);
 }
 
 .scissors {

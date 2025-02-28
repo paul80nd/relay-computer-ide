@@ -62,7 +62,7 @@ dataPages.forEach(p => {
       result += '<span class="mark"></span>';
       result += `<span class="word b${hi}"></span>`;
       result += `<span class="word b${lo}"></span>`;
-      result += `<span class="code">${ad}:${op}<br /><sup>${d.c}</sup></span>`;
+      result += `<span class="code">${ad}:<b>${op}</b><br /><sup>${d.c}</sup></span>`;
       result += `</li>`;
     });
 
