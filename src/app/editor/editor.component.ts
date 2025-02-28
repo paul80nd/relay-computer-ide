@@ -3,9 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
 
 @Component({
-    selector: 'app-ride-editor',
-    templateUrl: './editor.component.html',
-    imports: [MonacoEditorModule]
+  selector: 'app-ride-editor',
+  templateUrl: './editor.component.html',
+  imports: [MonacoEditorModule]
 })
 export class EditorComponent {
   private http = inject(HttpClient);
@@ -63,5 +63,4 @@ export class EditorComponent {
       this.editor?.getModel()?.setValue(data);
     });
   }
-
 }

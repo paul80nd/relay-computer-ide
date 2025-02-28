@@ -98,6 +98,25 @@ export class AppComponent implements OnInit {
     }
   }
 
+  exportToLoadSheet() {
+    if (this.didAssemble && this.lastCompile) {
+      const wi = window.open('', 'loadsheet', '');
+      if (wi) {
+        wi.location.href = 'assets/loadsheet/ldsht.html';
+        // Wait for window instance to be created
+        setTimeout(() => {
+          const prgId = Math.random().toString(36).slice(2, 10);
+          const name = '';
+          const desc = '';
+          wi.document.body.innerText = `${prgId}@${name}@${desc}@${this.dasm.replace(/\n/gi, '|')}`;
+          var script = document.createElement('script');
+          script.src = 'ldsht.js';
+          wi.document.head.appendChild(script);
+        }, 500);
+      }
+    }
+  }
+
   onExampleRequested(example: string) {
     this.editor().loadExample(example);
   }
