@@ -23,10 +23,11 @@
         </clr-accordion-content>
       </clr-accordion-panel>
       @if(isDevMode) {
-      <clr-accordion-panel [clrAccordionPanelOpen]="true">
+      <clr-accordion-panel>
         <clr-accordion-title>Complex Examples</clr-accordion-title>
         <clr-accordion-content *clrIfExpanded>
-          <p cds-text="body" cds-layout="m-y:sm">These example programs are much fuller (and therefore more complex):</p>
+          <p cds-text="body" cds-layout="m-y:sm">These example programs are much fuller (and therefore more complex):
+          </p>
           <button class="btn btn-link" (click)="loadExample('pi-bbp-v1.rcasm')">Pi Calculation (BBP)</button>
         </clr-accordion-content>
       </clr-accordion-panel>
@@ -39,23 +40,30 @@
           <button class="btn btn-link" (click)="loadExample('subtract-8.rcasm')">8-bit Subtract</button>
           @if (isDevMode) {
           <button class="btn btn-link" (click)="loadExample('subtract-16.rcasm')">16-bit Subtract</button>
-          <button class="btn btn-link" (click)="loadExample('addition-long.rcasm')">Long Addition</button>
-          <button class="btn btn-link" (click)="loadExample('subtraction-long.rcasm')">Long Subtraction</button>
+          <button class="btn btn-link" (click)="loadExample('addition-long-se.rcasm')">Long Addition</button>
           }
           <button class="btn btn-link" (click)="loadExample('multiply-8.rcasm')">8-bit Multiply</button>
           @if (isDevMode) {
           <button class="btn btn-link" (click)="loadExample('multiply-16.rcasm')">16-bit Multiply</button>
-          <button class="btn btn-link" (click)="loadExample('reciprocal-long.rcasm')">Long Reciprocal</button>
-          <button class="btn btn-link" (click)="loadExample('reciprocal-long-v2.rcasm')">Long Reciprocal v2</button>
+          }
+          @if (isDevMode) {
+          <p cds-text="body" cds-layout="m-y:sm">Many of the examples above are also available in 'Handy Routines' as
+            reusable functions.</p>
           }
         </clr-accordion-content>
       </clr-accordion-panel>
       <clr-accordion-panel>
         <clr-accordion-title>Handy Routines</clr-accordion-title>
         <clr-accordion-content *clrIfExpanded>
-          <p cds-text="body" cds-layout="m-y:sm">These example programs demonstrate some common handy routines
-            for manipulating data in memory:</p>
+          <p cds-text="body" cds-layout="m-y:sm">These programs provide (and demonstrate) re-usable functions that could
+            be used by other programs:</p>
           <button class="btn btn-link" (click)="loadExample('convert-endian.rcasm')">Convert Endianness</button>
+          @if (isDevMode) {
+          <button class="btn btn-link" (click)="loadExample('addition-long.rcasm')">Long Addition</button>
+          <button class="btn btn-link" (click)="loadExample('subtraction-long.rcasm')">Long Subtraction</button>
+          <button class="btn btn-link" (click)="loadExample('reciprocal-long.rcasm')">Long Reciprocal</button>
+          <button class="btn btn-link" (click)="loadExample('reciprocal-long-v2.rcasm')">Long Reciprocal v2</button>
+          }
         </clr-accordion-content>
       </clr-accordion-panel>
     </clr-accordion>
