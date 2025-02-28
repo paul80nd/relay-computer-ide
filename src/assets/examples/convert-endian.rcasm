@@ -10,7 +10,7 @@
 ;     32 43 f6 a6 59 b3 45 66 9c 67 (cc)
 ;  -> 67 9c 66 45 b3 59 a6 f6 43 32
 ;
-;  Expected duration: 6m56s at default clock speed
+;  Expected duration: 3m28s at default clock speed
 ; *****************************************************
 
 ; Perform each conversion in turn by calling reverse function

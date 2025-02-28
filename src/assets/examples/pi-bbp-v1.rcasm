@@ -2,7 +2,7 @@
 ;  Calculation of Pi to 20 decimal places
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
-;  Expected duration: 25h38m59s at default clock speed. Version v1.0
+;  Expected duration: 12h49m29s at default clock speed. Version v1.0
 ;
 ;              ◯◯
 ;            ┌───╮  ┏         ╭                                          ╮  ┓
@@ -147,13 +147,13 @@ k_0: {
 
         ; Perform a BBP iteration where k is odd. Loop starts here.
         ; At the start we increase dv by 8, decrement ssz and clear fopts
-k_odd: {  
+k_odd: {
         ldi m,dv                ; Increase dv by 8
         ldi b,8
         ldr c
         add
         str a
-        
+
         ldi m,ssz               ; Decrement Sum Size
         ldi b,-1
         ldr c
@@ -177,7 +177,7 @@ k_odd: {
 
         ldi m,frd§parr          ; frd = (1 / 8k+6)
         jsr bbp_fraction::vD
-        
+
         ; Calulate fra = fra - frb - frc - frd
 
         ldi m,ssz                ; fra -= frb

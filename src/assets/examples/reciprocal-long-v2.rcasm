@@ -15,14 +15,14 @@
 ;  = 02 0c 49 ba 5e 35 3f 7c ed 91
 ;
 ;  Changes over original version:
-;    * unrolled inner bit-by-bit loop (saving 28m)
-;    * dropped sentinel bit loop tracking (saving 4m)
-;    * used restoring division algorithm (saving 31m)
+;    * unrolled inner bit-by-bit loop (saving 14m)
+;    * dropped sentinel bit loop tracking (saving 2m)
+;    * used restoring division algorithm (saving 15m)
 ;  Overall method is still very slow division approach but this
 ;  demonstrates the savings of loop unrolling in some cases.
 ;
-;  Original expected duration: 2h38m53s at default clock speed
-;  Revised expected duration: 1h33m15s at default clock speed
+;  Original expected duration: 1h19m26s at default clock speed
+;  Revised expected duration:    46m37s at default clock speed
 ; *************************************************************
 
 ; Perform each reciprocal in turn by calling function

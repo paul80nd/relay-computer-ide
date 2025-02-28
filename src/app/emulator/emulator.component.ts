@@ -239,7 +239,7 @@ export class EmulatorComponent implements OnInit {
   countCycles(cycles: number) {
     this.cycleCount += cycles;
     this.stateType = 'success'
-    const d = Math.floor(this.cycleCount / 6);  // Assuming 6 cycles per second
+    const d = Math.floor(this.cycleCount / 12);  // Assuming 6Hz 12 cycles per second
     const h = Math.floor(d / 3600);
     const m = Math.floor((d - (h * 3600)) / 60);
     const s = d - (h * 3600) - (m * 60);
