@@ -70,7 +70,7 @@ carry:  ; For the carry scenario we need to add 1 to the byte. It's
 
 
 ; Initial values in memory (bytes are little-endian ordered)
-; Values are aligned to ease visability in memory viewer
+; Values are aligned to ease visibility in memory viewer
 
         !align 16
 sa:     !byte 0x35, 0x44, 0x43, 0x34, 0x44, 0x43, 0x34, 0x44
