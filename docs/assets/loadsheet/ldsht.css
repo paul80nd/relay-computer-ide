@@ -1,0 +1,137 @@
+body {
+  background-color: white;
+  color: black;
+  font-family: "Source Code Pro", monospace;
+}
+
+.wrapper {
+  display: flex;
+  page-break-after: always;
+}
+
+.wrapper:last-child {
+  page-break-after: avoid;
+}
+
+ul:first-child {
+  border-left: 0.5mm dashed black;
+}
+
+ul {
+  padding: 0mm 0mm 0mm 3mm;
+  margin: 0mm;
+  min-width: 60mm;
+  list-style: none inside none;
+  border-right: 0.5mm dashed black;
+}
+
+ul::after {
+  content: " ";
+  height: 4.5mm;
+  width: 4mm;
+  background-image: url('scis.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: absolute;
+  margin-left: 48.25mm;
+  margin-top: -1mm;
+}
+
+li {
+  height: 9mm;
+}
+
+li.page {
+  text-align: center;
+  height: 6mm;
+  font-size: 3.5mm;
+  font-weight: 600;
+}
+
+
+li.footer,
+li.origin,
+li.title,
+li.desc {
+  height: 3.2mm;
+  margin-left: 8mm;
+  border: .5mm solid black;
+  width: 40mm;
+  padding: 1mm 0mm .5mm 0mm;
+  font-size: 2.8mm;
+  line-height: 1;
+  text-align: center;
+  overflow: hidden;
+}
+
+li.origin {
+  margin-bottom: 2mm;
+}
+
+li.footer {
+  margin-top: 2mm;
+}
+li.footer.ends {
+  border-left-width: 1mm;
+  border-right-width: 1mm;
+  width: 39mm;
+}
+
+li.title {
+  border-top-left-radius: 1.5mm;
+  border-top-right-radius: 1.5mm;
+}
+
+li.desc {
+  border-top: none;
+  font-size: 2.5mm;
+  line-height: 2.9mm;
+  height: auto;
+  padding-bottom: 1mm;
+  text-align: center;
+}
+
+li.origin {
+  border-top: none;
+  border-bottom-left-radius: 1.5mm;
+  border-bottom-right-radius: 1.5mm;
+}
+
+li.blank {
+  height: 1mm;
+}
+
+.mark {
+  display: inline-block;
+  width: 3mm;
+  height: 2mm;
+  margin: 1mm 1mm 1mm 0mm;
+  background-color: gray;
+  border-radius: 1mm;
+}
+
+.byte {
+  display: inline-block;
+  font-size: 6mm;
+  margin-left: 3mm;
+}
+
+.code {
+  display: inline-block;
+  font-size: 3mm;
+  vertical-align: top;
+  padding-top: 1.3mm;
+  padding-left: 5mm;
+  line-height: 3mm;
+  font-weight: 300;
+}
+
+.scissors {
+  height: 4.2mm;
+  width: 4mm;
+  background-image: url('scis.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: absolute;
+  margin-left: -5.2mm;
+}

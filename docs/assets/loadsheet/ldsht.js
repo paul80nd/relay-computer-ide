@@ -19,9 +19,9 @@ const data = dasm.split('|').map(l => {
   }));
 }).flat();
 
-// Chunk opcodes into strips, 50 in first, 55 in rest
+// Chunk opcodes into strips, 25 in first, 28 in rest
 const dataStrips = data.reduce((ra, d, i) => {
-  const cidx = i < 50 ? 0 : Math.floor((i - 50) / 55) + 1;
+  const cidx = i < 25 ? 0 : Math.floor((i - 25) / 28) + 1;
   if (!ra[cidx]) { ra[cidx] = []; }
   ra[cidx].push(d);
   return ra;
@@ -43,7 +43,7 @@ dataPages.forEach(p => {
 
   p.forEach(s => {
     result += '<ul>';
-    result += `<li class="page">${prgid} ${strip.toString().padStart(2, '0')}/${totalStrips.toString().padStart(2, '0')} <i class="chevron"></i></li>`
+    result += `<li class="page">${prgid} ${strip.toString().padStart(2, '0')}/${totalStrips.toString().padStart(2, '0')}</li>`
     if (strip === 1) {
       result += `<li class="title">${prgname.length > 0 ? prgname : prgid}</li>`;
       if (prgdesc.length > 0) {
@@ -53,16 +53,14 @@ dataPages.forEach(p => {
     }
 
     s.forEach(d => {
-      const hi = ((d.v & 0xf0) >> 4).toString(2).padStart(4, '0');
-      const lo = (d.v & 0x0f).toString(2).padStart(4, '0');
+      const by = d.v.toString(2).padStart(8, '0');
       const ad = d.a.toString(16).toUpperCase().padStart(4, 0);
       const op = d.v.toString(16).toUpperCase().padStart(2, 0);
 
       result += '<li class="instr">';
       result += '<span class="mark"></span>';
-      result += `<span class="word b${hi}"></span>`;
-      result += `<span class="word b${lo}"></span>`;
-      result += `<span class="code">${ad}:<b>${op}</b><br /><sup>${d.c}</sup></span>`;
+      result += `<span class="byte">${by}</span>`;
+      result += `<span class="code">${ad}:${op}<br /><sup>${d.c}</sup></span>`;
       result += `</li>`;
     });
 

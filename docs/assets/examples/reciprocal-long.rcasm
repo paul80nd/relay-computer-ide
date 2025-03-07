@@ -14,7 +14,7 @@
 ;    01 / 7d            (rd = 1/125 to 10 bytes)
 ;  = 02 0c 49 ba 5e 35 3f 7c ed 91
 ;
-;  Expected duration: 2h38m53s at default clock speed
+;  Expected duration: 1h19m26s at default clock speed
 ; *******************************************************
 
 ; Perform each reciprocal in turn by calling function

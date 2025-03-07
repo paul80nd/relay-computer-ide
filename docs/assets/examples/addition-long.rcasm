@@ -14,7 +14,7 @@
 ;  + 00 00 00 32 6f e6 de a6 0f b8 (se)
 ;  = 32 43 f6 a6 59 b3 45 66 9c 67
 ;
-;  Expected duration: 19m59s at default clock speed
+;  Expected duration: 9m59s at default clock speed
 ; *****************************************************
 
 ; Perform each addition in turn by calling long add function

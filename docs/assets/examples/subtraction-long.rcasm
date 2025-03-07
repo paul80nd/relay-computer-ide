@@ -15,7 +15,7 @@
 ;    ff 45 d1 74 5d 17 45 d1 74 5e (~sd+1)
 ;  = 00 ac ef 6d c4 35 3f 38 92 58
 ;
-;  Expected duration: 23m14s at default clock speed
+;  Expected duration: 11m37s at default clock speed
 ; *****************************************************
 
 ; Perform each subtraction in turn by calling function
