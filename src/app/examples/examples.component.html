@@ -11,14 +11,14 @@
           <p cds-text="body" cds-layout="m-y:sm">These example programs are deliberately simple to
             demonstrate some common concepts and provide an introduction to my assembly language:</p>
           @if (isDevMode) {
-          <button class="btn btn-link" (click)="loadExample('counter.rcasm')">Countdown Timer</button>
+          <button class="btn btn-link" (click)="loadExample('counter.rcasm')">!DEVONLY! Countdown Timer</button>
           }
           <button class="btn btn-link" (click)="loadExample('fibonacci.rcasm')">Fibonacci Series</button>
           @if (isDevMode) {
-          <button class="btn btn-link" (click)="loadExample('hello-world.rcasm')">Hello World</button>
+          <button class="btn btn-link" (click)="loadExample('hello-world.rcasm')">!DEVONLY! Hello World</button>
           }
           @if (isDevMode) {
-          <button class="btn btn-link" (click)="loadExample('memory-test.rcasm')">Memory Test</button>
+          <button class="btn btn-link" (click)="loadExample('memory-test.rcasm')">!DEVONLY! Memory Test</button>
           }
         </clr-accordion-content>
       </clr-accordion-panel>
@@ -26,9 +26,9 @@
       <clr-accordion-panel>
         <clr-accordion-title>Complex Examples</clr-accordion-title>
         <clr-accordion-content *clrIfExpanded>
-          <p cds-text="body" cds-layout="m-y:sm">These example programs are much fuller (and therefore more complex):
+          <p cds-text="body" cds-layout="m-y:sm">!DEVONLY! These example programs are much fuller (and therefore more complex):
           </p>
-          <button class="btn btn-link" (click)="loadExample('pi-bbp-v1.rcasm')">Pi Calculation (BBP)</button>
+          <button class="btn btn-link" (click)="loadExample('pi-bbp-v1.rcasm')">!DEVONLY! Pi Calculation (BBP)</button>
         </clr-accordion-content>
       </clr-accordion-panel>
       }
@@ -37,17 +37,16 @@
         <clr-accordion-content *clrIfExpanded>
           <p cds-text="body" cds-layout="m-y:sm">These example programs demonstrate how to perform common
             mathematical operations that aren't native to my relay computer:</p>
-          <button class="btn btn-link" (click)="loadExample('subtract-8.rcasm')">8-bit Subtract</button>
-          @if (isDevMode) {
-          <button class="btn btn-link" (click)="loadExample('subtract-16.rcasm')">16-bit Subtract</button>
           <button class="btn btn-link" (click)="loadExample('addition-long-se.rcasm')">Long Addition</button>
-          }
+          <button class="btn btn-link" (click)="loadExample('subtract-8.rcasm')">8-bit Subtract</button>
+          <button class="btn btn-link" (click)="loadExample('subtract-16.rcasm')">16-bit Subtract</button>
+          <button class="btn btn-link" (click)="loadExample('subtraction-long-se.rcasm')">Long Subtraction</button>
           <button class="btn btn-link" (click)="loadExample('multiply-8.rcasm')">8-bit Multiply</button>
           @if (isDevMode) {
-          <button class="btn btn-link" (click)="loadExample('multiply-16.rcasm')">16-bit Multiply</button>
+          <button class="btn btn-link" (click)="loadExample('multiply-16.rcasm')">!DEVONLY! 16-bit Multiply</button>
           }
           @if (isDevMode) {
-          <p cds-text="body" cds-layout="m-y:sm">Many of the examples above are also available in 'Handy Routines' as
+          <p cds-text="body" cds-layout="m-y:sm">!DEVONLY! Many of the examples above are also available in 'Handy Routines' as
             reusable functions.</p>
           }
         </clr-accordion-content>
@@ -59,10 +58,10 @@
             be used by other programs:</p>
           <button class="btn btn-link" (click)="loadExample('convert-endian.rcasm')">Convert Endianness</button>
           @if (isDevMode) {
-          <button class="btn btn-link" (click)="loadExample('addition-long.rcasm')">Long Addition</button>
-          <button class="btn btn-link" (click)="loadExample('subtraction-long.rcasm')">Long Subtraction</button>
-          <button class="btn btn-link" (click)="loadExample('reciprocal-long.rcasm')">Long Reciprocal</button>
-          <button class="btn btn-link" (click)="loadExample('reciprocal-long-v2.rcasm')">Long Reciprocal v2</button>
+          <button class="btn btn-link" (click)="loadExample('addition-long.rcasm')">!DEVONLY! Long Addition</button>
+          <button class="btn btn-link" (click)="loadExample('subtraction-long.rcasm')">!DEVONLY! Long Subtraction</button>
+          <button class="btn btn-link" (click)="loadExample('reciprocal-long.rcasm')">!DEVONLY! Long Reciprocal</button>
+          <button class="btn btn-link" (click)="loadExample('reciprocal-long-v2.rcasm')">!DEVONLY! Long Reciprocal v2</button>
           }
         </clr-accordion-content>
       </clr-accordion-panel>
