@@ -38,9 +38,9 @@
     "@angular/build": "19.1.5",
     "@angular/cli": "19.1.5",
     "@angular/compiler-cli": "19.1.4",
-    "@typescript-eslint/eslint-plugin": "8.22.0",
-    "@typescript-eslint/parser": "8.22.0",
-    "eslint": "9.19.0",
+    "@typescript-eslint/eslint-plugin": "8.27.0",
+    "@typescript-eslint/parser": "8.27.0",
+    "eslint": "9.22.0",
     "typescript": "5.7.3"
   }
 }
