@@ -1,6 +1,6 @@
-; *************************************************************
-;  Revised example of byte-by-byte long reciprocal using the
-;  non-restoring unsigned integer division method
+; *****************************************************
+;  Example of byte-by-byte long reciprocal using the
+;  restoring unsigned integer division method
 ;
 ;    01 / 05            (ra = 1/5 to 4 bytes)
 ;  = 33 33 33 33
@@ -14,16 +14,8 @@
 ;    01 / 7d            (rd = 1/125 to 10 bytes)
 ;  = 02 0c 49 ba 5e 35 3f 7c ed 91
 ;
-;  Changes over original version:
-;    * unrolled inner bit-by-bit loop (saving 14m)
-;    * dropped sentinel bit loop tracking (saving 2m)
-;    * used restoring division algorithm (saving 15m)
-;  Overall method is still very slow division approach but this
-;  demonstrates the savings of loop unrolling in some cases.
-;
-;  Original expected duration: 1h19m26s at default clock speed
-;  Revised expected duration:    46m37s at default clock speed
-; *************************************************************
+;  Expected duration:   46m16s at default clock speed
+; *****************************************************
 
 ; Perform each reciprocal in turn by calling function
 ; Note we use the special '§' operator to pack two 8-bit
@@ -101,172 +93,48 @@ long_rcp: {
         mov b,d
         inc d
         mov x,d
-        ldi b,0         ; Place inital Q in D
-        mov d,b
-        ldi b,0         ; A=1 and set ALU flags
-        inc a
-        clr m1          ; M1=0 (zero page)
+        clr d           ; D = 0 (Q)
+        ldi a,1         ; A = 1
+        clr m1          ; M1 = 0 (zero page)
 
         ; Registers are now in the following state
         ;   A = 1 = remainder with 1 'shifted' in (A)
         ;   D = Initial quotient of 0 (Q)
         ;  M1 = 0 (zero page)
         ;  M2 = result location (zero page)
-        ;  X = divisor value (-V)
-        ;  Y = address after result (zero page)
-        ; Now in state of 1 'shifted' into A and flags set
+        ;   X = Negated divisor value (-V)
+        ;   Y = address after result (zero page)
 
 a_loop: ; A loop building reciprocal byte-by-byte
 
-b_loop: ; Original B loop is unrolled here (duplicated 8 times) to
-        ; build reciprocal bit-by-bit at expense of duplicated code
+        ; B loop building next reciprocal byte bit-by-bit
+b_loop: !for i in range(8) {
 
         ; Shift remainder and perform trial subtraction of V
         ; If negative then C=0 and restore else C=1 and keep
-    _7: mov b,a         ; A << 1 (via x2)
+        mov b,a         ; A << 1 (via x2)
         mov c,a
         add a
         mov b,a         ; A = A + -V
         mov c,x
         add
-        bmi _7neg       ; Restore and set C to 0 if negative
+        bmi _neg        ; Restore and set C to 0 if negative
         ldi b,1         ; Otherwise keep result and set C to 1
         mov c,b
-        jmp _7set
+        jmp _set
 
         ; If A - V was negative we restore the remainder and clear C
- _7neg: mov a,b
+  _neg: mov a,b
         clr c
 
         ; We can now shift Q left and apply the 1 or 0 in register C
- _7set: mov b,d         ; (Q << 1) + C
+  _set: mov b,d         ; (Q << 1) + C
         rol d
         mov b,d
         add d
+}
 
-        ; Following are now just the above repeated another times
-        ; thereby 'unrolling the loop'
-
-    _6: mov b,a
-        mov c,a
-        add a
-        mov b,a
-        mov c,x
-        add
-        bmi _6neg
-        ldi b,1
-        mov c,b
-        jmp _6set
- _6neg: mov a,b
-        clr c
- _6set: mov b,d
-        rol d
-        mov b,d
-        add d
-
-    _5: mov b,a
-        mov c,a
-        add a
-        mov b,a
-        mov c,x
-        add
-        bmi _5neg
-        ldi b,1
-        mov c,b
-        jmp _5set
- _5neg: mov a,b
-        clr c
- _5set: mov b,d
-        rol d
-        mov b,d
-        add d
-
-    _4: mov b,a
-        mov c,a
-        add a
-        mov b,a
-        mov c,x
-        add
-        bmi _4neg
-        ldi b,1
-        mov c,b
-        jmp _4set
- _4neg: mov a,b
-        clr c
- _4set: mov b,d
-        rol d
-        mov b,d
-        add d
-
-    _3: mov b,a
-        mov c,a
-        add a
-        mov b,a
-        mov c,x
-        add
-        bmi _3neg
-        ldi b,1
-        mov c,b
-        jmp _3set
- _3neg: mov a,b
-        clr c
- _3set: mov b,d
-        rol d
-        mov b,d
-        add d
-
-    _2: mov b,a
-        mov c,a
-        add a
-        mov b,a
-        mov c,x
-        add
-        bmi _2neg
-        ldi b,1
-        mov c,b
-        jmp _2set
- _2neg: mov a,b
-        clr c
- _2set: mov b,d
-        rol d
-        mov b,d
-        add d
-
-    _1: mov b,a
-        mov c,a
-        add a
-        mov b,a
-        mov c,x
-        add
-        bmi _1neg
-        ldi b,1
-        mov c,b
-        jmp _1set
- _1neg: mov a,b
-        clr c
- _1set: mov b,d
-        rol d
-        mov b,d
-        add d
-
-    _0: mov b,a
-        mov c,a
-        add a
-        mov b,a
-        mov c,x
-        add
-        bmi _0neg
-        ldi b,1
-        mov c,b
-        jmp _0set
- _0neg: mov a,b
-        clr c
- _0set: mov b,d
-        rol d
-        mov b,d
-        add d
-
- b_end: ; D now contains our complete byte so we'll store it in memory.
+        ; D now contains our complete byte so we'll store it in memory.
         str d
 
         ; We can now bump M2 to point at the next location in memory and check if we've
@@ -281,19 +149,16 @@ b_loop: ; Original B loop is unrolled here (duplicated 8 times) to
         eor d
 rtn:    beq *           ; Done if so
 
-        ; We're now heading for the next byte of the overall result so we need to
-        ; re-initialise. We reset Q and we update the sign flag based on the remainder A.
-        ldi b,0         ; Set up next quotient (Q)
-        mov d,b
+        ; We're now heading for the next byte of the overall result
+        clr d           ; Set up next quotient (Q)
 
         ; By this point our registers are in the following state:
         ;   A = remainder so far (A)
         ;   D = Initial quotient of zero (Q)
         ;  M1 = 0 (zero page)
         ;  M2 = next byte result location (zero page)
-        ;  X = divisor value (-V)
-        ;  Y = address after overall result (zero page)
-        ; and Sign flag updated for remainder A
+        ;   X = Negated divisor value (-V)
+        ;   Y = address after overall result (zero page)
         ; i.e. we're good to loop
         jmp a_loop
 }
