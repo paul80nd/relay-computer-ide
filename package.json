@@ -30,18 +30,18 @@
     "monaco-editor": "../monaco/monaco-editor/out/monaco-editor"
   },
   "devDependencies": {
-    "@angular-eslint/builder": "19.2.1",
-    "@angular-eslint/eslint-plugin": "19.2.1",
-    "@angular-eslint/eslint-plugin-template": "19.2.1",
-    "@angular-eslint/schematics": "19.2.1",
-    "@angular-eslint/template-parser": "19.2.1",
+    "@angular-eslint/builder": "19.3.0",
+    "@angular-eslint/eslint-plugin": "19.3.0",
+    "@angular-eslint/eslint-plugin-template": "19.3.0",
+    "@angular-eslint/schematics": "19.3.0",
+    "@angular-eslint/template-parser": "19.3.0",
     "@angular/build": "19.2.6",
     "@angular/cdk":"19.2.8",
     "@angular/cli": "19.2.6",
     "@angular/compiler-cli": "19.2.5",
-    "@typescript-eslint/eslint-plugin": "8.27.0",
-    "@typescript-eslint/parser": "8.27.0",
-    "eslint": "9.22.0",
+    "@typescript-eslint/eslint-plugin": "8.29.0",
+    "@typescript-eslint/parser": "8.29.0",
+    "eslint": "9.24.0",
     "typescript": "5.7.3"
   }
 }
