@@ -23,7 +23,7 @@
     "@clr/angular": "17.8.0",
     "@clr/ui": "17.8.0",
     "@materia-ui/ngx-monaco-editor": "6.0.0",
-    "@paul80nd/rcasm": "1.10.0",
+    "@paul80nd/rcasm": "1.11.1",
     "ngx-clipboard": "16.0.0",
     "rxjs": "7.8.1",
     "zone.js": "0.15.0",
