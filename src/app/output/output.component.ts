@@ -1,10 +1,10 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
 
 @Component({
-    selector: 'app-ride-output',
-    templateUrl: './output.component.html',
-    imports: [MonacoEditorModule]
+  selector: 'app-ride-output',
+  templateUrl: './output.component.html',
+  imports: [MonacoEditorModule]
 })
 export class OutputComponent {
 
@@ -16,7 +16,9 @@ export class OutputComponent {
     this.editor?.getModel()?.setValue(val);
   }
 
-  editor: monaco.editor.ICodeEditor | null = null;
+  @Output() gotoSource = new EventEmitter<number>();
+
+  editor: monaco.editor.IStandaloneCodeEditor | null = null;
 
   editorOptions = <monaco.editor.IStandaloneEditorConstructionOptions>{
     language: 'rcdsm',
@@ -29,13 +31,26 @@ export class OutputComponent {
     minimap: { enabled: false }
   };
 
-  onInit(editor: monaco.editor.ICodeEditor) {
+  onInit(editor: monaco.editor.IStandaloneCodeEditor) {
     this.editor = editor;
+    editor.addAction(<monaco.editor.IActionDescriptor>{
+      id: "rcasm-jump-to-source",
+      label: "Go to Source",
+      contextMenuGroupId: "navigation",
+      contextMenuOrder: 1.5,
+      run: (ed) => {
+        const pos = ed.getPosition();
+        const addrText = pos ? ed.getModel()?.getLineContent(pos.lineNumber).substring(0, 4) : '';
+        if (!addrText) { return; }
+        const addr = parseInt(addrText, 16);
+        this.gotoSource.emit(addr);
+      },
+    });
   }
 
-  setStateAssembledOk() {
+  setStateAssembledOk(byteCount: number) {
     this.stateType = 'success';
-    this.stateText = 'Assembled OK';
+    this.stateText = `Assembled OK : ${byteCount} bytes`;
   }
   setStateAssembledWithWarnings(warnCount: number) {
     this.stateType = 'warning';
@@ -43,12 +58,25 @@ export class OutputComponent {
   }
   setStateAssembledWithErrors(errorCount: number, warnCount: number) {
     const errorText = `${errorCount} error${errorCount === 1 ? '' : 's'}`;
-    const warningText =  warnCount > 0 ? `, ${warnCount} warning${warnCount === 1 ? '' : 's'}` : '';
+    const warningText = warnCount > 0 ? `, ${warnCount} warning${warnCount === 1 ? '' : 's'}` : '';
     this.stateText = `Assembly failed with ${errorText}${warningText}`;
     this.stateType = 'danger';
   }
-  setStateInformation(message: string){
+  setStateInformation(message: string) {
     this.stateText = message;
     this.stateType = 'info';
+  }
+
+  gotoLine(hexAddr: string) {
+    const model = this.editor?.getModel();
+    if (!model || !this.editor) { return; }
+    const matches = model.findMatches(hexAddr + ":", false, false, false, null, false);
+    if (matches.length > 0) {
+      const match = matches[0];
+      const lineNo = match.range.startLineNumber;
+      this.editor.revealLineInCenter(lineNo);
+      this.editor.setPosition({ lineNumber: lineNo, column: 1 });
+      this.editor.focus();
+    }
   }
 }

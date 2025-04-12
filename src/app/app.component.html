@@ -56,12 +56,12 @@
     </div>
     }
     <div class="content-area" style="margin: 0; padding: 0;">
-      <app-ride-editor #editor (codeChanged)="onEditorCodeChanged($event)" class="editor-container"></app-ride-editor>
+      <app-ride-editor #editor (codeChanged)="onEditorCodeChanged($event)" (gotoAssembled)="gotoAssembled($event)" class="editor-container"></app-ride-editor>
     </div>
     <clr-vertical-nav>
       <app-ride-emulator #emulator [style.display]="showEmu ? 'block':'none'"
         class="content-area simulator-container"></app-ride-emulator>
-      <app-ride-output #output [dasm]="dasm" class="editor-container"></app-ride-output>
+      <app-ride-output #output [dasm]="dasm" (gotoSource)="gotoSource($event)" class="editor-container"></app-ride-output>
     </clr-vertical-nav>
   </div>
 </div>

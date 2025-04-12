@@ -29,6 +29,7 @@ export class AppComponent implements OnInit {
   isDevMode: boolean;
   lastCompile?: Uint8Array;
   didAssemble: boolean = false;
+  lastPcToLocs: { [pc: number]: { lineNo: number; numBytes: number; }[]; } | undefined;
 
   constructor() {
     this.isDevMode = isDevMode();
@@ -47,8 +48,9 @@ export class AppComponent implements OnInit {
   }
 
   onEditorCodeChanged(code: string) {
-    const { prg, errors, warnings, debugInfo } = rcasm.assemble(code);
+    const { prg, errors, warnings, labels, debugInfo } = rcasm.assemble(code);
     this.lastCompile = prg;
+    this.lastPcToLocs = debugInfo?.pcToLocs
     if (errors.length > 0) {
       this.didAssemble = false;
       this.output().setStateAssembledWithErrors(errors.length, warnings.length);
@@ -63,11 +65,42 @@ export class AppComponent implements OnInit {
         this.dasm = warnings.map(w => `🔸 ${w.loc.start.line}:${w.loc.start.column} ${w.msg}`).join('\n');
         this.dasm += '\n\n'
       } else {
-        this.output().setStateAssembledOk();
+        this.output().setStateAssembledOk(prg.length);
         this.dasm = '';
+      }
+      if (code.startsWith('; LABELS')) {
+        this.dasm += `🔹 LABELS (${labels.length})\n`;
+        this.dasm += labels.map(l => `🔹 ${l.addr.toString(16).padStart(4, '0')}: ${l.name}`).join('\n');
+        this.dasm += '\n\n'
       }
       this.dasm += rcasm.disassemble(prg, { isInstruction: debugInfo!.info().isInstruction }).join('\n');
       this.emulator().load(this.lastCompile);
+    }
+  }
+
+  gotoSource(addr: number) {
+    if (!this.lastPcToLocs) { return; }
+    let locs = this.lastPcToLocs?.[addr];
+    if (!locs) {
+      const closestAddr = Object.keys(this.lastPcToLocs)
+        .map(Number)
+        .reduce((prev, curr) => (Math.abs(curr - addr) < Math.abs(prev - addr) ? curr : prev));
+      locs = this.lastPcToLocs[closestAddr];
+    }
+
+    if (locs) {
+      this.editor().gotoLine(locs[0].lineNo);
+    }
+  }
+
+  gotoAssembled(line: number) {
+    if (!this.lastPcToLocs) { return; }
+    const matchingAddr = Object.keys(this.lastPcToLocs)
+      .map(Number)
+      .find(pc => this.lastPcToLocs![pc].some(loc => loc.lineNo === line));
+    if (matchingAddr) {
+      const hexAddr = matchingAddr.toString(16).toUpperCase().padStart(4, '0');
+      this.output().gotoLine(hexAddr)
     }
   }
 
