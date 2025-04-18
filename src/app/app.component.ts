@@ -7,11 +7,12 @@ import { EditorComponent } from './editor/editor.component';
 import { ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule } from '@clr/angular';
 import { DocsComponent } from './docs/docs.component';
 import { ExamplesComponent } from './examples/examples.component';
+import { DiffComponent } from './diff/diff.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, EditorComponent, ExamplesComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent]
+  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, EditorComponent, ExamplesComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent]
 })
 export class AppComponent implements OnInit {
   private _clipboardService = inject(ClipboardService);
@@ -30,6 +31,7 @@ export class AppComponent implements OnInit {
   lastCompile?: Uint8Array;
   didAssemble: boolean = false;
   lastPcToLocs: { [pc: number]: { lineNo: number; numBytes: number; }[]; } | undefined;
+  diff: boolean = false;
 
   constructor() {
     this.isDevMode = isDevMode();

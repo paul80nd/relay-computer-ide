@@ -1,4 +1,5 @@
 <div class="main-container">
+  @if (!diff) {
   <header class="header header-6">
     <div class="branding">
       <a href="javascript://" class="nav-link">
@@ -64,5 +65,8 @@
       <app-ride-output #output [dasm]="dasm" (gotoSource)="gotoSource($event)" class="editor-container"></app-ride-output>
     </clr-vertical-nav>
   </div>
+  } @else {
+  <app-ride-diff #diff class="editor-container"></app-ride-diff>
+  }
 </div>
 <app-ride-examples #examples (exampleRequested)="onExampleRequested($event)"></app-ride-examples>
