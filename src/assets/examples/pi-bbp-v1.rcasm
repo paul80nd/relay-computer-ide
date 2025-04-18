@@ -51,7 +51,7 @@
 
         org 0x07
 pi:     !fill 9,0xaa    ; final result of Pi [9 byte Big Endian Q4.68] (area marked with 0xaa for visibility)
-psum:   !fill 11,0      ; intermediate sum of Pi [10 byte Little Endian Q4.76 + 1 overflow]
+psum:   !fill 10,0      ; intermediate sum of Pi [10 byte Little Endian Q4.76]
 
         !align 16       ; expected final psum value (used purely for sight check - can be deleted without impact)
 psexp:  !byte 0x39, 0x31, 0x8d, 0x30, 0x5a, 0x88, 0xa8, 0xf6, 0x43, 0x32
