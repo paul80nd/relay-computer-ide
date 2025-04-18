@@ -31,15 +31,15 @@ const GUTTER_DECORATION_WIDTH = 2;
 class MinimapOptions {
     constructor(configuration, theme, tokensColorTracker) {
         const options = configuration.options;
-        const pixelRatio = options.get(143 /* EditorOption.pixelRatio */);
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const pixelRatio = options.get(144 /* EditorOption.pixelRatio */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         const minimapLayout = layoutInfo.minimap;
         const fontInfo = options.get(50 /* EditorOption.fontInfo */);
         const minimapOpts = options.get(73 /* EditorOption.minimap */);
         this.renderMinimap = minimapLayout.renderMinimap;
         this.size = minimapOpts.size;
         this.minimapHeightIsEditorHeight = minimapLayout.minimapHeightIsEditorHeight;
-        this.scrollBeyondLastLine = options.get(105 /* EditorOption.scrollBeyondLastLine */);
+        this.scrollBeyondLastLine = options.get(106 /* EditorOption.scrollBeyondLastLine */);
         this.paddingTop = options.get(84 /* EditorOption.padding */).top;
         this.paddingBottom = options.get(84 /* EditorOption.padding */).bottom;
         this.showSlider = minimapOpts.showSlider;
@@ -303,6 +303,7 @@ class MinimapLayout {
     }
 }
 class MinimapLine {
+    static { this.INVALID = new MinimapLine(-1); }
     constructor(dy) {
         this.dy = dy;
     }
@@ -313,7 +314,6 @@ class MinimapLine {
         this.dy = -1;
     }
 }
-MinimapLine.INVALID = new MinimapLine(-1);
 class RenderData {
     constructor(renderedLayout, imageData, lines) {
         this.renderedLayout = renderedLayout;
@@ -820,7 +820,7 @@ export class Minimap extends ViewPart {
     }
     getMinimapDecorationsInViewport(startLineNumber, endLineNumber) {
         const decorations = this._getMinimapDecorationsInViewport(startLineNumber, endLineNumber)
-            .filter(decoration => { var _a; return !((_a = decoration.options.minimap) === null || _a === void 0 ? void 0 : _a.sectionHeaderStyle); });
+            .filter(decoration => !decoration.options.minimap?.sectionHeaderStyle);
         if (this._samplingState) {
             const result = [];
             for (const decoration of decorations) {
@@ -842,7 +842,7 @@ export class Minimap extends ViewPart {
         const headerHeightInMinimapLines = sectionHeaderFontSize / minimapLineHeight;
         startLineNumber = Math.floor(Math.max(1, startLineNumber - headerHeightInMinimapLines));
         return this._getMinimapDecorationsInViewport(startLineNumber, endLineNumber)
-            .filter(decoration => { var _a; return !!((_a = decoration.options.minimap) === null || _a === void 0 ? void 0 : _a.sectionHeaderStyle); });
+            .filter(decoration => !!decoration.options.minimap?.sectionHeaderStyle);
     }
     _getMinimapDecorationsInViewport(startLineNumber, endLineNumber) {
         let visibleRange;
@@ -857,8 +857,7 @@ export class Minimap extends ViewPart {
         return this._context.viewModel.getMinimapDecorationsInRange(visibleRange);
     }
     getSectionHeaderText(decoration, fitWidth) {
-        var _a;
-        const headerText = (_a = decoration.options.minimap) === null || _a === void 0 ? void 0 : _a.sectionHeaderText;
+        const headerText = decoration.options.minimap?.sectionHeaderText;
         if (!headerText) {
             return null;
         }
@@ -1085,13 +1084,11 @@ class InnerMinimap extends Disposable {
         return false;
     }
     onLinesDeleted(deleteFromLineNumber, deleteToLineNumber) {
-        var _a;
-        (_a = this._lastRenderData) === null || _a === void 0 ? void 0 : _a.onLinesDeleted(deleteFromLineNumber, deleteToLineNumber);
+        this._lastRenderData?.onLinesDeleted(deleteFromLineNumber, deleteToLineNumber);
         return true;
     }
     onLinesInserted(insertFromLineNumber, insertToLineNumber) {
-        var _a;
-        (_a = this._lastRenderData) === null || _a === void 0 ? void 0 : _a.onLinesInserted(insertFromLineNumber, insertToLineNumber);
+        this._lastRenderData?.onLinesInserted(insertFromLineNumber, insertToLineNumber);
         return true;
     }
     onScrollChanged() {
@@ -1349,7 +1346,6 @@ class InnerMinimap extends Disposable {
         canvasContext.fillRect(x, y, width, height);
     }
     _renderSectionHeaders(layout) {
-        var _a;
         const minimapLineHeight = this._model.options.minimapLineHeight;
         const sectionHeaderFontSize = this._model.options.sectionHeaderFontSize;
         const sectionHeaderLetterSpacing = this._model.options.sectionHeaderLetterSpacing;
@@ -1373,7 +1369,7 @@ class InnerMinimap extends Disposable {
             const backgroundFillY = y - sectionHeaderFontSize;
             const separatorY = backgroundFillY + 2;
             const headerText = this._model.getSectionHeaderText(decoration, fitWidth);
-            InnerMinimap._renderSectionLabel(canvasContext, headerText, ((_a = decoration.options.minimap) === null || _a === void 0 ? void 0 : _a.sectionHeaderStyle) === 2 /* MinimapSectionHeaderStyle.Underlined */, backgroundFill, foregroundFill, canvasInnerWidth, backgroundFillY, backgroundFillHeight, y, separatorY);
+            InnerMinimap._renderSectionLabel(canvasContext, headerText, decoration.options.minimap?.sectionHeaderStyle === 2 /* MinimapSectionHeaderStyle.Underlined */, backgroundFill, foregroundFill, canvasInnerWidth, backgroundFillY, backgroundFillHeight, y, separatorY);
         }
     }
     static _fitSectionHeader(target, maxWidth, headerText) {

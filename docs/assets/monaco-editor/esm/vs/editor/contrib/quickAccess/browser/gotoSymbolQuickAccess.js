@@ -26,7 +26,11 @@ import { AbstractEditorNavigationQuickAccessProvider } from './editorNavigationQ
 import { localize } from '../../../../nls.js';
 import { ILanguageFeaturesService } from '../../../common/services/languageFeatures.js';
 import { findLast } from '../../../../base/common/arraysFind.js';
-let AbstractGotoSymbolQuickAccessProvider = AbstractGotoSymbolQuickAccessProvider_1 = class AbstractGotoSymbolQuickAccessProvider extends AbstractEditorNavigationQuickAccessProvider {
+let AbstractGotoSymbolQuickAccessProvider = class AbstractGotoSymbolQuickAccessProvider extends AbstractEditorNavigationQuickAccessProvider {
+    static { AbstractGotoSymbolQuickAccessProvider_1 = this; }
+    static { this.PREFIX = '@'; }
+    static { this.SCOPE_PREFIX = ':'; }
+    static { this.PREFIX_BY_CATEGORY = `${this.PREFIX}${this.SCOPE_PREFIX}`; }
     constructor(_languageFeaturesService, _outlineModelService, options = Object.create(null)) {
         super(options);
         this._languageFeaturesService = _languageFeaturesService;
@@ -92,16 +96,14 @@ let AbstractGotoSymbolQuickAccessProvider = AbstractGotoSymbolQuickAccessProvide
         return symbolProviderRegistryPromise.p;
     }
     doProvideWithEditorSymbols(context, model, picker, token, runOptions) {
-        var _a;
         const editor = context.editor;
         const disposables = new DisposableStore();
         // Goto symbol once picked
         disposables.add(picker.onDidAccept(event => {
-            var _a;
             const [item] = picker.selectedItems;
             if (item && item.range) {
                 this.gotoLocation(context, { range: item.range.selection, keyMods: picker.keyMods, preserveFocus: event.inBackground });
-                (_a = runOptions === null || runOptions === void 0 ? void 0 : runOptions.handleAccept) === null || _a === void 0 ? void 0 : _a.call(runOptions, item);
+                runOptions?.handleAccept?.(item);
                 if (!event.inBackground) {
                     picker.hide();
                 }
@@ -121,7 +123,7 @@ let AbstractGotoSymbolQuickAccessProvider = AbstractGotoSymbolQuickAccessProvide
         let picksCts = undefined;
         const updatePickerItems = async (positionToEnclose) => {
             // Cancel any previous ask for picks and busy
-            picksCts === null || picksCts === void 0 ? void 0 : picksCts.dispose(true);
+            picksCts?.dispose(true);
             picker.busy = false;
             // Create new cancellation source for this run
             picksCts = new CancellationTokenSource(token);
@@ -158,7 +160,7 @@ let AbstractGotoSymbolQuickAccessProvider = AbstractGotoSymbolQuickAccessProvide
             }
         };
         disposables.add(picker.onDidChangeValue(() => updatePickerItems(undefined)));
-        updatePickerItems((_a = editor.getSelection()) === null || _a === void 0 ? void 0 : _a.getPosition());
+        updatePickerItems(editor.getSelection()?.getPosition());
         // Reveal and decorate when active item changes
         disposables.add(picker.onDidChangeActive(() => {
             const [item] = picker.activeItems;
@@ -172,7 +174,6 @@ let AbstractGotoSymbolQuickAccessProvider = AbstractGotoSymbolQuickAccessProvide
         return disposables;
     }
     async doGetSymbolPicks(symbolsPromise, query, options, token, model) {
-        var _a, _b;
         const symbols = await symbolsPromise;
         if (token.isCancellationRequested) {
             return [];
@@ -191,7 +192,7 @@ let AbstractGotoSymbolQuickAccessProvider = AbstractGotoSymbolQuickAccessProvide
         }
         // Convert to symbol picks and apply filtering
         let buttons;
-        const openSideBySideDirection = (_b = (_a = this.options) === null || _a === void 0 ? void 0 : _a.openSideBySideDirection) === null || _b === void 0 ? void 0 : _b.call(_a);
+        const openSideBySideDirection = this.options?.openSideBySideDirection?.();
         if (openSideBySideDirection) {
             buttons = [{
                     iconClass: openSideBySideDirection === 'right' ? ThemeIcon.asClassName(Codicon.splitHorizontal) : ThemeIcon.asClassName(Codicon.splitVertical),
@@ -205,7 +206,7 @@ let AbstractGotoSymbolQuickAccessProvider = AbstractGotoSymbolQuickAccessProvide
             const symbolLabelWithIcon = `$(${SymbolKinds.toIcon(symbol.kind).id}) ${symbolLabel}`;
             const symbolLabelIconOffset = symbolLabelWithIcon.length - symbolLabel.length;
             let containerLabel = symbol.containerName;
-            if (options === null || options === void 0 ? void 0 : options.extraContainerLabel) {
+            if (options?.extraContainerLabel) {
                 if (containerLabel) {
                     containerLabel = `${options.extraContainerLabel} • ${containerLabel}`;
                 }
@@ -355,9 +356,6 @@ let AbstractGotoSymbolQuickAccessProvider = AbstractGotoSymbolQuickAccessProvide
         return token.isCancellationRequested ? [] : model.asListOfDocumentSymbols();
     }
 };
-AbstractGotoSymbolQuickAccessProvider.PREFIX = '@';
-AbstractGotoSymbolQuickAccessProvider.SCOPE_PREFIX = ':';
-AbstractGotoSymbolQuickAccessProvider.PREFIX_BY_CATEGORY = `${AbstractGotoSymbolQuickAccessProvider_1.PREFIX}${AbstractGotoSymbolQuickAccessProvider_1.SCOPE_PREFIX}`;
 AbstractGotoSymbolQuickAccessProvider = AbstractGotoSymbolQuickAccessProvider_1 = __decorate([
     __param(0, ILanguageFeaturesService),
     __param(1, IOutlineModelService)

@@ -14,7 +14,6 @@ export const AccessibleViewRegistry = new class AccessibleViewRegistry {
                 if (idx !== -1) {
                     this._implementations.splice(idx, 1);
                 }
-                implementation.dispose();
             }
         };
     }

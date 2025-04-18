@@ -192,7 +192,7 @@ export class VisibleLinesCollection {
     }
     // ---- begin view event handlers
     onConfigurationChanged(e) {
-        if (e.hasChanged(145 /* EditorOption.layoutInfo */)) {
+        if (e.hasChanged(146 /* EditorOption.layoutInfo */)) {
             return true;
         }
         return false;
@@ -211,9 +211,7 @@ export class VisibleLinesCollection {
             // Remove from DOM
             for (let i = 0, len = deleted.length; i < len; i++) {
                 const lineDomNode = deleted[i].getDomNode();
-                if (lineDomNode) {
-                    this.domNode.domNode.removeChild(lineDomNode);
-                }
+                lineDomNode?.remove();
             }
         }
         return true;
@@ -224,9 +222,7 @@ export class VisibleLinesCollection {
             // Remove from DOM
             for (let i = 0, len = deleted.length; i < len; i++) {
                 const lineDomNode = deleted[i].getDomNode();
-                if (lineDomNode) {
-                    this.domNode.domNode.removeChild(lineDomNode);
-                }
+                lineDomNode?.remove();
             }
         }
         return true;
@@ -264,6 +260,7 @@ export class VisibleLinesCollection {
     }
 }
 class ViewLayerRenderer {
+    static { this._ttPolicy = createTrustedTypesPolicy('editorViewLayer', { createHTML: value => value }); }
     constructor(domNode, host, viewportData) {
         this.domNode = domNode;
         this.host = host;
@@ -347,9 +344,7 @@ class ViewLayerRenderer {
     _removeLinesBefore(ctx, removeCount) {
         for (let i = 0; i < removeCount; i++) {
             const lineDomNode = ctx.lines[i].getDomNode();
-            if (lineDomNode) {
-                this.domNode.removeChild(lineDomNode);
-            }
+            lineDomNode?.remove();
         }
         ctx.lines.splice(0, removeCount);
     }
@@ -365,9 +360,7 @@ class ViewLayerRenderer {
         const removeIndex = ctx.linesLength - removeCount;
         for (let i = 0; i < removeCount; i++) {
             const lineDomNode = ctx.lines[removeIndex + i].getDomNode();
-            if (lineDomNode) {
-                this.domNode.removeChild(lineDomNode);
-            }
+            lineDomNode?.remove();
         }
         ctx.lines.splice(removeIndex, removeCount);
     }
@@ -407,6 +400,7 @@ class ViewLayerRenderer {
             }
         }
     }
+    static { this._sb = new StringBuilder(100000); }
     _finishRendering(ctx, domNodeIsEmpty, deltaTop) {
         const sb = ViewLayerRenderer._sb;
         const linesLength = ctx.linesLength;
@@ -461,5 +455,3 @@ class ViewLayerRenderer {
         }
     }
 }
-ViewLayerRenderer._ttPolicy = createTrustedTypesPolicy('editorViewLayer', { createHTML: value => value });
-ViewLayerRenderer._sb = new StringBuilder(100000);

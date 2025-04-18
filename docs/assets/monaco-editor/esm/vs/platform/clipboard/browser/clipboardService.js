@@ -21,7 +21,8 @@ import { hash } from '../../../base/common/hash.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { ILayoutService } from '../../layout/browser/layoutService.js';
 import { ILogService } from '../../log/common/log.js';
-let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboardService extends Disposable {
+let BrowserClipboardService = class BrowserClipboardService extends Disposable {
+    static { BrowserClipboardService_1 = this; }
     constructor(layoutService, logService) {
         super();
         this.layoutService = layoutService;
@@ -118,7 +119,7 @@ let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboard
         if (isHTMLElement(activeElement)) {
             activeElement.focus();
         }
-        activeDocument.body.removeChild(textArea);
+        textArea.remove();
     }
     async readText(type) {
         // With type: only in-memory is supported
@@ -142,6 +143,7 @@ let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboard
     async writeFindText(text) {
         this.findText = text;
     }
+    static { this.MAX_RESOURCE_STATE_SOURCE_LENGTH = 1000; }
     async writeResources(resources) {
         if (resources.length === 0) {
             this.clearResources();
@@ -174,7 +176,6 @@ let BrowserClipboardService = BrowserClipboardService_1 = class BrowserClipboard
         this.resourcesStateHash = undefined;
     }
 };
-BrowserClipboardService.MAX_RESOURCE_STATE_SOURCE_LENGTH = 1000;
 BrowserClipboardService = BrowserClipboardService_1 = __decorate([
     __param(0, ILayoutService),
     __param(1, ILogService)

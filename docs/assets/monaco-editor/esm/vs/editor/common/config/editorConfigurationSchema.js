@@ -86,7 +86,7 @@ const editorConfiguration = {
         },
         'editor.maxTokenizationLineLength': {
             type: 'integer',
-            default: 20000,
+            default: 20_000,
             description: nls.localize('maxTokenizationLineLength', "Lines above this length will not be tokenized for performance reasons")
         },
         'editor.experimental.asyncTokenization': {
@@ -244,7 +244,12 @@ const editorConfiguration = {
             type: 'boolean',
             default: diffEditorDefaultOptions.experimental.showEmptyDecorations,
             description: nls.localize('showEmptyDecorations', "Controls whether the diff editor shows empty decorations to see where characters got inserted or deleted."),
-        }
+        },
+        'diffEditor.experimental.useTrueInlineView': {
+            type: 'boolean',
+            default: diffEditorDefaultOptions.experimental.useTrueInlineView,
+            description: nls.localize('useTrueInlineView', "If enabled and the editor uses the inline view, word changes are rendered inline."),
+        },
     }
 };
 function isConfigurationPropertySchema(x) {

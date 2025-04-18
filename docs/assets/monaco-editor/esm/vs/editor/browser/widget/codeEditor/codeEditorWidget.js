@@ -53,7 +53,12 @@ import { INotificationService, Severity } from '../../../../platform/notificatio
 import { editorErrorForeground, editorHintForeground, editorInfoForeground, editorWarningForeground } from '../../../../platform/theme/common/colorRegistry.js';
 import { IThemeService, registerThemingParticipant } from '../../../../platform/theme/common/themeService.js';
 import { MenuId } from '../../../../platform/actions/common/actions.js';
-let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Disposable {
+let CodeEditorWidget = class CodeEditorWidget extends Disposable {
+    static { CodeEditorWidget_1 = this; }
+    static { this.dropIntoEditorDecorationOptions = ModelDecorationOptions.register({
+        description: 'workbench-dnd-target',
+        className: 'dnd-target'
+    }); }
     //#endregion
     get isSimpleWidget() {
         return this._configuration.isSimpleWidget;
@@ -62,7 +67,6 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         return this._configuration.contextMenuId;
     }
     constructor(domElement, _options, codeEditorWidgetOptions, instantiationService, codeEditorService, commandService, contextKeyService, themeService, notificationService, accessibilityService, languageConfigurationService, languageFeaturesService) {
-        var _a, _b;
         super();
         this.languageConfigurationService = languageConfigurationService;
         //#region Eventing
@@ -161,12 +165,12 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         this._decorationTypeKeysToIds = {};
         this._decorationTypeSubtypes = {};
         this._telemetryData = codeEditorWidgetOptions.telemetryData;
-        this._configuration = this._register(this._createConfiguration(codeEditorWidgetOptions.isSimpleWidget || false, (_a = codeEditorWidgetOptions.contextMenuId) !== null && _a !== void 0 ? _a : (codeEditorWidgetOptions.isSimpleWidget ? MenuId.SimpleEditorContext : MenuId.EditorContext), options, accessibilityService));
+        this._configuration = this._register(this._createConfiguration(codeEditorWidgetOptions.isSimpleWidget || false, codeEditorWidgetOptions.contextMenuId ?? (codeEditorWidgetOptions.isSimpleWidget ? MenuId.SimpleEditorContext : MenuId.EditorContext), options, accessibilityService));
         this._register(this._configuration.onDidChange((e) => {
             this._onDidChangeConfiguration.fire(e);
             const options = this._configuration.options;
-            if (e.hasChanged(145 /* EditorOption.layoutInfo */)) {
-                const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+            if (e.hasChanged(146 /* EditorOption.layoutInfo */)) {
+                const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
                 this._onDidLayoutChange.fire(layoutInfo);
             }
         }));
@@ -199,7 +203,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
                 onUnexpectedError(new Error(`Cannot have two actions with the same id ${action.id}`));
                 continue;
             }
-            const internalAction = new InternalEditorAction(action.id, action.label, action.alias, action.metadata, (_b = action.precondition) !== null && _b !== void 0 ? _b : undefined, (args) => {
+            const internalAction = new InternalEditorAction(action.id, action.label, action.alias, action.metadata, action.precondition ?? undefined, (args) => {
                 return this._instantiationService.invokeFunction((accessor) => {
                     return Promise.resolve(action.runEditorCommand(accessor, this, args));
                 });
@@ -207,7 +211,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
             this._actions.set(internalAction.id, internalAction);
         }
         const isDropIntoEnabled = () => {
-            return !this._configuration.options.get(91 /* EditorOption.readOnly */)
+            return !this._configuration.options.get(92 /* EditorOption.readOnly */)
                 && this._configuration.options.get(36 /* EditorOption.dropIntoEditor */).enabled;
         };
         this._register(new dom.DragAndDropObserver(this._domElement, {
@@ -216,7 +220,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
                     return;
                 }
                 const target = this.getTargetAtClientPoint(e.clientX, e.clientY);
-                if (target === null || target === void 0 ? void 0 : target.position) {
+                if (target?.position) {
                     this.showDropIndicatorAt(target.position);
                 }
             },
@@ -229,7 +233,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
                     return;
                 }
                 const target = this.getTargetAtClientPoint(e.clientX, e.clientY);
-                if (target === null || target === void 0 ? void 0 : target.position) {
+                if (target?.position) {
                     this._onDropIntoEditor.fire({ position: target.position, event: e });
                 }
             },
@@ -243,8 +247,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         this._codeEditorService.addCodeEditor(this);
     }
     writeScreenReaderContent(reason) {
-        var _a;
-        (_a = this._modelData) === null || _a === void 0 ? void 0 : _a.view.writeScreenReaderContent(reason);
+        this._modelData?.view.writeScreenReaderContent(reason);
     }
     _createConfiguration(isSimpleWidget, contextMenuId, options, accessibilityService) {
         return new EditorConfiguration(isSimpleWidget, contextMenuId, options, this._domElement, accessibilityService);
@@ -288,7 +291,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         if (!this._modelData) {
             return null;
         }
-        return WordOperations.getWordAtPosition(this._modelData.model, this._configuration.options.get(131 /* EditorOption.wordSeparators */), this._configuration.options.get(130 /* EditorOption.wordSegmenterLocales */), position);
+        return WordOperations.getWordAtPosition(this._modelData.model, this._configuration.options.get(132 /* EditorOption.wordSeparators */), this._configuration.options.get(131 /* EditorOption.wordSegmenterLocales */), position);
     }
     getValue(options = null) {
         if (!this._modelData) {
@@ -323,7 +326,6 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         return this._modelData.model;
     }
     setModel(_model = null) {
-        var _a;
         try {
             this._beginUpdate();
             const model = _model;
@@ -336,8 +338,8 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
                 return;
             }
             const e = {
-                oldModelUrl: ((_a = this._modelData) === null || _a === void 0 ? void 0 : _a.model.uri) || null,
-                newModelUrl: (model === null || model === void 0 ? void 0 : model.uri) || null
+                oldModelUrl: this._modelData?.model.uri || null,
+                newModelUrl: model?.uri || null
             };
             this._onWillChangeModel.fire(e);
             const hasTextFocus = this.hasTextFocus();
@@ -420,8 +422,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         return CodeEditorWidget_1._getVerticalOffsetAfterPosition(this._modelData, lineNumber, 1, includeViewZones);
     }
     setHiddenAreas(ranges, source) {
-        var _a;
-        (_a = this._modelData) === null || _a === void 0 ? void 0 : _a.viewModel.setHiddenAreas(ranges.map(r => Range.lift(r)), source);
+        this._modelData?.viewModel.setHiddenAreas(ranges.map(r => Range.lift(r)), source);
     }
     getVisibleColumnFromPosition(rawPosition) {
         if (!this._modelData) {
@@ -698,8 +699,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         }
     }
     handleInitialized() {
-        var _a;
-        (_a = this._getViewModel()) === null || _a === void 0 ? void 0 : _a.visibleLinesStabilized();
+        this._getViewModel()?.visibleLinesStabilized();
     }
     getContribution(id) {
         return this._contributions.get(id);
@@ -846,7 +846,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         if (!this._modelData) {
             return false;
         }
-        if (this._configuration.options.get(91 /* EditorOption.readOnly */)) {
+        if (this._configuration.options.get(92 /* EditorOption.readOnly */)) {
             // read only editor => sorry!
             return false;
         }
@@ -857,7 +857,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         if (!this._modelData) {
             return false;
         }
-        if (this._configuration.options.get(91 /* EditorOption.readOnly */)) {
+        if (this._configuration.options.get(92 /* EditorOption.readOnly */)) {
             // read only editor => sorry!
             return false;
         }
@@ -868,7 +868,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         if (!this._modelData) {
             return false;
         }
-        if (this._configuration.options.get(91 /* EditorOption.readOnly */)) {
+        if (this._configuration.options.get(92 /* EditorOption.readOnly */)) {
             // read only editor => sorry!
             return false;
         }
@@ -954,7 +954,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
     }
     getLayoutInfo() {
         const options = this._configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         return layoutInfo;
     }
     createOverviewRuler(cssClassName) {
@@ -1122,7 +1122,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         }
         const position = this._modelData.model.validatePosition(rawPosition);
         const options = this._configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         const top = CodeEditorWidget_1._getVerticalOffsetForPosition(this._modelData, position.lineNumber, position.column) - this.getScrollTop();
         const left = this._modelData.view.getOffsetForColumn(position.lineNumber, position.column) + layoutInfo.glyphMarginWidth + layoutInfo.lineNumbersWidth + layoutInfo.decorationsWidth - this.getScrollLeft();
         return {
@@ -1156,7 +1156,7 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
     }
     setBanner(domNode, domNodeHeight) {
         if (this._bannerDomNode && this._domElement.contains(this._bannerDomNode)) {
-            this._domElement.removeChild(this._bannerDomNode);
+            this._bannerDomNode.remove();
         }
         this._bannerDomNode = domNode;
         this._configuration.setReservedHeight(domNode ? domNodeHeight : 0);
@@ -1174,7 +1174,17 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         this._configuration.setIsDominatedByLongLines(model.isDominatedByLongLines());
         this._configuration.setModelLineCount(model.getLineCount());
         const attachedView = model.onBeforeAttached();
-        const viewModel = new ViewModel(this._id, this._configuration, model, DOMLineBreaksComputerFactory.create(dom.getWindow(this._domElement)), MonospaceLineBreaksComputerFactory.create(this._configuration.options), (callback) => dom.scheduleAtNextAnimationFrame(dom.getWindow(this._domElement), callback), this.languageConfigurationService, this._themeService, attachedView);
+        const viewModel = new ViewModel(this._id, this._configuration, model, DOMLineBreaksComputerFactory.create(dom.getWindow(this._domElement)), MonospaceLineBreaksComputerFactory.create(this._configuration.options), (callback) => dom.scheduleAtNextAnimationFrame(dom.getWindow(this._domElement), callback), this.languageConfigurationService, this._themeService, attachedView, {
+            batchChanges: (cb) => {
+                try {
+                    this._beginUpdate();
+                    return cb();
+                }
+                finally {
+                    this._endUpdate();
+                }
+            },
+        });
         // Someone might destroy the model from under the editor, so prevent any exceptions by setting a null model
         listenersToRemove.push(model.onWillDispose(() => this.setModel(null)));
         listenersToRemove.push(viewModel.onEvent((e) => {
@@ -1358,11 +1368,10 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         return [view, true];
     }
     _postDetachModelCleanup(detachedModel) {
-        detachedModel === null || detachedModel === void 0 ? void 0 : detachedModel.removeAllDecorationsWithOwnerId(this._id);
+        detachedModel?.removeAllDecorationsWithOwnerId(this._id);
     }
     _detachModel() {
-        var _a;
-        (_a = this._contributionsDisposable) === null || _a === void 0 ? void 0 : _a.dispose();
+        this._contributionsDisposable?.dispose();
         this._contributionsDisposable = undefined;
         if (!this._modelData) {
             return null;
@@ -1373,10 +1382,10 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         this._modelData = null;
         this._domElement.removeAttribute('data-mode-id');
         if (removeDomNode && this._domElement.contains(removeDomNode)) {
-            this._domElement.removeChild(removeDomNode);
+            removeDomNode.remove();
         }
         if (this._bannerDomNode && this._domElement.contains(this._bannerDomNode)) {
-            this._domElement.removeChild(this._bannerDomNode);
+            this._bannerDomNode.remove();
         }
         return model;
     }
@@ -1413,10 +1422,6 @@ let CodeEditorWidget = CodeEditorWidget_1 = class CodeEditorWidget extends Dispo
         }
     }
 };
-CodeEditorWidget.dropIntoEditorDecorationOptions = ModelDecorationOptions.register({
-    description: 'workbench-dnd-target',
-    className: 'dnd-target'
-});
 CodeEditorWidget = CodeEditorWidget_1 = __decorate([
     __param(3, IInstantiationService),
     __param(4, ICodeEditorService),
@@ -1520,7 +1525,7 @@ class EditorContextKeysManager extends Disposable {
     _updateFromConfig() {
         const options = this._editor.getOptions();
         this._tabMovesFocus.set(TabFocus.getTabFocusMode());
-        this._editorReadonly.set(options.get(91 /* EditorOption.readOnly */));
+        this._editorReadonly.set(options.get(92 /* EditorOption.readOnly */));
         this._inDiffEditor.set(options.get(61 /* EditorOption.inDiffEditor */));
         this._editorColumnSelection.set(options.get(22 /* EditorOption.columnSelection */));
     }
@@ -1686,8 +1691,7 @@ class CodeEditorWidgetFocusTracker extends Disposable {
         }
     }
     hasFocus() {
-        var _a;
-        return (_a = this._hadFocus) !== null && _a !== void 0 ? _a : false;
+        return this._hadFocus ?? false;
     }
 }
 class EditorDecorationsCollection {

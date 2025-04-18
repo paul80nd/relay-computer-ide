@@ -68,7 +68,7 @@ export class ShowOrFocusHoverAction extends EditorAction {
         if (!controller) {
             return;
         }
-        const focusArgument = args === null || args === void 0 ? void 0 : args.focus;
+        const focusArgument = args?.focus;
         let focusOption = HoverFocusBehavior.FocusIfVisible;
         if (Object.values(HoverFocusBehavior).includes(focusArgument)) {
             focusOption = focusArgument;
@@ -387,8 +387,12 @@ export class IncreaseHoverVerbosityLevel extends EditorAction {
         });
     }
     run(accessor, editor, args) {
-        var _a;
-        (_a = HoverController.get(editor)) === null || _a === void 0 ? void 0 : _a.updateMarkdownHoverVerbosityLevel(HoverVerbosityAction.Increase, args === null || args === void 0 ? void 0 : args.index, args === null || args === void 0 ? void 0 : args.focus);
+        const hoverController = HoverController.get(editor);
+        if (!hoverController) {
+            return;
+        }
+        const index = args?.index !== undefined ? args.index : hoverController.focusedHoverPartIndex();
+        hoverController.updateHoverVerbosityLevel(HoverVerbosityAction.Increase, index, args?.focus);
     }
 }
 export class DecreaseHoverVerbosityLevel extends EditorAction {
@@ -401,7 +405,11 @@ export class DecreaseHoverVerbosityLevel extends EditorAction {
         });
     }
     run(accessor, editor, args) {
-        var _a;
-        (_a = HoverController.get(editor)) === null || _a === void 0 ? void 0 : _a.updateMarkdownHoverVerbosityLevel(HoverVerbosityAction.Decrease, args === null || args === void 0 ? void 0 : args.index, args === null || args === void 0 ? void 0 : args.focus);
+        const hoverController = HoverController.get(editor);
+        if (!hoverController) {
+            return;
+        }
+        const index = args?.index !== undefined ? args.index : hoverController.focusedHoverPartIndex();
+        HoverController.get(editor)?.updateHoverVerbosityLevel(HoverVerbosityAction.Decrease, index, args?.focus);
     }
 }

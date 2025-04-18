@@ -10,6 +10,7 @@ import { ColorHoverParticipant } from './colorHoverParticipant.js';
 import { HoverController } from '../../hover/browser/hoverController.js';
 import { HoverParticipantRegistry } from '../../hover/browser/hoverTypes.js';
 export class ColorContribution extends Disposable {
+    static { this.ID = 'editor.contrib.colorContribution'; } // ms
     constructor(_editor) {
         super();
         this._editor = _editor;
@@ -19,7 +20,7 @@ export class ColorContribution extends Disposable {
         super.dispose();
     }
     onMouseDown(mouseEvent) {
-        const colorDecoratorsActivatedOn = this._editor.getOption(148 /* EditorOption.colorDecoratorsActivatedOn */);
+        const colorDecoratorsActivatedOn = this._editor.getOption(149 /* EditorOption.colorDecoratorsActivatedOn */);
         if (colorDecoratorsActivatedOn !== 'click' && colorDecoratorsActivatedOn !== 'clickAndHover') {
             return;
         }
@@ -46,6 +47,5 @@ export class ColorContribution extends Disposable {
         }
     }
 }
-ColorContribution.ID = 'editor.contrib.colorContribution'; // ms
 registerEditorContribution(ColorContribution.ID, ColorContribution, 2 /* EditorContributionInstantiation.BeforeFirstInteraction */);
 HoverParticipantRegistry.register(ColorHoverParticipant);

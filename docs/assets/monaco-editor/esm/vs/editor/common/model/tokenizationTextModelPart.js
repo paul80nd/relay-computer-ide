@@ -34,17 +34,17 @@ export class TokenizationTextModelPart extends TextModelPart {
         this._onDidChangeTokens = this._register(new Emitter());
         this.onDidChangeTokens = this._onDidChangeTokens.event;
         this.grammarTokens = this._register(new GrammarTokens(this._languageService.languageIdCodec, this._textModel, () => this._languageId, this._attachedViews));
-        this._register(this._languageConfigurationService.onDidChange(e => {
-            if (e.affects(this._languageId)) {
-                this._onDidChangeLanguageConfiguration.fire({});
-            }
-        }));
         this._register(this.grammarTokens.onDidChangeTokens(e => {
             this._emitModelTokensChangedEvent(e);
         }));
         this._register(this.grammarTokens.onDidChangeBackgroundTokenizationState(e => {
             this._bracketPairsTextModelPart.handleDidChangeBackgroundTokenizationState();
         }));
+    }
+    handleLanguageConfigurationServiceChange(e) {
+        if (e.affects(this._languageId)) {
+            this._onDidChangeLanguageConfiguration.fire({});
+        }
     }
     handleDidChangeContent(e) {
         if (e.isFlush) {
@@ -273,9 +273,8 @@ class GrammarTokens extends Disposable {
         }));
     }
     resetTokenization(fireTokenChangeEvent = true) {
-        var _a;
         this._tokens.flush();
-        (_a = this._debugBackgroundTokens) === null || _a === void 0 ? void 0 : _a.flush();
+        this._debugBackgroundTokens?.flush();
         if (this._debugBackgroundStates) {
             this._debugBackgroundStates = new TrackingTokenizationStateStore(this._textModel.getLineCount());
         }
@@ -332,14 +331,13 @@ class GrammarTokens extends Disposable {
                     this._onDidChangeBackgroundTokenizationState.fire();
                 },
                 setEndState: (lineNumber, state) => {
-                    var _a;
                     if (!this._tokenizer) {
                         return;
                     }
                     const firstInvalidEndStateLineNumber = this._tokenizer.store.getFirstInvalidEndStateLineNumber();
                     // Don't accept states for definitely valid states, the renderer is ahead of the worker!
                     if (firstInvalidEndStateLineNumber !== null && lineNumber >= firstInvalidEndStateLineNumber) {
-                        (_a = this._tokenizer) === null || _a === void 0 ? void 0 : _a.store.setEndState(lineNumber, state);
+                        this._tokenizer?.store.setEndState(lineNumber, state);
                     }
                 },
             };
@@ -351,21 +349,19 @@ class GrammarTokens extends Disposable {
                     new DefaultBackgroundTokenizer(this._tokenizer, b);
                 this._defaultBackgroundTokenizer.handleChanges();
             }
-            if ((tokenizationSupport === null || tokenizationSupport === void 0 ? void 0 : tokenizationSupport.backgroundTokenizerShouldOnlyVerifyTokens) && tokenizationSupport.createBackgroundTokenizer) {
+            if (tokenizationSupport?.backgroundTokenizerShouldOnlyVerifyTokens && tokenizationSupport.createBackgroundTokenizer) {
                 this._debugBackgroundTokens = new ContiguousTokensStore(this._languageIdCodec);
                 this._debugBackgroundStates = new TrackingTokenizationStateStore(this._textModel.getLineCount());
                 this._debugBackgroundTokenizer.clear();
                 this._debugBackgroundTokenizer.value = tokenizationSupport.createBackgroundTokenizer(this._textModel, {
                     setTokens: (tokens) => {
-                        var _a;
-                        (_a = this._debugBackgroundTokens) === null || _a === void 0 ? void 0 : _a.setMultilineTokens(tokens, this._textModel);
+                        this._debugBackgroundTokens?.setMultilineTokens(tokens, this._textModel);
                     },
                     backgroundTokenizationFinished() {
                         // NO OP
                     },
                     setEndState: (lineNumber, state) => {
-                        var _a;
-                        (_a = this._debugBackgroundStates) === null || _a === void 0 ? void 0 : _a.setEndState(lineNumber, state);
+                        this._debugBackgroundStates?.setEndState(lineNumber, state);
                     },
                 });
             }
@@ -378,11 +374,9 @@ class GrammarTokens extends Disposable {
         this.refreshAllVisibleLineTokens();
     }
     handleDidChangeAttached() {
-        var _a;
-        (_a = this._defaultBackgroundTokenizer) === null || _a === void 0 ? void 0 : _a.handleChanges();
+        this._defaultBackgroundTokenizer?.handleChanges();
     }
     handleDidChangeContent(e) {
-        var _a, _b, _c;
         if (e.isFlush) {
             // Don't fire the event, as the view might not have got the text change event yet
             this.resetTokenization(false);
@@ -391,13 +385,13 @@ class GrammarTokens extends Disposable {
             for (const c of e.changes) {
                 const [eolCount, firstLineLength] = countEOL(c.text);
                 this._tokens.acceptEdit(c.range, eolCount, firstLineLength);
-                (_a = this._debugBackgroundTokens) === null || _a === void 0 ? void 0 : _a.acceptEdit(c.range, eolCount, firstLineLength);
+                this._debugBackgroundTokens?.acceptEdit(c.range, eolCount, firstLineLength);
             }
-            (_b = this._debugBackgroundStates) === null || _b === void 0 ? void 0 : _b.acceptChanges(e.changes);
+            this._debugBackgroundStates?.acceptChanges(e.changes);
             if (this._tokenizer) {
                 this._tokenizer.store.acceptChanges(e.changes);
             }
-            (_c = this._defaultBackgroundTokenizer) === null || _c === void 0 ? void 0 : _c.handleChanges();
+            this._defaultBackgroundTokenizer?.handleChanges();
         }
     }
     setTokens(tokens) {
@@ -417,7 +411,6 @@ class GrammarTokens extends Disposable {
         }
     }
     refreshRange(startLineNumber, endLineNumber) {
-        var _a, _b;
         if (!this._tokenizer) {
             return;
         }
@@ -431,17 +424,16 @@ class GrammarTokens extends Disposable {
             // Because old states might get reused (thus stopping invalidation),
             // we have to explicitly request the tokens for the changed ranges again.
             for (const c of changedTokens.changes) {
-                (_a = this._backgroundTokenizer.value) === null || _a === void 0 ? void 0 : _a.requestTokens(c.fromLineNumber, c.toLineNumber + 1);
+                this._backgroundTokenizer.value?.requestTokens(c.fromLineNumber, c.toLineNumber + 1);
             }
         }
-        (_b = this._defaultBackgroundTokenizer) === null || _b === void 0 ? void 0 : _b.checkFinished();
+        this._defaultBackgroundTokenizer?.checkFinished();
     }
     forceTokenization(lineNumber) {
-        var _a, _b;
         const builder = new ContiguousMultilineTokensBuilder();
-        (_a = this._tokenizer) === null || _a === void 0 ? void 0 : _a.updateTokensUntilLine(builder, lineNumber);
+        this._tokenizer?.updateTokensUntilLine(builder, lineNumber);
         this.setTokens(builder.finalize());
-        (_b = this._defaultBackgroundTokenizer) === null || _b === void 0 ? void 0 : _b.checkFinished();
+        this._defaultBackgroundTokenizer?.checkFinished();
     }
     hasAccurateTokensForLine(lineNumber) {
         if (!this._tokenizer) {
@@ -461,13 +453,12 @@ class GrammarTokens extends Disposable {
         }
     }
     getLineTokens(lineNumber) {
-        var _a;
         const lineText = this._textModel.getLineContent(lineNumber);
         const result = this._tokens.getTokens(this._textModel.getLanguageId(), lineNumber - 1, lineText);
         if (this._debugBackgroundTokens && this._debugBackgroundStates && this._tokenizer) {
             if (this._debugBackgroundStates.getFirstInvalidEndStateLineNumberOrMax() > lineNumber && this._tokenizer.store.getFirstInvalidEndStateLineNumberOrMax() > lineNumber) {
                 const backgroundResult = this._debugBackgroundTokens.getTokens(this._textModel.getLanguageId(), lineNumber - 1, lineText);
-                if (!result.equals(backgroundResult) && ((_a = this._debugBackgroundTokenizer.value) === null || _a === void 0 ? void 0 : _a.reportMismatchingTokens)) {
+                if (!result.equals(backgroundResult) && this._debugBackgroundTokenizer.value?.reportMismatchingTokens) {
                     this._debugBackgroundTokenizer.value.reportMismatchingTokens(lineNumber);
                 }
             }

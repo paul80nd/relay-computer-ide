@@ -382,11 +382,10 @@ export function registerLinkOpener(opener) {
 export function registerEditorOpener(opener) {
     const codeEditorService = StandaloneServices.get(ICodeEditorService);
     return codeEditorService.registerCodeEditorOpenHandler(async (input, source, sideBySide) => {
-        var _a;
         if (!source) {
             return null;
         }
-        const selection = (_a = input.options) === null || _a === void 0 ? void 0 : _a.selection;
+        const selection = input.options?.selection;
         let selectionOrPosition;
         if (selection && typeof selection.endLineNumber === 'number' && typeof selection.endColumn === 'number') {
             selectionOrPosition = selection;

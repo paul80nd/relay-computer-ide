@@ -13,7 +13,6 @@ import * as types from '../../../common/types.js';
 import './actionbar.css';
 export class ActionBar extends Disposable {
     constructor(container, options = {}) {
-        var _a, _b, _c, _d, _e, _f, _g;
         super();
         this._actionRunnerDisposables = this._register(new DisposableStore());
         this.viewItemDisposables = this._register(new DisposableMap());
@@ -30,13 +29,13 @@ export class ActionBar extends Disposable {
         this._onWillRun = this._register(new Emitter());
         this.onWillRun = this._onWillRun.event;
         this.options = options;
-        this._context = (_a = options.context) !== null && _a !== void 0 ? _a : null;
-        this._orientation = (_b = this.options.orientation) !== null && _b !== void 0 ? _b : 0 /* ActionsOrientation.HORIZONTAL */;
+        this._context = options.context ?? null;
+        this._orientation = this.options.orientation ?? 0 /* ActionsOrientation.HORIZONTAL */;
         this._triggerKeys = {
-            keyDown: (_d = (_c = this.options.triggerKeys) === null || _c === void 0 ? void 0 : _c.keyDown) !== null && _d !== void 0 ? _d : false,
-            keys: (_f = (_e = this.options.triggerKeys) === null || _e === void 0 ? void 0 : _e.keys) !== null && _f !== void 0 ? _f : [3 /* KeyCode.Enter */, 10 /* KeyCode.Space */]
+            keyDown: this.options.triggerKeys?.keyDown ?? false,
+            keys: this.options.triggerKeys?.keys ?? [3 /* KeyCode.Enter */, 10 /* KeyCode.Space */]
         };
-        this._hoverDelegate = (_g = options.hoverDelegate) !== null && _g !== void 0 ? _g : this._register(createInstantHoverDelegate());
+        this._hoverDelegate = options.hoverDelegate ?? this._register(createInstantHoverDelegate());
         if (this.options.actionRunner) {
             this._actionRunner = this.options.actionRunner;
         }
@@ -175,12 +174,11 @@ export class ActionBar extends Disposable {
         return ret;
     }
     updateFocusedItem() {
-        var _a, _b;
         for (let i = 0; i < this.actionsList.children.length; i++) {
             const elem = this.actionsList.children[i];
             if (DOM.isAncestor(DOM.getActiveElement(), elem)) {
                 this.focusedItem = i;
-                (_b = (_a = this.viewItems[this.focusedItem]) === null || _a === void 0 ? void 0 : _a.showHover) === null || _b === void 0 ? void 0 : _b.call(_a);
+                this.viewItems[this.focusedItem]?.showHover?.();
                 break;
             }
         }
@@ -208,10 +206,9 @@ export class ActionBar extends Disposable {
         return this.domNode;
     }
     getAction(indexOrElement) {
-        var _a;
         // by index
         if (typeof indexOrElement === 'number') {
-            return (_a = this.viewItems[indexOrElement]) === null || _a === void 0 ? void 0 : _a.action;
+            return this.viewItems[indexOrElement]?.action;
         }
         // by element
         if (DOM.isHTMLElement(indexOrElement)) {
@@ -237,7 +234,7 @@ export class ActionBar extends Disposable {
             actionViewItemElement.className = 'action-item';
             actionViewItemElement.setAttribute('role', 'presentation');
             let item;
-            const viewItemOptions = { hoverDelegate: this._hoverDelegate, ...options };
+            const viewItemOptions = { hoverDelegate: this._hoverDelegate, ...options, isTabList: this.options.ariaRole === 'tablist' };
             if (this.options.actionViewItemProvider) {
                 item = this.options.actionViewItemProvider(action, viewItemOptions);
             }
@@ -365,12 +362,11 @@ export class ActionBar extends Disposable {
         return true;
     }
     updateFocus(fromRight, preventScroll, forceFocus = false) {
-        var _a, _b;
         if (typeof this.focusedItem === 'undefined') {
             this.actionsList.focus({ preventScroll });
         }
         if (this.previouslyFocusedItem !== undefined && this.previouslyFocusedItem !== this.focusedItem) {
-            (_a = this.viewItems[this.previouslyFocusedItem]) === null || _a === void 0 ? void 0 : _a.blur();
+            this.viewItems[this.previouslyFocusedItem]?.blur();
         }
         const actionViewItem = this.focusedItem !== undefined ? this.viewItems[this.focusedItem] : undefined;
         if (actionViewItem) {
@@ -393,7 +389,7 @@ export class ActionBar extends Disposable {
                 this.previouslyFocusedItem = this.focusedItem;
             }
             if (focusItem) {
-                (_b = actionViewItem.showHover) === null || _b === void 0 ? void 0 : _b.call(actionViewItem);
+                actionViewItem.showHover?.();
             }
         }
     }

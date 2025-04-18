@@ -84,6 +84,17 @@ export var QuickPickFocus;
      */
     QuickPickFocus[QuickPickFocus["PreviousSeparator"] = 9] = "PreviousSeparator";
 })(QuickPickFocus || (QuickPickFocus = {}));
+export var QuickInputButtonLocation;
+(function (QuickInputButtonLocation) {
+    /**
+     * In the title bar.
+     */
+    QuickInputButtonLocation[QuickInputButtonLocation["Title"] = 1] = "Title";
+    /**
+     * To the right of the input box.
+     */
+    QuickInputButtonLocation[QuickInputButtonLocation["Inline"] = 2] = "Inline";
+})(QuickInputButtonLocation || (QuickInputButtonLocation = {}));
 export class QuickPickItemScorerAccessor {
     constructor(options) {
         this.options = options;

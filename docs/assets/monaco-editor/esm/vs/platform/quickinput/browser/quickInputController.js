@@ -32,8 +32,10 @@ import { QuickInputTree } from './quickInputTree.js';
 import { IContextKeyService } from '../../contextkey/common/contextkey.js';
 import './quickInputActions.js';
 const $ = dom.$;
-let QuickInputController = QuickInputController_1 = class QuickInputController extends Disposable {
-    get currentQuickInput() { var _a; return (_a = this.controller) !== null && _a !== void 0 ? _a : undefined; }
+let QuickInputController = class QuickInputController extends Disposable {
+    static { QuickInputController_1 = this; }
+    static { this.MAX_WIDTH = 600; } // Max total width of quick input widget
+    get currentQuickInput() { return this.controller ?? undefined; }
     get container() { return this._container; }
     constructor(options, layoutService, instantiationService, contextKeyService) {
         super();
@@ -125,6 +127,8 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
         const countContainer = dom.append(filterContainer, $('.quick-input-count'));
         countContainer.setAttribute('aria-live', 'polite');
         const count = new CountBadge(countContainer, { countFormat: localize({ key: 'quickInput.countSelected', comment: ['This tells the user how many items are selected in a list of items to select from. The items can be anything.'] }, "{0} Selected") }, this.styles.countBadge);
+        const inlineActionBar = this._register(new ActionBar(headerContainer, { hoverDelegate: this.options.hoverDelegate }));
+        inlineActionBar.domNode.classList.add('quick-input-inline-action-bar');
         const okContainer = dom.append(headerContainer, $('.quick-input-action'));
         const ok = this._register(new Button(okContainer, this.styles.button));
         ok.label = localize('ok', "OK");
@@ -147,8 +151,7 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
         const list = this._register(this.instantiationService.createInstance(QuickInputTree, container, this.options.hoverDelegate, this.options.linkOpenerDelegate, listId));
         inputBox.setAttribute('aria-controls', listId);
         this._register(list.onDidChangeFocus(() => {
-            var _a;
-            inputBox.setAttribute('aria-activedescendant', (_a = list.getActiveDescendant()) !== null && _a !== void 0 ? _a : '');
+            inputBox.setAttribute('aria-activedescendant', list.getActiveDescendant() ?? '');
         }));
         this._register(list.onChangedAllVisibleChecked(checked => {
             checkAll.checked = checked;
@@ -237,7 +240,7 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
                         else {
                             selectors.push('input[type=text]');
                         }
-                        if (this.getUI().list.isDisplayed()) {
+                        if (this.getUI().list.displayed) {
                             selectors.push('.monaco-list');
                         }
                         // focus links if there are any
@@ -282,6 +285,7 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
             description2,
             widget,
             rightActionBar,
+            inlineActionBar,
             checkAll,
             inputContainer,
             filterContainer,
@@ -321,9 +325,8 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
     pick(picks, options = {}, token = CancellationToken.None) {
         return new Promise((doResolve, reject) => {
             let resolve = (result) => {
-                var _a;
                 resolve = doResolve;
-                (_a = options.onKeyMods) === null || _a === void 0 ? void 0 : _a.call(options, input.keyMods);
+                options.onKeyMods?.(input.keyMods);
                 doResolve(result);
             };
             if (token.isCancellationRequested) {
@@ -380,7 +383,7 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
                         }
                     }
                 })),
-                input.onDidTriggerSeparatorButton(event => { var _a; return (_a = options.onDidTriggerSeparatorButton) === null || _a === void 0 ? void 0 : _a.call(options, event); }),
+                input.onDidTriggerSeparatorButton(event => options.onDidTriggerSeparatorButton?.(event)),
                 input.onDidChangeValue(value => {
                     if (activeItem && !value && (input.activeItems.length !== 1 || input.activeItems[0] !== activeItem)) {
                         input.activeItems = [activeItem];
@@ -437,7 +440,7 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
         this.onShowEmitter.fire();
         const oldController = this.controller;
         this.controller = controller;
-        oldController === null || oldController === void 0 ? void 0 : oldController.didHide();
+        oldController?.didHide();
         this.setEnabled(true);
         ui.leftActionBar.clear();
         ui.title.textContent = '';
@@ -445,6 +448,7 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
         ui.description2.textContent = '';
         dom.reset(ui.widget);
         ui.rightActionBar.clear();
+        ui.inlineActionBar.clear();
         ui.checkAll.checked = false;
         // ui.inputBox.value = ''; Avoid triggering an event.
         ui.inputBox.placeholder = '';
@@ -485,7 +489,7 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
         ui.customButtonContainer.style.display = visibilities.customButton ? '' : 'none';
         ui.message.style.display = visibilities.message ? '' : 'none';
         ui.progressBar.getContainer().style.display = visibilities.progressBar ? '' : 'none';
-        ui.list.display(!!visibilities.list);
+        ui.list.displayed = !!visibilities.list;
         ui.container.classList.toggle('show-checkboxes', !!visibilities.checkBox);
         ui.container.classList.toggle('hidden-input', !visibilities.inputBox && !visibilities.description);
         this.updateLayout(); // TODO
@@ -506,13 +510,12 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
         }
     }
     hide(reason) {
-        var _a, _b;
         const controller = this.controller;
         if (!controller) {
             return;
         }
         controller.willHide(reason);
-        const container = (_a = this.ui) === null || _a === void 0 ? void 0 : _a.container;
+        const container = this.ui?.container;
         const focusChanged = container && !dom.isAncestorOfActiveElement(container);
         this.controller = null;
         this.onHideEmitter.fire();
@@ -522,9 +525,9 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
         if (!focusChanged) {
             let currentElement = this.previousFocusElement;
             while (currentElement && !currentElement.offsetParent) {
-                currentElement = (_b = currentElement.parentElement) !== null && _b !== void 0 ? _b : undefined;
+                currentElement = currentElement.parentElement ?? undefined;
             }
-            if (currentElement === null || currentElement === void 0 ? void 0 : currentElement.offsetParent) {
+            if (currentElement?.offsetParent) {
                 currentElement.focus();
                 this.previousFocusElement = undefined;
             }
@@ -557,9 +560,9 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
     updateStyles() {
         if (this.ui) {
             const { quickInputTitleBackground, quickInputBackground, quickInputForeground, widgetBorder, widgetShadow, } = this.styles.widget;
-            this.ui.titleBar.style.backgroundColor = quickInputTitleBackground !== null && quickInputTitleBackground !== void 0 ? quickInputTitleBackground : '';
-            this.ui.container.style.backgroundColor = quickInputBackground !== null && quickInputBackground !== void 0 ? quickInputBackground : '';
-            this.ui.container.style.color = quickInputForeground !== null && quickInputForeground !== void 0 ? quickInputForeground : '';
+            this.ui.titleBar.style.backgroundColor = quickInputTitleBackground ?? '';
+            this.ui.container.style.backgroundColor = quickInputBackground ?? '';
+            this.ui.container.style.color = quickInputForeground ?? '';
             this.ui.container.style.border = widgetBorder ? `1px solid ${widgetBorder}` : '';
             this.ui.container.style.boxShadow = widgetShadow ? `0 0 8px 2px ${widgetShadow}` : '';
             this.ui.list.style(this.styles.list);
@@ -604,7 +607,6 @@ let QuickInputController = QuickInputController_1 = class QuickInputController e
         }
     }
 };
-QuickInputController.MAX_WIDTH = 600; // Max total width of quick input widget
 QuickInputController = QuickInputController_1 = __decorate([
     __param(1, ILayoutService),
     __param(2, IInstantiationService),

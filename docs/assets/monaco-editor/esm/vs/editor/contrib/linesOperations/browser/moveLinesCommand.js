@@ -140,6 +140,7 @@ let MoveLinesCommand = class MoveLinesCommand {
                             tokenization: {
                                 getLineTokens: (lineNumber) => {
                                     if (lineNumber === s.startLineNumber) {
+                                        // TODO@aiday-mar: the tokens here don't correspond exactly to the corresponding content (after indentation adjustment), have to fix this.
                                         return model.tokenization.getLineTokens(movingLineNumber);
                                     }
                                     else if (lineNumber >= s.startLineNumber + 1 && lineNumber <= s.endLineNumber + 1) {

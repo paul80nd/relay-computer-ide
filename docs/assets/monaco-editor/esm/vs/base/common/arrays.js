@@ -425,6 +425,7 @@ export class ArrayQueue {
  * This class is faster than an iterator and array for lazy computed data.
 */
 export class CallbackIterable {
+    static { this.empty = new CallbackIterable(_callback => { }); }
     constructor(
     /**
      * Calls the callback for every item.
@@ -467,7 +468,6 @@ export class CallbackIterable {
         return result;
     }
 }
-CallbackIterable.empty = new CallbackIterable(_callback => { });
 /**
  * Represents a re-arrangement of items in an array.
  */

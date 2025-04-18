@@ -107,6 +107,7 @@ StandaloneQuickInputService = __decorate([
 ], StandaloneQuickInputService);
 export { StandaloneQuickInputService };
 export class QuickInputEditorContribution {
+    static { this.ID = 'editor.controller.quickInput'; }
     static get(editor) {
         return editor.getContribution(QuickInputEditorContribution.ID);
     }
@@ -118,8 +119,8 @@ export class QuickInputEditorContribution {
         this.widget.dispose();
     }
 }
-QuickInputEditorContribution.ID = 'editor.controller.quickInput';
 export class QuickInputEditorWidget {
+    static { this.ID = 'editor.contrib.quickInputWidget'; }
     constructor(codeEditor) {
         this.codeEditor = codeEditor;
         this.domNode = document.createElement('div');
@@ -138,5 +139,4 @@ export class QuickInputEditorWidget {
         this.codeEditor.removeOverlayWidget(this);
     }
 }
-QuickInputEditorWidget.ID = 'editor.contrib.quickInputWidget';
 registerEditorContribution(QuickInputEditorContribution.ID, QuickInputEditorContribution, 4 /* EditorContributionInstantiation.Lazy */);

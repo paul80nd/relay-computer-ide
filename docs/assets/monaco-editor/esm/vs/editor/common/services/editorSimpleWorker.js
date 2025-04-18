@@ -269,19 +269,16 @@ export class EditorSimpleWorker {
         const result = diffAlgorithm.computeDiff(originalLines, modifiedLines, options);
         const identical = (result.changes.length > 0 ? false : this._modelsAreIdentical(originalTextModel, modifiedTextModel));
         function getLineChanges(changes) {
-            return changes.map(m => {
-                var _a;
-                return ([m.original.startLineNumber, m.original.endLineNumberExclusive, m.modified.startLineNumber, m.modified.endLineNumberExclusive, (_a = m.innerChanges) === null || _a === void 0 ? void 0 : _a.map(m => [
-                        m.originalRange.startLineNumber,
-                        m.originalRange.startColumn,
-                        m.originalRange.endLineNumber,
-                        m.originalRange.endColumn,
-                        m.modifiedRange.startLineNumber,
-                        m.modifiedRange.startColumn,
-                        m.modifiedRange.endLineNumber,
-                        m.modifiedRange.endColumn,
-                    ])]);
-            });
+            return changes.map(m => ([m.original.startLineNumber, m.original.endLineNumberExclusive, m.modified.startLineNumber, m.modified.endLineNumberExclusive, m.innerChanges?.map(m => [
+                    m.originalRange.startLineNumber,
+                    m.originalRange.startColumn,
+                    m.originalRange.endLineNumber,
+                    m.originalRange.endColumn,
+                    m.modifiedRange.startLineNumber,
+                    m.modifiedRange.startColumn,
+                    m.modifiedRange.endLineNumber,
+                    m.modifiedRange.endColumn,
+                ])]));
         }
         return {
             identical,
@@ -311,6 +308,9 @@ export class EditorSimpleWorker {
         }
         return true;
     }
+    // ---- END diff --------------------------------------------------------------------------
+    // ---- BEGIN minimal edits ---------------------------------------------------------------
+    static { this._diffLimit = 100000; }
     async computeMoreMinimalEdits(modelUrl, edits, pretty) {
         const model = this._getModel(modelUrl);
         if (!model) {
@@ -395,6 +395,8 @@ export class EditorSimpleWorker {
         }
         return computeDefaultDocumentColors(model);
     }
+    // ---- BEGIN suggest --------------------------------------------------------------------------
+    static { this._suggestionsLimit = 10000; }
     async textualSuggest(modelUrls, leadingWord, wordDef, wordDefFlags) {
         const sw = new StopWatch();
         const wordDefRegExp = new RegExp(wordDef, wordDefFlags);
@@ -514,11 +516,6 @@ export class EditorSimpleWorker {
         }
     }
 }
-// ---- END diff --------------------------------------------------------------------------
-// ---- BEGIN minimal edits ---------------------------------------------------------------
-EditorSimpleWorker._diffLimit = 100000;
-// ---- BEGIN suggest --------------------------------------------------------------------------
-EditorSimpleWorker._suggestionsLimit = 10000;
 /**
  * Called on the worker side
  * @internal

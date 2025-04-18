@@ -15,6 +15,7 @@ import { MenuId, Action2 } from '../../../../platform/actions/common/actions.js'
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 export class ShowNextInlineSuggestionAction extends EditorAction {
+    static { this.ID = showNextInlineSuggestionActionId; }
     constructor() {
         super({
             id: ShowNextInlineSuggestionAction.ID,
@@ -28,13 +29,12 @@ export class ShowNextInlineSuggestionAction extends EditorAction {
         });
     }
     async run(accessor, editor) {
-        var _a;
         const controller = InlineCompletionsController.get(editor);
-        (_a = controller === null || controller === void 0 ? void 0 : controller.model.get()) === null || _a === void 0 ? void 0 : _a.next();
+        controller?.model.get()?.next();
     }
 }
-ShowNextInlineSuggestionAction.ID = showNextInlineSuggestionActionId;
 export class ShowPreviousInlineSuggestionAction extends EditorAction {
+    static { this.ID = showPreviousInlineSuggestionActionId; }
     constructor() {
         super({
             id: ShowPreviousInlineSuggestionAction.ID,
@@ -48,12 +48,10 @@ export class ShowPreviousInlineSuggestionAction extends EditorAction {
         });
     }
     async run(accessor, editor) {
-        var _a;
         const controller = InlineCompletionsController.get(editor);
-        (_a = controller === null || controller === void 0 ? void 0 : controller.model.get()) === null || _a === void 0 ? void 0 : _a.previous();
+        controller?.model.get()?.previous();
     }
 }
-ShowPreviousInlineSuggestionAction.ID = showPreviousInlineSuggestionActionId;
 export class TriggerInlineSuggestionAction extends EditorAction {
     constructor() {
         super({
@@ -66,10 +64,9 @@ export class TriggerInlineSuggestionAction extends EditorAction {
     async run(accessor, editor) {
         const controller = InlineCompletionsController.get(editor);
         await asyncTransaction(async (tx) => {
-            var _a;
             /** @description triggerExplicitly from command */
-            await ((_a = controller === null || controller === void 0 ? void 0 : controller.model.get()) === null || _a === void 0 ? void 0 : _a.triggerExplicitly(tx));
-            controller === null || controller === void 0 ? void 0 : controller.playAccessibilitySignal(tx);
+            await controller?.model.get()?.triggerExplicitly(tx);
+            controller?.playAccessibilitySignal(tx);
         });
     }
 }
@@ -94,9 +91,8 @@ export class AcceptNextWordOfInlineCompletion extends EditorAction {
         });
     }
     async run(accessor, editor) {
-        var _a;
         const controller = InlineCompletionsController.get(editor);
-        await ((_a = controller === null || controller === void 0 ? void 0 : controller.model.get()) === null || _a === void 0 ? void 0 : _a.acceptNextWord(controller.editor));
+        await controller?.model.get()?.acceptNextWord(controller.editor);
     }
 }
 export class AcceptNextLineOfInlineCompletion extends EditorAction {
@@ -118,9 +114,8 @@ export class AcceptNextLineOfInlineCompletion extends EditorAction {
         });
     }
     async run(accessor, editor) {
-        var _a;
         const controller = InlineCompletionsController.get(editor);
-        await ((_a = controller === null || controller === void 0 ? void 0 : controller.model.get()) === null || _a === void 0 ? void 0 : _a.acceptNextLine(controller.editor));
+        await controller?.model.get()?.acceptNextLine(controller.editor);
     }
 }
 export class AcceptInlineCompletion extends EditorAction {
@@ -144,15 +139,15 @@ export class AcceptInlineCompletion extends EditorAction {
         });
     }
     async run(accessor, editor) {
-        var _a;
         const controller = InlineCompletionsController.get(editor);
         if (controller) {
-            (_a = controller.model.get()) === null || _a === void 0 ? void 0 : _a.accept(controller.editor);
+            controller.model.get()?.accept(controller.editor);
             controller.editor.focus();
         }
     }
 }
 export class HideInlineCompletion extends EditorAction {
+    static { this.ID = 'editor.action.inlineSuggest.hide'; }
     constructor() {
         super({
             id: HideInlineCompletion.ID,
@@ -168,13 +163,12 @@ export class HideInlineCompletion extends EditorAction {
     async run(accessor, editor) {
         const controller = InlineCompletionsController.get(editor);
         transaction(tx => {
-            var _a;
-            (_a = controller === null || controller === void 0 ? void 0 : controller.model.get()) === null || _a === void 0 ? void 0 : _a.stop(tx);
+            controller?.model.get()?.stop(tx);
         });
     }
 }
-HideInlineCompletion.ID = 'editor.action.inlineSuggest.hide';
 export class ToggleAlwaysShowInlineSuggestionToolbar extends Action2 {
+    static { this.ID = 'editor.action.inlineSuggest.toggleAlwaysShowToolbar'; }
     constructor() {
         super({
             id: ToggleAlwaysShowInlineSuggestionToolbar.ID,
@@ -196,4 +190,3 @@ export class ToggleAlwaysShowInlineSuggestionToolbar extends Action2 {
         configService.updateValue('editor.inlineSuggest.showToolbar', newValue);
     }
 }
-ToggleAlwaysShowInlineSuggestionToolbar.ID = 'editor.action.inlineSuggest.toggleAlwaysShowToolbar';

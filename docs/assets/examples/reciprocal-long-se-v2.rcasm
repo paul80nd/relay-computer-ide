@@ -1,0 +1,131 @@
+; ************************************************************
+;  Revised example of byte-by-byte long reciprocal now using
+;  the restoring unsigned integer division method
+;
+;    01 / 7d   (1/125 to 10 bytes)
+;  = 02 0c 49 ba 5e 35 3f 7c ed 91
+;
+;  Changes over original version (saving 11m57s):
+;    * used restoring division algorithm (saving 5m38s)
+;    * unrolled inner bit-by-bit loop (saving 2m20s)
+;    * dropped sentinel bit loop tracking (saving 3m59s)
+;
+;  Overall method is still very slow division approach but this
+;  demonstrates the savings of loop unrolling in some cases.
+;
+;  Original expected duration:  28m26s at default clock speed
+;  Revised expected duration:   16m29s at default clock speed
+; ************************************************************
+
+        jmp start
+
+        ; Reserve space for result in memory. Value is aligned
+        ; and initialised to 1s to ease visability in emulator
+
+        !fill 3, 0x00
+ra:     !fill 10, 0x11
+
+        ; Set up the reciprocal parameters for (M2) = 1 / M1
+        ;    M1: Divisor value (max 127)
+        ;    M2: Location to store result (zero page)
+        ;     B: Number of bytes to calculate result to
+        ; Note we use the special '§' operator to pack two 8-bit
+        ; values into the 16-bit M register in the form M1§M2
+
+start:  ldi m,125§ra       ; ra = 1/125 (10 bytes)
+        ldi b,10
+
+        ; Terms
+        ;   A = remainder (register A - ongoing)
+        ;   Q = quotient (register D - current byte)
+        ;  -V = negated divisor (register X)
+
+        ; Prepare for the first loop iteration.
+        ; Result is built up byte-by-byte in the A loop and
+        ; within that bit-by-bit in the B loop.
+        ; For speed we set up -V in X for later subtractions.
+
+        mov x,m1        ; Txfr divisor to X
+        mov c,m2        ; Set end address in Y (M2+B)
+        add d
+        mov y,d
+
+        mov b,x         ; Negate -V in X
+        not d
+        mov b,d
+        inc d
+        mov x,d
+        ldi a,1         ; A = 1
+        clr d           ; D = 0 (Q)
+        clr m1          ; M1 = 0 (zero page)
+
+        ; Registers are now in the following state
+        ;   A = 1 = remainder with 1 'shifted' in (A)
+        ;   D = Initial quotient of 0 (Q)
+        ;  M2 = result location (zero page)
+        ;  X = Negative divisor value (-V)
+        ;  Y = address after result (zero page)
+
+a_loop: ; A loop building reciprocal byte-by-byte
+
+        ; B loop building next reciprocal byte bit-by-bit
+b_loop: !for i in range(8) {
+
+        ; At this point register A = remainder, D = quotient (Q)
+        ; A is ready for subtraction of V
+
+        ; Shift A left and subtract V (by adding -V)
+        mov b,a         ; A << 1 (via x2)
+        mov c,a
+        add a
+        mov b,a         ; A = A + -V
+        mov c,x
+        add
+        bmi _neg        ; Restore and set C to 0 if negative
+        ldi b,1         ; Otherwise keep result and set C to 1
+        mov c,b
+        jmp _set
+
+        ; If A - V was negative we restore the remainder and clear C
+  _neg: mov a,b
+        clr c
+
+        ; We can now shift Q left and apply the 1 or 0 in register C
+  _set: mov b,d         ; (Q << 1) + C
+        rol d
+        mov b,d
+        add d
+}
+
+        ; D now contains our complete byte so we'll store it in memory.
+        str d
+
+        ; We can now bump M2 to point at the next location in memory and check if we've
+        ; completed the reciprocal by checking the end address in Y.
+
+        mov b, m2       ; bump M2
+        inc d
+        mov m2,d
+        mov b,d         ; Check if gone past last byte (M2=Y)
+        mov c,y
+        eor d
+        beq done        ; Done if so
+
+        ; We're now heading for the next byte of the overall result
+        clr d           ; Set up next quotient (Q)
+
+        ; By this point our registers are in the following state:
+        ;   A = remainder so far (A)
+        ;   D = Initial quotient of 0 (Q)
+        ;  M2 = next byte result location (zero page)
+        ;  X = Negated divisor value (-V)
+        ;  Y = address after overall result (zero page)
+        ; i.e. we're good to loop
+
+        jmp a_loop
+
+        ; Reciprocal is complete to the required precision so we can
+        ; point M at the result (for visibility in the emulator) and
+        ; then we're done and can halt
+done:   ldi m,ra
+        hlt

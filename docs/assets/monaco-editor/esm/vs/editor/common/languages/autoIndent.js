@@ -286,7 +286,8 @@ export function getIndentForEnter(autoIndent, model, range, indentConverter, lan
  * We should always allow intentional indentation. It means, if users change the indentation of `lineNumber` and the content of
  * this line doesn't match decreaseIndentPattern, we should not adjust the indentation.
  */
-export function getIndentActionForType(autoIndent, model, range, ch, indentConverter, languageConfigurationService) {
+export function getIndentActionForType(cursorConfig, model, range, ch, indentConverter, languageConfigurationService) {
+    const autoIndent = cursorConfig.autoIndent;
     if (autoIndent < 4 /* EditorAutoIndentStrategy.Full */) {
         return null;
     }
@@ -320,6 +321,28 @@ export function getIndentActionForType(autoIndent, model, range, ch, indentConve
             indentation = indentConverter.unshiftIndent(indentation);
         }
         return indentation;
+    }
+    const previousLineNumber = range.startLineNumber - 1;
+    if (previousLineNumber > 0) {
+        const previousLine = model.getLineContent(previousLineNumber);
+        if (indentRulesSupport.shouldIndentNextLine(previousLine) && indentRulesSupport.shouldIncrease(textAroundRangeWithCharacter)) {
+            const inheritedIndentationData = getInheritIndentForLine(autoIndent, model, range.startLineNumber, false, languageConfigurationService);
+            const inheritedIndentation = inheritedIndentationData?.indentation;
+            if (inheritedIndentation !== undefined) {
+                const currentLine = model.getLineContent(range.startLineNumber);
+                const actualCurrentIndentation = strings.getLeadingWhitespace(currentLine);
+                const inferredCurrentIndentation = indentConverter.shiftIndent(inheritedIndentation);
+                // If the inferred current indentation is not equal to the actual current indentation, then the indentation has been intentionally changed, in that case keep it
+                const inferredIndentationEqualsActual = inferredCurrentIndentation === actualCurrentIndentation;
+                const textAroundRangeContainsOnlyWhitespace = /^\s*$/.test(textAroundRange);
+                const autoClosingPairs = cursorConfig.autoClosingPairs.autoClosingPairsOpenByEnd.get(ch);
+                const autoClosingPairExists = autoClosingPairs && autoClosingPairs.length > 0;
+                const isChFirstNonWhitespaceCharacterAndInAutoClosingPair = autoClosingPairExists && textAroundRangeContainsOnlyWhitespace;
+                if (inferredIndentationEqualsActual && isChFirstNonWhitespaceCharacterAndInAutoClosingPair) {
+                    return inheritedIndentation;
+                }
+            }
+        }
     }
     return null;
 }

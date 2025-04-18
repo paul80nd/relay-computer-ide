@@ -57,7 +57,9 @@ export function getSelectionSearchString(editor, seedSearchStringFromSelection =
     }
     return null;
 }
-let CommonFindController = CommonFindController_1 = class CommonFindController extends Disposable {
+let CommonFindController = class CommonFindController extends Disposable {
+    static { CommonFindController_1 = this; }
+    static { this.ID = 'editor.contrib.findController'; }
     get editor() {
         return this._editor;
     }
@@ -305,9 +307,8 @@ let CommonFindController = CommonFindController_1 = class CommonFindController e
         return false;
     }
     replaceAll() {
-        var _a;
         if (this._model) {
-            if ((_a = this._editor.getModel()) === null || _a === void 0 ? void 0 : _a.isTooLargeForHeapOperation()) {
+            if (this._editor.getModel()?.isTooLargeForHeapOperation()) {
                 this._notificationService.warn(nls.localize('too.large.for.replaceall', "The file is too large to perform a replace all operation."));
                 return false;
             }
@@ -341,7 +342,6 @@ let CommonFindController = CommonFindController_1 = class CommonFindController e
         }
     }
 };
-CommonFindController.ID = 'editor.contrib.findController';
 CommonFindController = CommonFindController_1 = __decorate([
     __param(1, IContextKeyService),
     __param(2, IStorageService),
@@ -506,7 +506,7 @@ export class StartFindWithArgsAction extends EditorAction {
                 seedSearchStringFromGlobalClipboard: true,
                 shouldFocus: 1 /* FindStartFocusAction.FocusFindInput */,
                 shouldAnimate: true,
-                updateSearchScope: (args === null || args === void 0 ? void 0 : args.findInSelection) || false,
+                updateSearchScope: args?.findInSelection || false,
                 loop: editor.getOption(41 /* EditorOption.find */).loop
             }, newState);
             controller.setGlobalBufferTerm(controller.getState().searchString);
@@ -803,7 +803,7 @@ export const StartFindReplaceAction = registerMultiEditorAction(new MultiEditorA
     }
 }));
 StartFindReplaceAction.addImplementation(0, (accessor, editor, args) => {
-    if (!editor.hasModel() || editor.getOption(91 /* EditorOption.readOnly */)) {
+    if (!editor.hasModel() || editor.getOption(92 /* EditorOption.readOnly */)) {
         return false;
     }
     const controller = CommonFindController.get(editor);

@@ -7,13 +7,15 @@ import { DeferredPromise } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { SetMap } from '../../../../base/common/map.js';
 import { onUnexpectedExternalError } from '../../../../base/common/errors.js';
+import { Position } from '../../../common/core/position.js';
 import { Range } from '../../../common/core/range.js';
 import { fixBracketsInLine } from '../../../common/model/bracketPairsTextModelPart/fixBrackets.js';
+import { SingleTextEdit } from '../../../common/core/textEdit.js';
 import { getReadonlyEmptyArray } from './utils.js';
 import { SnippetParser, Text } from '../../snippet/browser/snippetParser.js';
-export async function provideInlineCompletions(registry, position, model, context, token = CancellationToken.None, languageConfigurationService) {
+export async function provideInlineCompletions(registry, positionOrRange, model, context, token = CancellationToken.None, languageConfigurationService) {
     // Important: Don't use position after the await calls, as the model could have been changed in the meantime!
-    const defaultReplaceRange = getDefaultRange(position, model);
+    const defaultReplaceRange = positionOrRange instanceof Position ? getDefaultRange(positionOrRange, model) : positionOrRange;
     const providers = registry.all(model);
     const multiMap = new SetMap();
     for (const provider of providers) {
@@ -79,8 +81,14 @@ export async function provideInlineCompletions(registry, position, model, contex
                 }
             }
             try {
-                const completions = await provider.provideInlineCompletions(model, position, context, token);
-                return completions;
+                if (positionOrRange instanceof Position) {
+                    const completions = await provider.provideInlineCompletions(model, positionOrRange, context, token);
+                    return completions;
+                }
+                else {
+                    const completions = await provider.provideInlineEdits?.(model, positionOrRange, context, token);
+                    return completions;
+                }
             }
             catch (e) {
                 onUnexpectedExternalError(e);
@@ -218,6 +226,9 @@ export class InlineCompletionItem {
     hash() {
         return JSON.stringify({ insertText: this.insertText, range: this.range.toString() });
     }
+    toSingleTextEdit() {
+        return new SingleTextEdit(this.range, this.insertText);
+    }
 }
 function getDefaultRange(position, model) {
     const word = model.getWordAtPosition(position);
@@ -232,7 +243,7 @@ function closeBrackets(text, position, model, languageConfigurationService) {
     const lineStart = model.getLineContent(position.lineNumber).substring(0, position.column - 1);
     const newLine = lineStart + text;
     const newTokens = model.tokenization.tokenizeLineWithEdit(position, newLine.length - (position.column - 1), text);
-    const slicedTokens = newTokens === null || newTokens === void 0 ? void 0 : newTokens.sliceAndInflate(position.column - 1, newLine.length, 0);
+    const slicedTokens = newTokens?.sliceAndInflate(position.column - 1, newLine.length, 0);
     if (!slicedTokens) {
         return text;
     }

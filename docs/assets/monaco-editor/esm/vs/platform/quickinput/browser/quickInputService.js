@@ -110,7 +110,7 @@ let QuickInputService = class QuickInputService extends Themable {
             return; // already active context
         }
         this.resetContextKeys();
-        key === null || key === void 0 ? void 0 : key.set(true);
+        key?.set(true);
     }
     resetContextKeys() {
         this.contexts.forEach(context => {

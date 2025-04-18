@@ -90,10 +90,7 @@ let EditorWorkerService = class EditorWorkerService extends Disposable {
         };
         return diff;
         function toLineRangeMappings(changes) {
-            return changes.map((c) => {
-                var _a;
-                return new DetailedLineRangeMapping(new LineRange(c[0], c[1]), new LineRange(c[2], c[3]), (_a = c[4]) === null || _a === void 0 ? void 0 : _a.map((c) => new RangeMapping(new Range(c[0], c[1], c[2], c[3]), new Range(c[4], c[5], c[6], c[7]))));
-            });
+            return changes.map((c) => new DetailedLineRangeMapping(new LineRange(c[0], c[1]), new LineRange(c[2], c[3]), c[4]?.map((c) => new RangeMapping(new Range(c[0], c[1], c[2], c[3]), new Range(c[4], c[5], c[6], c[7])))));
         }
     }
     computeMoreMinimalEdits(resource, edits, pretty = false) {
@@ -176,7 +173,7 @@ class WordBasedCompletionItemProvider {
         const replace = !word ? Range.fromPositions(position) : new Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn);
         const insert = replace.setEndPosition(position.lineNumber, position.column);
         const client = await this._workerManager.withWorker();
-        const data = await client.textualSuggest(models, word === null || word === void 0 ? void 0 : word.word, wordDefRegExp);
+        const data = await client.textualSuggest(models, word?.word, wordDefRegExp);
         if (!data) {
             return undefined;
         }

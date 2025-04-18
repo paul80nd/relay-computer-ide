@@ -519,12 +519,12 @@ export var FuzzyScore;
     FuzzyScore.isDefault = isDefault;
 })(FuzzyScore || (FuzzyScore = {}));
 export class FuzzyScoreOptions {
+    static { this.default = { boostFullMatch: true, firstMatchCanBeWeak: false }; }
     constructor(firstMatchCanBeWeak, boostFullMatch) {
         this.firstMatchCanBeWeak = firstMatchCanBeWeak;
         this.boostFullMatch = boostFullMatch;
     }
 }
-FuzzyScoreOptions.default = { boostFullMatch: true, firstMatchCanBeWeak: false };
 export function fuzzyScore(pattern, patternLow, patternStart, word, wordLow, wordStart, options = FuzzyScoreOptions.default) {
     const patternLen = pattern.length > _maxLen ? _maxLen : pattern.length;
     const wordLen = word.length > _maxLen ? _maxLen : word.length;

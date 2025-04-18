@@ -6,7 +6,16 @@ import { createTrustedTypesPolicy } from './trustedTypes.js';
 import { onUnexpectedError } from '../common/errors.js';
 import { logOnceWebWorkerWarning } from '../common/worker/simpleWorker.js';
 import { Disposable, toDisposable } from '../common/lifecycle.js';
-const ttPolicy = createTrustedTypesPolicy('defaultWorkerFactory', { createScriptURL: value => value });
+// Reuse the trusted types policy defined from worker bootstrap
+// when available.
+// Refs https://github.com/microsoft/vscode/issues/222193
+let ttPolicy;
+if (typeof self === 'object' && self.constructor && self.constructor.name === 'DedicatedWorkerGlobalScope' && globalThis.workerttPolicy !== undefined) {
+    ttPolicy = globalThis.workerttPolicy;
+}
+else {
+    ttPolicy = createTrustedTypesPolicy('defaultWorkerFactory', { createScriptURL: value => value });
+}
 function getWorker(label) {
     const monacoEnvironment = globalThis.MonacoEnvironment;
     if (monacoEnvironment) {
@@ -33,27 +42,36 @@ function getWorker(label) {
 // 	if (/^((http:)|(https:)|(file:))/.test(scriptPath) && scriptPath.substring(0, globalThis.origin.length) !== globalThis.origin) {
 // 		// this is the cross-origin case
 // 		// i.e. the webpage is running at a different origin than where the scripts are loaded from
-// 		const myPath = 'vs/base/worker/defaultWorkerFactory.js';
-// 		const workerBaseUrl = require.toUrl(myPath).slice(0, -myPath.length); // explicitly using require.toUrl(), see https://github.com/microsoft/vscode/issues/107440#issuecomment-698982321
-// 		const js = `/*${label}*/globalThis.MonacoEnvironment={baseUrl: '${workerBaseUrl}'};const ttPolicy = globalThis.trustedTypes?.createPolicy('defaultWorkerFactory', { createScriptURL: value => value });importScripts(ttPolicy?.createScriptURL('${scriptPath}') ?? '${scriptPath}');/*${label}*/`;
-// 		const blob = new Blob([js], { type: 'application/javascript' });
-// 		return URL.createObjectURL(blob);
-// 	}
-// 
-// 	const start = scriptPath.lastIndexOf('?');
-// 	const end = scriptPath.lastIndexOf('#', start);
-// 	const params = start > 0
-// 		? new URLSearchParams(scriptPath.substring(start + 1, ~end ? end : undefined))
-// 		: new URLSearchParams();
-// 
-// 	COI.addSearchParam(params, true, true);
-// 	const search = params.toString();
-// 
-// 	if (!search) {
-// 		return `${scriptPath}#${label}`;
 // 	} else {
-// 		return `${scriptPath}?${params.toString()}#${label}`;
+// 		const start = scriptPath.lastIndexOf('?');
+// 		const end = scriptPath.lastIndexOf('#', start);
+// 		const params = start > 0
+// 			? new URLSearchParams(scriptPath.substring(start + 1, ~end ? end : undefined))
+// 			: new URLSearchParams();
+// 
+// 		COI.addSearchParam(params, true, true);
+// 		const search = params.toString();
+// 		if (!search) {
+// 			scriptPath = `${scriptPath}#${label}`;
+// 		} else {
+// 			scriptPath = `${scriptPath}?${params.toString()}#${label}`;
+// 		}
 // 	}
+// 
+// 	const factoryModuleId = 'vs/base/worker/defaultWorkerFactory.js';
+// 	const workerBaseUrl = require.toUrl(factoryModuleId).slice(0, -factoryModuleId.length); // explicitly using require.toUrl(), see https://github.com/microsoft/vscode/issues/107440#issuecomment-698982321
+// 	const blob = new Blob([[
+// 		`/*${label}*/`,
+// 		`globalThis.MonacoEnvironment = { baseUrl: '${workerBaseUrl}' };`,
+// 		// VSCODE_GLOBALS: NLS
+// 		`globalThis._VSCODE_NLS_MESSAGES = ${JSON.stringify(getNLSMessages())};`,
+// 		`globalThis._VSCODE_NLS_LANGUAGE = ${JSON.stringify(getNLSLanguage())};`,
+// 		`const ttPolicy = globalThis.trustedTypes?.createPolicy('defaultWorkerFactory', { createScriptURL: value => value });`,
+// 		`globalThis.workerttPolicy = ttPolicy;`,
+// 		`importScripts(ttPolicy?.createScriptURL('${scriptPath}') ?? '${scriptPath}');`,
+// 		`/*${label}*/`
+// 	].join('')], { type: 'application/javascript' });
+// 	return URL.createObjectURL(blob);
 // }
 // ESM-comment-end
 function isPromiseLike(obj) {
@@ -89,8 +107,7 @@ class WebWorker extends Disposable {
             }
         });
         this._register(toDisposable(() => {
-            var _a;
-            (_a = this.worker) === null || _a === void 0 ? void 0 : _a.then(w => {
+            this.worker?.then(w => {
                 w.onmessage = null;
                 w.onmessageerror = null;
                 w.removeEventListener('error', onErrorCallback);
@@ -103,8 +120,7 @@ class WebWorker extends Disposable {
         return this.id;
     }
     postMessage(message, transfer) {
-        var _a;
-        (_a = this.worker) === null || _a === void 0 ? void 0 : _a.then(w => {
+        this.worker?.then(w => {
             try {
                 w.postMessage(message, transfer);
             }
@@ -116,6 +132,7 @@ class WebWorker extends Disposable {
     }
 }
 export class DefaultWorkerFactory {
+    static { this.LAST_WORKER_ID = 0; }
     constructor(label) {
         this._label = label;
         this._webWorkerFailedBeforeError = false;
@@ -132,4 +149,3 @@ export class DefaultWorkerFactory {
         });
     }
 }
-DefaultWorkerFactory.LAST_WORKER_ID = 0;

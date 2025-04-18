@@ -128,6 +128,11 @@ StandaloneTextModelService = __decorate([
     __param(0, IModelService)
 ], StandaloneTextModelService);
 class StandaloneEditorProgressService {
+    static { this.NULL_PROGRESS_RUNNER = {
+        done: () => { },
+        total: () => { },
+        worked: () => { }
+    }; }
     show() {
         return StandaloneEditorProgressService.NULL_PROGRESS_RUNNER;
     }
@@ -135,11 +140,6 @@ class StandaloneEditorProgressService {
         await promise;
     }
 }
-StandaloneEditorProgressService.NULL_PROGRESS_RUNNER = {
-    done: () => { },
-    total: () => { },
-    worked: () => { }
-};
 class StandaloneProgressService {
     withProgress(_options, task, onDidCancel) {
         return task({
@@ -169,15 +169,14 @@ class StandaloneDialogService {
         return mainWindow.confirm(messageText);
     }
     async prompt(prompt) {
-        var _a, _b;
         let result = undefined;
         const confirmed = this.doConfirm(prompt.message, prompt.detail);
         if (confirmed) {
-            const promptButtons = [...((_a = prompt.buttons) !== null && _a !== void 0 ? _a : [])];
+            const promptButtons = [...(prompt.buttons ?? [])];
             if (prompt.cancelButton && typeof prompt.cancelButton !== 'string' && typeof prompt.cancelButton !== 'boolean') {
                 promptButtons.push(prompt.cancelButton);
             }
-            result = await ((_b = promptButtons[0]) === null || _b === void 0 ? void 0 : _b.run({ checkboxChecked: false }));
+            result = await promptButtons[0]?.run({ checkboxChecked: false });
         }
         return { result };
     }
@@ -186,6 +185,7 @@ class StandaloneDialogService {
     }
 }
 export class StandaloneNotificationService {
+    static { this.NO_OP = new NoOpNotification(); }
     info(message) {
         return this.notify({ severity: Severity.Info, message });
     }
@@ -216,7 +216,6 @@ export class StandaloneNotificationService {
         return Disposable.None;
     }
 }
-StandaloneNotificationService.NO_OP = new NoOpNotification();
 let StandaloneCommandService = class StandaloneCommandService {
     constructor(instantiationService) {
         this._onWillExecuteCommand = new Emitter();
@@ -314,11 +313,10 @@ let StandaloneKeybindingService = class StandaloneKeybindingService extends Abst
     }
     addDynamicKeybindings(rules) {
         const entries = rules.map((rule) => {
-            var _a;
             const keybinding = decodeKeybinding(rule.keybinding, OS);
             return {
                 keybinding,
-                command: (_a = rule.command) !== null && _a !== void 0 ? _a : null,
+                command: rule.command ?? null,
                 commandArgs: rule.commandArgs,
                 when: rule.when,
                 weight1: 1000,
@@ -501,6 +499,7 @@ class StandaloneTelemetryService {
     publicLog2() { }
 }
 class StandaloneWorkspaceContextService {
+    static { this.SCHEME = 'inmemory'; }
     constructor() {
         const resource = URI.from({ scheme: StandaloneWorkspaceContextService.SCHEME, authority: 'model', path: '/' });
         this.workspace = { id: STANDALONE_EDITOR_WORKSPACE_ID, folders: [new WorkspaceFolder({ uri: resource, name: '', index: 0 })] };
@@ -512,7 +511,6 @@ class StandaloneWorkspaceContextService {
         return resource && resource.scheme === StandaloneWorkspaceContextService.SCHEME ? this.workspace.folders[0] : null;
     }
 }
-StandaloneWorkspaceContextService.SCHEME = 'inmemory';
 export function updateConfigurationService(configurationService, source, isDiffEditor) {
     if (!source) {
         return;

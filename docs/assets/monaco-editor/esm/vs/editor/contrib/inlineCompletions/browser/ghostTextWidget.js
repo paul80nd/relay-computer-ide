@@ -37,7 +37,7 @@ let GhostTextWidget = class GhostTextWidget extends Disposable {
         this.model = model;
         this.languageService = languageService;
         this.isDisposed = observableValue(this, false);
-        this.currentTextModel = observableFromEvent(this.editor.onDidChangeModel, () => /** @description editor.model */ this.editor.getModel());
+        this.currentTextModel = observableFromEvent(this, this.editor.onDidChangeModel, () => /** @description editor.model */ this.editor.getModel());
         this.uiState = derived(this, reader => {
             if (this.isDisposed.read(reader)) {
                 return undefined;
@@ -167,9 +167,9 @@ export class AdditionalLinesWidget extends Disposable {
         this.lines = lines;
         this._viewZoneId = undefined;
         this.editorOptionsChanged = observableSignalFromEvent('editorOptionChanged', Event.filter(this.editor.onDidChangeConfiguration, e => e.hasChanged(33 /* EditorOption.disableMonospaceOptimizations */)
-            || e.hasChanged(117 /* EditorOption.stopRenderingLineAfter */)
-            || e.hasChanged(99 /* EditorOption.renderWhitespace */)
-            || e.hasChanged(94 /* EditorOption.renderControlCharacters */)
+            || e.hasChanged(118 /* EditorOption.stopRenderingLineAfter */)
+            || e.hasChanged(100 /* EditorOption.renderWhitespace */)
+            || e.hasChanged(95 /* EditorOption.renderControlCharacters */)
             || e.hasChanged(51 /* EditorOption.fontLigatures */)
             || e.hasChanged(50 /* EditorOption.fontInfo */)
             || e.hasChanged(67 /* EditorOption.lineHeight */)));
@@ -224,10 +224,10 @@ export class AdditionalLinesWidget extends Disposable {
 }
 function renderLines(domNode, tabSize, lines, opts, languageIdCodec) {
     const disableMonospaceOptimizations = opts.get(33 /* EditorOption.disableMonospaceOptimizations */);
-    const stopRenderingLineAfter = opts.get(117 /* EditorOption.stopRenderingLineAfter */);
+    const stopRenderingLineAfter = opts.get(118 /* EditorOption.stopRenderingLineAfter */);
     // To avoid visual confusion, we don't want to render visible whitespace
     const renderWhitespace = 'none';
-    const renderControlCharacters = opts.get(94 /* EditorOption.renderControlCharacters */);
+    const renderControlCharacters = opts.get(95 /* EditorOption.renderControlCharacters */);
     const fontLigatures = opts.get(51 /* EditorOption.fontLigatures */);
     const fontInfo = opts.get(50 /* EditorOption.fontInfo */);
     const lineHeight = opts.get(67 /* EditorOption.lineHeight */);

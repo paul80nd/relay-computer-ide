@@ -8,7 +8,8 @@ import { CursorCollection } from './cursorCollection.js';
 import { CursorState, EditOperationResult } from '../cursorCommon.js';
 import { CursorContext } from './cursorContext.js';
 import { DeleteOperations } from './cursorDeleteOperations.js';
-import { CompositionOutcome, TypeOperations, TypeWithAutoClosingCommand } from './cursorTypeOperations.js';
+import { CompositionOutcome, TypeOperations } from './cursorTypeOperations.js';
+import { BaseTypeWithAutoClosingCommand } from './cursorTypeEditOperations.js';
 import { Range } from '../core/range.js';
 import { Selection } from '../core/selection.js';
 import { ModelInjectedTextChangedEvent } from '../textModelEvents.js';
@@ -291,7 +292,7 @@ export class CursorsController extends Disposable {
             const autoClosedEnclosingRanges = [];
             for (let i = 0; i < opResult.commands.length; i++) {
                 const command = opResult.commands[i];
-                if (command instanceof TypeWithAutoClosingCommand && command.enclosingRange && command.closeCharacterRange) {
+                if (command instanceof BaseTypeWithAutoClosingCommand && command.enclosingRange && command.closeCharacterRange) {
                     autoClosedCharactersRanges.push(command.closeCharacterRange);
                     autoClosedEnclosingRanges.push(command.enclosingRange);
                 }

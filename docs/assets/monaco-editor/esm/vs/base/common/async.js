@@ -204,28 +204,24 @@ export class Delayer {
             });
         }
         const fn = () => {
-            var _a;
             this.deferred = null;
-            (_a = this.doResolve) === null || _a === void 0 ? void 0 : _a.call(this, null);
+            this.doResolve?.(null);
         };
         this.deferred = delay === MicrotaskDelay ? microtaskDeferred(fn) : timeoutDeferred(delay, fn);
         return this.completionPromise;
     }
     isTriggered() {
-        var _a;
-        return !!((_a = this.deferred) === null || _a === void 0 ? void 0 : _a.isTriggered());
+        return !!this.deferred?.isTriggered();
     }
     cancel() {
-        var _a;
         this.cancelTimeout();
         if (this.completionPromise) {
-            (_a = this.doReject) === null || _a === void 0 ? void 0 : _a.call(this, new CancellationError());
+            this.doReject?.(new CancellationError());
             this.completionPromise = null;
         }
     }
     cancelTimeout() {
-        var _a;
-        (_a = this.deferred) === null || _a === void 0 ? void 0 : _a.dispose();
+        this.deferred?.dispose();
         this.deferred = null;
     }
     dispose() {
@@ -299,9 +295,9 @@ export function disposableTimeout(handler, timeout = 0, store) {
     }, timeout);
     const disposable = toDisposable(() => {
         clearTimeout(timer);
-        store === null || store === void 0 ? void 0 : store.deleteAndLeak(disposable);
+        store?.deleteAndLeak(disposable);
     });
-    store === null || store === void 0 ? void 0 : store.add(disposable);
+    store?.add(disposable);
     return disposable;
 }
 export function first(promiseFactories, shouldStop = t => !!t, defaultValue = null) {
@@ -370,8 +366,7 @@ export class IntervalTimer {
         this.isDisposed = false;
     }
     cancel() {
-        var _a;
-        (_a = this.disposable) === null || _a === void 0 ? void 0 : _a.dispose();
+        this.disposable?.dispose();
         this.disposable = undefined;
     }
     cancelAndSet(runner, interval, context = globalThis) {
@@ -441,8 +436,7 @@ export class RunOnceScheduler {
         }
     }
     doRun() {
-        var _a;
-        (_a = this.runner) === null || _a === void 0 ? void 0 : _a.call(this);
+        this.runner?.();
     }
 }
 /**
@@ -561,8 +555,7 @@ export class GlobalIdleValue extends AbstractIdleValue {
  */
 export class DeferredPromise {
     get isRejected() {
-        var _a;
-        return ((_a = this.outcome) === null || _a === void 0 ? void 0 : _a.outcome) === 1 /* DeferredOutcome.Rejected */;
+        return this.outcome?.outcome === 1 /* DeferredOutcome.Rejected */;
     }
     get isSettled() {
         return !!this.outcome;
@@ -667,6 +660,7 @@ export class AsyncIterableObject {
             }));
         });
     }
+    static { this.EMPTY = AsyncIterableObject.fromArray([]); }
     constructor(executor, onReturn) {
         this._state = 0 /* AsyncIterableSourceState.Initial */;
         this._results = [];
@@ -711,8 +705,7 @@ export class AsyncIterableObject {
                 } while (true);
             },
             return: async () => {
-                var _a;
-                (_a = this._onReturn) === null || _a === void 0 ? void 0 : _a.call(this);
+                this._onReturn?.();
                 return { done: true, value: undefined };
             }
         };
@@ -811,7 +804,6 @@ export class AsyncIterableObject {
         this._onStateChanged.fire();
     }
 }
-AsyncIterableObject.EMPTY = AsyncIterableObject.fromArray([]);
 export class CancelableAsyncIterableObject extends AsyncIterableObject {
     constructor(_source, executor) {
         super(executor);

@@ -10,6 +10,7 @@ import { HoverWidget } from '../../../../base/browser/ui/hover/hoverWidget.js';
 import { MarginHoverComputer } from './marginHoverComputer.js';
 const $ = dom.$;
 export class MarginHoverWidget extends Disposable {
+    static { this.ID = 'editor.contrib.modesGlyphHoverWidget'; }
     constructor(editor, languageService, openerService) {
         super();
         this._renderDisposeables = this._register(new DisposableStore());
@@ -132,4 +133,3 @@ export class MarginHoverWidget extends Disposable {
         this._hover.containerDomNode.style.top = `${Math.max(Math.round(top), 0)}px`;
     }
 }
-MarginHoverWidget.ID = 'editor.contrib.modesGlyphHoverWidget';

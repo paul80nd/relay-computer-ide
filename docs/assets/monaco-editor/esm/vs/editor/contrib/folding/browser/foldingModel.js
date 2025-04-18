@@ -160,7 +160,6 @@ export class FoldingModel {
      * Apply persisted state, for persistence only
      */
     applyMemento(state) {
-        var _a, _b;
         if (!Array.isArray(state)) {
             return;
         }
@@ -176,8 +175,8 @@ export class FoldingModel {
                     startLineNumber: range.startLineNumber,
                     endLineNumber: range.endLineNumber,
                     type: undefined,
-                    isCollapsed: (_a = range.isCollapsed) !== null && _a !== void 0 ? _a : true,
-                    source: (_b = range.source) !== null && _b !== void 0 ? _b : 0 /* FoldSource.provider */
+                    isCollapsed: range.isCollapsed ?? true,
+                    source: range.source ?? 0 /* FoldSource.provider */
                 });
             }
         }

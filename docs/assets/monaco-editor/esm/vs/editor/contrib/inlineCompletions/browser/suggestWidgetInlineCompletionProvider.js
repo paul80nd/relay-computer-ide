@@ -2,34 +2,33 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from '../../../../base/common/event.js';
+import { compareBy, numberComparator } from '../../../../base/common/arrays.js';
+import { findFirstMax } from '../../../../base/common/arraysFind.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Position } from '../../../common/core/position.js';
 import { Range } from '../../../common/core/range.js';
+import { SingleTextEdit } from '../../../common/core/textEdit.js';
 import { SelectedSuggestionInfo } from '../../../common/languages.js';
+import { singleTextEditAugments, singleTextRemoveCommonPrefix } from './singleTextEdit.js';
 import { SnippetParser } from '../../snippet/browser/snippetParser.js';
 import { SnippetSession } from '../../snippet/browser/snippetSession.js';
 import { SuggestController } from '../../suggest/browser/suggestController.js';
-import { observableValue, transaction } from '../../../../base/common/observable.js';
-import { SingleTextEdit } from '../../../common/core/textEdit.js';
-import { compareBy, numberComparator } from '../../../../base/common/arrays.js';
-import { findFirstMax } from '../../../../base/common/arraysFind.js';
-import { singleTextEditAugments, singleTextRemoveCommonPrefix } from './singleTextEdit.js';
 export class SuggestWidgetAdaptor extends Disposable {
     get selectedItem() {
-        return this._selectedItem;
+        return this._currentSuggestItemInfo;
     }
-    constructor(editor, suggestControllerPreselector, checkModelVersion, onWillAccept) {
+    constructor(editor, suggestControllerPreselector, onWillAccept) {
         super();
         this.editor = editor;
         this.suggestControllerPreselector = suggestControllerPreselector;
-        this.checkModelVersion = checkModelVersion;
         this.onWillAccept = onWillAccept;
         this.isSuggestWidgetVisible = false;
         this.isShiftKeyPressed = false;
         this._isActive = false;
         this._currentSuggestItemInfo = undefined;
-        this._selectedItem = observableValue(this, undefined);
+        this._onDidSelectedItemChange = this._register(new Emitter());
+        this.onDidSelectedItemChange = this._onDidSelectedItemChange.event;
         // See the command acceptAlternativeSelectedSuggestion that is bound to shift+tab
         this._register(editor.onKeyDown(e => {
             if (e.shiftKey && !this.isShiftKeyPressed) {
@@ -48,7 +47,6 @@ export class SuggestWidgetAdaptor extends Disposable {
             this._register(suggestController.registerSelector({
                 priority: 100,
                 select: (model, pos, suggestItems) => {
-                    transaction(tx => this.checkModelVersion(tx));
                     const textModel = this.editor.getModel();
                     if (!textModel) {
                         // Should not happen
@@ -111,11 +109,7 @@ export class SuggestWidgetAdaptor extends Disposable {
         if (this._isActive !== newActive || !suggestItemInfoEquals(this._currentSuggestItemInfo, newInlineCompletion)) {
             this._isActive = newActive;
             this._currentSuggestItemInfo = newInlineCompletion;
-            transaction(tx => {
-                /** @description Update state from suggest widget */
-                this.checkModelVersion(tx);
-                this._selectedItem.set(this._isActive ? this._currentSuggestItemInfo : undefined, tx);
-            });
+            this._onDidSelectedItemChange.fire();
         }
     }
     getSuggestItemInfo() {
@@ -133,11 +127,11 @@ export class SuggestWidgetAdaptor extends Disposable {
     }
     stopForceRenderingAbove() {
         const suggestController = SuggestController.get(this.editor);
-        suggestController === null || suggestController === void 0 ? void 0 : suggestController.stopForceRenderingAbove();
+        suggestController?.stopForceRenderingAbove();
     }
     forceRenderingAbove() {
         const suggestController = SuggestController.get(this.editor);
-        suggestController === null || suggestController === void 0 ? void 0 : suggestController.forceRenderingAbove();
+        suggestController?.forceRenderingAbove();
     }
 }
 export class SuggestItemInfo {

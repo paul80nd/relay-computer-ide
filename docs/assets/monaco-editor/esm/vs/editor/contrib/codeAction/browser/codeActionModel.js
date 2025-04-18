@@ -156,9 +156,8 @@ export class CodeActionModel extends Disposable {
         this.setState(CodeActionsState.Empty, true);
     }
     _settingEnabledNearbyQuickfixes() {
-        var _a;
-        const model = (_a = this._editor) === null || _a === void 0 ? void 0 : _a.getModel();
-        return this._configurationService ? this._configurationService.getValue('editor.codeActionWidget.includeNearbyQuickFixes', { resource: model === null || model === void 0 ? void 0 : model.uri }) : false;
+        const model = this._editor?.getModel();
+        return this._configurationService ? this._configurationService.getValue('editor.codeActionWidget.includeNearbyQuickFixes', { resource: model?.uri }) : false;
     }
     _update() {
         if (this._disposed) {
@@ -169,30 +168,28 @@ export class CodeActionModel extends Disposable {
         const model = this._editor.getModel();
         if (model
             && this._registry.has(model)
-            && !this._editor.getOption(91 /* EditorOption.readOnly */)) {
-            const supportedActions = this._registry.all(model).flatMap(provider => { var _a; return (_a = provider.providedCodeActionKinds) !== null && _a !== void 0 ? _a : []; });
+            && !this._editor.getOption(92 /* EditorOption.readOnly */)) {
+            const supportedActions = this._registry.all(model).flatMap(provider => provider.providedCodeActionKinds ?? []);
             this._supportedCodeActions.set(supportedActions.join(' '));
             this._codeActionOracle.value = new CodeActionOracle(this._editor, this._markerService, trigger => {
-                var _a;
                 if (!trigger) {
                     this.setState(CodeActionsState.Empty);
                     return;
                 }
                 const startPosition = trigger.selection.getStartPosition();
                 const actions = createCancelablePromise(async (token) => {
-                    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
-                    if (this._settingEnabledNearbyQuickfixes() && trigger.trigger.type === 1 /* CodeActionTriggerType.Invoke */ && (trigger.trigger.triggerAction === CodeActionTriggerSource.QuickFix || ((_b = (_a = trigger.trigger.filter) === null || _a === void 0 ? void 0 : _a.include) === null || _b === void 0 ? void 0 : _b.contains(CodeActionKind.QuickFix)))) {
+                    if (this._settingEnabledNearbyQuickfixes() && trigger.trigger.type === 1 /* CodeActionTriggerType.Invoke */ && (trigger.trigger.triggerAction === CodeActionTriggerSource.QuickFix || trigger.trigger.filter?.include?.contains(CodeActionKind.QuickFix))) {
                         const codeActionSet = await getCodeActions(this._registry, model, trigger.selection, trigger.trigger, Progress.None, token);
                         const allCodeActions = [...codeActionSet.allActions];
                         if (token.isCancellationRequested) {
                             return emptyCodeActionSet;
                         }
                         // Search for quickfixes in the curret code action set.
-                        const foundQuickfix = (_c = codeActionSet.validActions) === null || _c === void 0 ? void 0 : _c.some(action => action.action.kind ? CodeActionKind.QuickFix.contains(new HierarchicalKind(action.action.kind)) : false);
+                        const foundQuickfix = codeActionSet.validActions?.some(action => action.action.kind ? CodeActionKind.QuickFix.contains(new HierarchicalKind(action.action.kind)) : false);
                         const allMarkers = this._markerService.read({ resource: model.uri });
                         if (foundQuickfix) {
                             for (const action of codeActionSet.validActions) {
-                                if ((_e = (_d = action.action.command) === null || _d === void 0 ? void 0 : _d.arguments) === null || _e === void 0 ? void 0 : _e.some(arg => typeof arg === 'string' && arg.includes(APPLY_FIX_ALL_COMMAND_ID))) {
+                                if (action.action.command?.arguments?.some(arg => typeof arg === 'string' && arg.includes(APPLY_FIX_ALL_COMMAND_ID))) {
                                     action.action.diagnostics = [...allMarkers.filter(marker => marker.relatedInformation)];
                                 }
                             }
@@ -215,15 +212,15 @@ export class CodeActionModel extends Disposable {
                                         const newCodeActionTrigger = {
                                             type: trigger.trigger.type,
                                             triggerAction: trigger.trigger.triggerAction,
-                                            filter: { include: ((_f = trigger.trigger.filter) === null || _f === void 0 ? void 0 : _f.include) ? (_g = trigger.trigger.filter) === null || _g === void 0 ? void 0 : _g.include : CodeActionKind.QuickFix },
+                                            filter: { include: trigger.trigger.filter?.include ? trigger.trigger.filter?.include : CodeActionKind.QuickFix },
                                             autoApply: trigger.trigger.autoApply,
-                                            context: { notAvailableMessage: ((_h = trigger.trigger.context) === null || _h === void 0 ? void 0 : _h.notAvailableMessage) || '', position: trackedPosition }
+                                            context: { notAvailableMessage: trigger.trigger.context?.notAvailableMessage || '', position: trackedPosition }
                                         };
                                         const selectionAsPosition = new Selection(trackedPosition.lineNumber, trackedPosition.column, trackedPosition.lineNumber, trackedPosition.column);
                                         const actionsAtMarker = await getCodeActions(this._registry, model, selectionAsPosition, newCodeActionTrigger, Progress.None, token);
                                         if (actionsAtMarker.validActions.length !== 0) {
                                             for (const action of actionsAtMarker.validActions) {
-                                                if ((_k = (_j = action.action.command) === null || _j === void 0 ? void 0 : _j.arguments) === null || _k === void 0 ? void 0 : _k.some(arg => typeof arg === 'string' && arg.includes(APPLY_FIX_ALL_COMMAND_ID))) {
+                                                if (action.action.command?.arguments?.some(arg => typeof arg === 'string' && arg.includes(APPLY_FIX_ALL_COMMAND_ID))) {
                                                     action.action.diagnostics = [...allMarkers.filter(marker => marker.relatedInformation)];
                                                 }
                                             }
@@ -268,7 +265,7 @@ export class CodeActionModel extends Disposable {
                     return getCodeActions(this._registry, model, trigger.selection, trigger.trigger, Progress.None, token);
                 });
                 if (trigger.trigger.type === 1 /* CodeActionTriggerType.Invoke */) {
-                    (_a = this._progressService) === null || _a === void 0 ? void 0 : _a.showWhile(actions, 250);
+                    this._progressService?.showWhile(actions, 250);
                 }
                 const newState = new CodeActionsState.Triggered(trigger.trigger, startPosition, actions);
                 let isManualToAutoTransition = false;
@@ -297,8 +294,7 @@ export class CodeActionModel extends Disposable {
         }
     }
     trigger(trigger) {
-        var _a;
-        (_a = this._codeActionOracle.value) === null || _a === void 0 ? void 0 : _a.trigger(trigger);
+        this._codeActionOracle.value?.trigger(trigger);
     }
     setState(newState, skipNotify) {
         if (newState === this._state) {

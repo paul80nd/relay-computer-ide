@@ -139,9 +139,9 @@ export class Separator {
         }
         return out;
     }
+    static { this.ID = 'vs.actions.separator'; }
     async run() { }
 }
-Separator.ID = 'vs.actions.separator';
 export class SubmenuAction {
     get actions() { return this._actions; }
     constructor(id, label, actions, cssClass) {
@@ -156,19 +156,18 @@ export class SubmenuAction {
     async run() { }
 }
 export class EmptySubmenuAction extends Action {
+    static { this.ID = 'vs.actions.empty'; }
     constructor() {
         super(EmptySubmenuAction.ID, nls.localize('submenu.empty', '(empty)'), undefined, false);
     }
 }
-EmptySubmenuAction.ID = 'vs.actions.empty';
 export function toAction(props) {
-    var _a, _b;
     return {
         id: props.id,
         label: props.label,
-        tooltip: (_a = props.tooltip) !== null && _a !== void 0 ? _a : props.label,
+        tooltip: props.tooltip ?? props.label,
         class: props.class,
-        enabled: (_b = props.enabled) !== null && _b !== void 0 ? _b : true,
+        enabled: props.enabled ?? true,
         checked: props.checked,
         run: async (...args) => props.run(...args),
     };

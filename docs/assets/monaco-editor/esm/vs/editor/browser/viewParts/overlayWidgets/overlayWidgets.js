@@ -11,7 +11,7 @@ export class ViewOverlayWidgets extends ViewPart {
         super(context);
         this._viewDomNode = viewDomNode;
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         this._widgets = {};
         this._verticalScrollbarWidth = layoutInfo.verticalScrollbarWidth;
         this._minimapWidth = layoutInfo.minimap.minimapWidth;
@@ -36,7 +36,7 @@ export class ViewOverlayWidgets extends ViewPart {
     // ---- begin view event handlers
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         this._verticalScrollbarWidth = layoutInfo.verticalScrollbarWidth;
         this._minimapWidth = layoutInfo.minimap.minimapWidth;
         this._horizontalScrollbarHeight = layoutInfo.horizontalScrollbarHeight;
@@ -67,7 +67,7 @@ export class ViewOverlayWidgets extends ViewPart {
     setWidgetPosition(widget, position) {
         const widgetData = this._widgets[widget.getId()];
         const preference = position ? position.preference : null;
-        const stack = position === null || position === void 0 ? void 0 : position.stackOridinal;
+        const stack = position?.stackOridinal;
         if (widgetData.preference === preference && widgetData.stack === stack) {
             this._updateMaxMinWidth();
             return false;
@@ -90,13 +90,12 @@ export class ViewOverlayWidgets extends ViewPart {
         }
     }
     _updateMaxMinWidth() {
-        var _a, _b;
         let maxMinWidth = 0;
         const keys = Object.keys(this._widgets);
         for (let i = 0, len = keys.length; i < len; i++) {
             const widgetId = keys[i];
             const widget = this._widgets[widgetId];
-            const widgetMinWidthInPx = (_b = (_a = widget.widget).getMinContentWidthInPx) === null || _b === void 0 ? void 0 : _b.call(_a);
+            const widgetMinWidthInPx = widget.widget.getMinContentWidthInPx?.();
             if (typeof widgetMinWidthInPx !== 'undefined') {
                 maxMinWidth = Math.max(maxMinWidth, widgetMinWidthInPx);
             }

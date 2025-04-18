@@ -44,28 +44,27 @@ let DiffEditorGutter = class DiffEditorGutter extends Disposable {
         this._contextKeyService = _contextKeyService;
         this._menuService = _menuService;
         this._menu = this._register(this._menuService.createMenu(MenuId.DiffEditorHunkToolbar, this._contextKeyService));
-        this._actions = observableFromEvent(this._menu.onDidChange, () => this._menu.getActions());
+        this._actions = observableFromEvent(this, this._menu.onDidChange, () => this._menu.getActions());
         this._hasActions = this._actions.map(a => a.length > 0);
         this._showSash = derived(this, reader => this._options.renderSideBySide.read(reader) && this._hasActions.read(reader));
         this.width = derived(this, reader => this._hasActions.read(reader) ? width : 0);
         this.elements = h('div.gutter@gutter', { style: { position: 'absolute', height: '100%', width: width + 'px' } }, []);
         this._currentDiff = derived(this, (reader) => {
-            var _a;
             const model = this._diffModel.read(reader);
             if (!model) {
                 return undefined;
             }
-            const mappings = (_a = model.diff.read(reader)) === null || _a === void 0 ? void 0 : _a.mappings;
+            const mappings = model.diff.read(reader)?.mappings;
             const cursorPosition = this._editors.modifiedCursor.read(reader);
             if (!cursorPosition) {
                 return undefined;
             }
-            return mappings === null || mappings === void 0 ? void 0 : mappings.find(m => m.lineRangeMapping.modified.contains(cursorPosition.lineNumber));
+            return mappings?.find(m => m.lineRangeMapping.modified.contains(cursorPosition.lineNumber));
         });
         this._selectedDiffs = derived(this, (reader) => {
             /** @description selectedDiffs */
             const model = this._diffModel.read(reader);
-            const diff = model === null || model === void 0 ? void 0 : model.diff.read(reader);
+            const diff = model?.diff.read(reader);
             // Return `emptyArr` because it is a constant. [] is always a new array and would trigger a change.
             if (!diff) {
                 return emptyArr;
@@ -112,21 +111,20 @@ let DiffEditorGutter = class DiffEditorGutter extends Disposable {
                     ];
                 }
                 const currentDiff = this._currentDiff.read(reader);
-                return diffs.mappings.map(m => new DiffGutterItem(m.lineRangeMapping.withInnerChangesFromLineRanges(), m.lineRangeMapping === (currentDiff === null || currentDiff === void 0 ? void 0 : currentDiff.lineRangeMapping), MenuId.DiffEditorHunkToolbar, undefined, model.model.original.uri, model.model.modified.uri));
+                return diffs.mappings.map(m => new DiffGutterItem(m.lineRangeMapping.withInnerChangesFromLineRanges(), m.lineRangeMapping === currentDiff?.lineRangeMapping, MenuId.DiffEditorHunkToolbar, undefined, model.model.original.uri, model.model.modified.uri));
             },
             createView: (item, target) => {
                 return this._instantiationService.createInstance(DiffToolBar, item, target, this);
             },
         }));
         this._register(addDisposableListener(this.elements.gutter, EventType.MOUSE_WHEEL, (e) => {
-            if (this._editors.modified.getOption(103 /* EditorOption.scrollbar */).handleMouseWheel) {
+            if (this._editors.modified.getOption(104 /* EditorOption.scrollbar */).handleMouseWheel) {
                 this._editors.modified.delegateScrollFromMouseWheelEvent(e);
             }
         }, { passive: false }));
     }
     computeStagedValue(mapping) {
-        var _a;
-        const c = (_a = mapping.innerChanges) !== null && _a !== void 0 ? _a : [];
+        const c = mapping.innerChanges ?? [];
         const modified = new TextModelText(this._editors.modifiedModel.get());
         const original = new TextModelText(this._editors.original.getModel());
         const edit = new TextEdit(c.map(c => c.toTextEdit(modified)));
@@ -153,7 +151,7 @@ class DiffGutterItem {
         this.modifiedUri = modifiedUri;
     }
     get id() { return this.mapping.modified.toString(); }
-    get range() { var _a; return (_a = this.rangeOverride) !== null && _a !== void 0 ? _a : this.mapping.modified; }
+    get range() { return this.rangeOverride ?? this.mapping.modified; }
 }
 let DiffToolBar = class DiffToolBar extends Disposable {
     constructor(_item, target, gutter, instantiationService) {

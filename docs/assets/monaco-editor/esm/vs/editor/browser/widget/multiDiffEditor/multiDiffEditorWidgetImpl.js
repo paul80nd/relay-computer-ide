@@ -68,8 +68,8 @@ let MultiDiffEditorWidgetImpl = class MultiDiffEditorWidgetImpl extends Disposab
             template.setData(data);
             return template;
         }));
-        this.scrollTop = observableFromEvent(this._scrollableElement.onScroll, () => /** @description scrollTop */ this._scrollableElement.getScrollPosition().scrollTop);
-        this.scrollLeft = observableFromEvent(this._scrollableElement.onScroll, () => /** @description scrollLeft */ this._scrollableElement.getScrollPosition().scrollLeft);
+        this.scrollTop = observableFromEvent(this, this._scrollableElement.onScroll, () => /** @description scrollTop */ this._scrollableElement.getScrollPosition().scrollTop);
+        this.scrollLeft = observableFromEvent(this, this._scrollableElement.onScroll, () => /** @description scrollLeft */ this._scrollableElement.getScrollPosition().scrollLeft);
         this._viewItemsInfo = derivedWithStore(this, (reader, store) => {
             const vm = this._viewModel.read(reader);
             if (!vm) {
@@ -78,11 +78,10 @@ let MultiDiffEditorWidgetImpl = class MultiDiffEditorWidgetImpl extends Disposab
             const viewModels = vm.items.read(reader);
             const map = new Map();
             const items = viewModels.map(d => {
-                var _a;
                 const item = store.add(new VirtualizedViewItem(d, this._objectPool, this.scrollLeft, delta => {
                     this._scrollableElement.setScrollPosition({ scrollTop: this._scrollableElement.getScrollPosition().scrollTop + delta });
                 }));
-                const data = (_a = this._lastDocStates) === null || _a === void 0 ? void 0 : _a[item.getKey()];
+                const data = this._lastDocStates?.[item.getKey()];
                 if (data) {
                     transaction(tx => {
                         item.setViewState(data, tx);
@@ -207,16 +206,15 @@ class VirtualizedViewItem extends Disposable {
         this._scrollLeft = _scrollLeft;
         this._deltaScrollVertical = _deltaScrollVertical;
         this._templateRef = this._register(disposableObservableValue(this, undefined));
-        this.contentHeight = derived(this, reader => { var _a, _b, _c; return (_c = (_b = (_a = this._templateRef.read(reader)) === null || _a === void 0 ? void 0 : _a.object.contentHeight) === null || _b === void 0 ? void 0 : _b.read(reader)) !== null && _c !== void 0 ? _c : this.viewModel.lastTemplateData.read(reader).contentHeight; });
-        this.maxScroll = derived(this, reader => { var _a, _b; return (_b = (_a = this._templateRef.read(reader)) === null || _a === void 0 ? void 0 : _a.object.maxScroll.read(reader)) !== null && _b !== void 0 ? _b : { maxScroll: 0, scrollWidth: 0 }; });
-        this.template = derived(this, reader => { var _a; return (_a = this._templateRef.read(reader)) === null || _a === void 0 ? void 0 : _a.object; });
+        this.contentHeight = derived(this, reader => this._templateRef.read(reader)?.object.contentHeight?.read(reader) ?? this.viewModel.lastTemplateData.read(reader).contentHeight);
+        this.maxScroll = derived(this, reader => this._templateRef.read(reader)?.object.maxScroll.read(reader) ?? { maxScroll: 0, scrollWidth: 0 });
+        this.template = derived(this, reader => this._templateRef.read(reader)?.object);
         this._isHidden = observableValue(this, false);
-        this._isFocused = derived(this, reader => { var _a, _b; return (_b = (_a = this.template.read(reader)) === null || _a === void 0 ? void 0 : _a.isFocused.read(reader)) !== null && _b !== void 0 ? _b : false; });
+        this._isFocused = derived(this, reader => this.template.read(reader)?.isFocused.read(reader) ?? false);
         this.viewModel.setIsFocused(this._isFocused, undefined);
         this._register(autorun((reader) => {
-            var _a;
             const scrollLeft = this._scrollLeft.read(reader);
-            (_a = this._templateRef.read(reader)) === null || _a === void 0 ? void 0 : _a.object.setScrollLeft(scrollLeft);
+            this._templateRef.read(reader)?.object.setScrollLeft(scrollLeft);
         }));
         this._register(autorun(reader => {
             const ref = this._templateRef.read(reader);
@@ -239,18 +237,16 @@ class VirtualizedViewItem extends Disposable {
         super.dispose();
     }
     toString() {
-        var _a;
-        return `VirtualViewItem(${(_a = this.viewModel.entry.value.modified) === null || _a === void 0 ? void 0 : _a.uri.toString()})`;
+        return `VirtualViewItem(${this.viewModel.documentDiffItem.modified?.uri.toString()})`;
     }
     getKey() {
         return this.viewModel.getKey();
     }
     setViewState(viewState, tx) {
-        var _a;
         this.viewModel.collapsed.set(viewState.collapsed, tx);
         this._updateTemplateData(tx);
         const data = this.viewModel.lastTemplateData.get();
-        const selections = (_a = viewState.selections) === null || _a === void 0 ? void 0 : _a.map(Selection.liftSelection);
+        const selections = viewState.selections?.map(Selection.liftSelection);
         this.viewModel.lastTemplateData.set({
             ...data,
             selections,
@@ -263,14 +259,13 @@ class VirtualizedViewItem extends Disposable {
         }
     }
     _updateTemplateData(tx) {
-        var _a;
         const ref = this._templateRef.get();
         if (!ref) {
             return;
         }
         this.viewModel.lastTemplateData.set({
             contentHeight: ref.object.contentHeight.get(),
-            selections: (_a = ref.object.editor.getSelections()) !== null && _a !== void 0 ? _a : undefined,
+            selections: ref.object.editor.getSelections() ?? undefined,
         }, tx);
     }
     _clear() {

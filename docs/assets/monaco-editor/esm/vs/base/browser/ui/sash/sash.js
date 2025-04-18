@@ -356,7 +356,7 @@ export class Sash extends Disposable {
         };
         const onPointerUp = (e) => {
             EventHelper.stop(e, false);
-            this.el.removeChild(style);
+            style.remove();
             this.el.classList.remove('active');
             this._onDidEnd.fire();
             disposables.dispose();
@@ -432,8 +432,7 @@ export class Sash extends Disposable {
         }
     }
     getOrthogonalSash(e) {
-        var _a;
-        const target = (_a = e.initialTarget) !== null && _a !== void 0 ? _a : e.target;
+        const target = e.initialTarget ?? e.target;
         if (!target || !(isHTMLElement(target))) {
             return undefined;
         }

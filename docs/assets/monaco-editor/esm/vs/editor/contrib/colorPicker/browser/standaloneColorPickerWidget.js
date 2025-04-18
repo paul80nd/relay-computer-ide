@@ -27,7 +27,9 @@ import { ILanguageConfigurationService } from '../../../common/languages/languag
 import { DefaultDocumentColorProvider } from './defaultDocumentColorProvider.js';
 import * as dom from '../../../../base/browser/dom.js';
 import './colorPicker.css';
-let StandaloneColorPickerController = StandaloneColorPickerController_1 = class StandaloneColorPickerController extends Disposable {
+let StandaloneColorPickerController = class StandaloneColorPickerController extends Disposable {
+    static { StandaloneColorPickerController_1 = this; }
+    static { this.ID = 'editor.contrib.standaloneColorPickerController'; }
     constructor(_editor, _contextKeyService, _modelService, _keybindingService, _instantiationService, _languageFeatureService, _languageConfigurationService) {
         super();
         this._editor = _editor;
@@ -41,7 +43,6 @@ let StandaloneColorPickerController = StandaloneColorPickerController_1 = class 
         this._standaloneColorPickerFocused = EditorContextKeys.standaloneColorPickerFocused.bindTo(_contextKeyService);
     }
     showOrFocus() {
-        var _a;
         if (!this._editor.hasModel()) {
             return;
         }
@@ -49,26 +50,23 @@ let StandaloneColorPickerController = StandaloneColorPickerController_1 = class 
             this._standaloneColorPickerWidget = new StandaloneColorPickerWidget(this._editor, this._standaloneColorPickerVisible, this._standaloneColorPickerFocused, this._instantiationService, this._modelService, this._keybindingService, this._languageFeatureService, this._languageConfigurationService);
         }
         else if (!this._standaloneColorPickerFocused.get()) {
-            (_a = this._standaloneColorPickerWidget) === null || _a === void 0 ? void 0 : _a.focus();
+            this._standaloneColorPickerWidget?.focus();
         }
     }
     hide() {
-        var _a;
         this._standaloneColorPickerFocused.set(false);
         this._standaloneColorPickerVisible.set(false);
-        (_a = this._standaloneColorPickerWidget) === null || _a === void 0 ? void 0 : _a.hide();
+        this._standaloneColorPickerWidget?.hide();
         this._editor.focus();
     }
     insertColor() {
-        var _a;
-        (_a = this._standaloneColorPickerWidget) === null || _a === void 0 ? void 0 : _a.updateEditor();
+        this._standaloneColorPickerWidget?.updateEditor();
         this.hide();
     }
     static get(editor) {
         return editor.getContribution(StandaloneColorPickerController_1.ID);
     }
 };
-StandaloneColorPickerController.ID = 'editor.contrib.standaloneColorPickerController';
 StandaloneColorPickerController = StandaloneColorPickerController_1 = __decorate([
     __param(1, IContextKeyService),
     __param(2, IModelService),
@@ -81,9 +79,10 @@ export { StandaloneColorPickerController };
 registerEditorContribution(StandaloneColorPickerController.ID, StandaloneColorPickerController, 1 /* EditorContributionInstantiation.AfterFirstRender */);
 const PADDING = 8;
 const CLOSE_BUTTON_WIDTH = 22;
-let StandaloneColorPickerWidget = StandaloneColorPickerWidget_1 = class StandaloneColorPickerWidget extends Disposable {
+let StandaloneColorPickerWidget = class StandaloneColorPickerWidget extends Disposable {
+    static { StandaloneColorPickerWidget_1 = this; }
+    static { this.ID = 'editor.contrib.standaloneColorPickerWidget'; }
     constructor(_editor, _standaloneColorPickerVisible, _standaloneColorPickerFocused, _instantiationService, _modelService, _keybindingService, _languageFeaturesService, _languageConfigurationService) {
-        var _a;
         super();
         this._editor = _editor;
         this._standaloneColorPickerVisible = _standaloneColorPickerVisible;
@@ -101,7 +100,7 @@ let StandaloneColorPickerWidget = StandaloneColorPickerWidget_1 = class Standalo
         this.onResult = this._onResult.event;
         this._standaloneColorPickerVisible.set(true);
         this._standaloneColorPickerParticipant = _instantiationService.createInstance(StandaloneColorPickerParticipant, this._editor);
-        this._position = (_a = this._editor._getViewModel()) === null || _a === void 0 ? void 0 : _a.getPrimaryCursorState().modelState.position;
+        this._position = this._editor._getViewModel()?.getPrimaryCursorState().modelState.position;
         const editorSelection = this._editor.getSelection();
         const selection = editorSelection ?
             {
@@ -128,8 +127,7 @@ let StandaloneColorPickerWidget = StandaloneColorPickerWidget_1 = class Standalo
             }
         }));
         this._register(this._editor.onMouseMove((e) => {
-            var _a;
-            const classList = (_a = e.target.element) === null || _a === void 0 ? void 0 : _a.classList;
+            const classList = e.target.element?.classList;
             if (classList && classList.contains('colorpicker-color-decoration')) {
                 this.hide();
             }
@@ -199,40 +197,40 @@ let StandaloneColorPickerWidget = StandaloneColorPickerWidget_1 = class Standalo
     _render(colorHover, foundInEditor) {
         const fragment = document.createDocumentFragment();
         const statusBar = this._register(new EditorHoverStatusBar(this._keybindingService));
-        let colorPickerWidget;
         const context = {
             fragment,
             statusBar,
-            setColorPicker: (widget) => colorPickerWidget = widget,
             onContentsChanged: () => { },
             hide: () => this.hide()
         };
         this._colorHover = colorHover;
-        this._register(this._standaloneColorPickerParticipant.renderHoverParts(context, [colorHover]));
-        if (colorPickerWidget === undefined) {
+        const renderedHoverPart = this._standaloneColorPickerParticipant.renderHoverParts(context, [colorHover]);
+        if (!renderedHoverPart) {
             return;
         }
+        this._register(renderedHoverPart.disposables);
+        const colorPicker = renderedHoverPart.colorPicker;
         this._body.classList.add('standalone-colorpicker-body');
         this._body.style.maxHeight = Math.max(this._editor.getLayoutInfo().height / 4, 250) + 'px';
         this._body.style.maxWidth = Math.max(this._editor.getLayoutInfo().width * 0.66, 500) + 'px';
         this._body.tabIndex = 0;
         this._body.appendChild(fragment);
-        colorPickerWidget.layout();
-        const colorPickerBody = colorPickerWidget.body;
+        colorPicker.layout();
+        const colorPickerBody = colorPicker.body;
         const saturationBoxWidth = colorPickerBody.saturationBox.domNode.clientWidth;
         const widthOfOriginalColorBox = colorPickerBody.domNode.clientWidth - saturationBoxWidth - CLOSE_BUTTON_WIDTH - PADDING;
-        const enterButton = colorPickerWidget.body.enterButton;
-        enterButton === null || enterButton === void 0 ? void 0 : enterButton.onClicked(() => {
+        const enterButton = colorPicker.body.enterButton;
+        enterButton?.onClicked(() => {
             this.updateEditor();
             this.hide();
         });
-        const colorPickerHeader = colorPickerWidget.header;
+        const colorPickerHeader = colorPicker.header;
         const pickedColorNode = colorPickerHeader.pickedColorNode;
         pickedColorNode.style.width = saturationBoxWidth + PADDING + 'px';
         const originalColorNode = colorPickerHeader.originalColorNode;
         originalColorNode.style.width = widthOfOriginalColorBox + 'px';
-        const closeButton = colorPickerWidget.header.closeButton;
-        closeButton === null || closeButton === void 0 ? void 0 : closeButton.onClicked(() => {
+        const closeButton = colorPicker.header.closeButton;
+        closeButton?.onClicked(() => {
             this.hide();
         });
         // When found in the editor, highlight the selection in the editor
@@ -246,7 +244,6 @@ let StandaloneColorPickerWidget = StandaloneColorPickerWidget_1 = class Standalo
         this._editor.layoutContentWidget(this);
     }
 };
-StandaloneColorPickerWidget.ID = 'editor.contrib.standaloneColorPickerWidget';
 StandaloneColorPickerWidget = StandaloneColorPickerWidget_1 = __decorate([
     __param(3, IInstantiationService),
     __param(4, IModelService),

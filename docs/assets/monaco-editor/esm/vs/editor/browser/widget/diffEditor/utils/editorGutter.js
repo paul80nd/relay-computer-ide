@@ -13,9 +13,9 @@ export class EditorGutter extends Disposable {
         this._editor = _editor;
         this._domNode = _domNode;
         this.itemProvider = itemProvider;
-        this.scrollTop = observableFromEvent(this._editor.onDidScrollChange, (e) => /** @description editor.onDidScrollChange */ this._editor.getScrollTop());
+        this.scrollTop = observableFromEvent(this, this._editor.onDidScrollChange, (e) => /** @description editor.onDidScrollChange */ this._editor.getScrollTop());
         this.isScrollTopZero = this.scrollTop.map((scrollTop) => /** @description isScrollTopZero */ scrollTop === 0);
-        this.modelAttached = observableFromEvent(this._editor.onDidChangeModel, (e) => /** @description editor.onDidChangeModel */ this._editor.hasModel());
+        this.modelAttached = observableFromEvent(this, this._editor.onDidChangeModel, (e) => /** @description editor.onDidChangeModel */ this._editor.hasModel());
         this.editorOnDidChangeViewZones = observableSignalFromEvent('onDidChangeViewZones', this._editor.onDidChangeViewZones);
         this.editorOnDidContentSizeChange = observableSignalFromEvent('onDidContentSizeChange', this._editor.onDidContentSizeChange);
         this.domNodeSizeChanged = observableSignal('domNodeSizeChanged');
@@ -93,7 +93,7 @@ export class EditorGutter extends Disposable {
         for (const id of unusedIds) {
             const view = this.views.get(id);
             view.gutterItemView.dispose();
-            this._domNode.removeChild(view.domNode);
+            view.domNode.remove();
             this.views.delete(id);
         }
     }

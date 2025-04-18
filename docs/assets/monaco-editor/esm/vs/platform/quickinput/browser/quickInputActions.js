@@ -15,11 +15,10 @@ const defaultCommandAndKeybindingRule = {
     metadata: { description: localize('quickPick', "Used while in the context of the quick pick. If you change one keybinding for this command, you should change all of the other keybindings (modifier variants) of this command as well.") }
 };
 function registerQuickPickCommandAndKeybindingRule(rule, options = {}) {
-    var _a;
     KeybindingsRegistry.registerCommandAndKeybindingRule({
         ...defaultCommandAndKeybindingRule,
         ...rule,
-        secondary: getSecondary(rule.primary, (_a = rule.secondary) !== null && _a !== void 0 ? _a : [], options)
+        secondary: getSecondary(rule.primary, rule.secondary ?? [], options)
     });
 }
 const ctrlKeyMod = isMacintosh ? 256 /* KeyMod.WinCtrl */ : 2048 /* KeyMod.CtrlCmd */;
@@ -140,6 +139,6 @@ registerQuickPickCommandAndKeybindingRule({
     weight: 200 /* KeybindingWeight.WorkbenchContrib */ + 50,
     handler: (accessor) => {
         const currentQuickPick = accessor.get(IQuickInputService).currentQuickInput;
-        currentQuickPick === null || currentQuickPick === void 0 ? void 0 : currentQuickPick.accept(true);
+        currentQuickPick?.accept(true);
     },
 }, { withAltMod: true, withCtrlMod: true, withCmdMod: true });

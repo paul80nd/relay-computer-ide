@@ -71,7 +71,6 @@ const defaultMarkedRenderers = Object.freeze({
  * which comes with support for pretty code block rendering and which uses the default way of handling links.
  */
 export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
-    var _a, _b;
     const disposables = new DisposableStore();
     let isDisposed = false;
     const element = createElement(options);
@@ -196,8 +195,7 @@ export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
         // We always pass the output through dompurify after this so that we don't rely on
         // marked for sanitization.
         markedOptions.sanitizer = (html) => {
-            var _a;
-            if ((_a = options.sanitizerOptions) === null || _a === void 0 ? void 0 : _a.replaceWithPlaintext) {
+            if (options.sanitizerOptions?.replaceWithPlaintext) {
                 return escape(html);
             }
             const match = markdown.isTrusted ? html.match(/^(<span[^>]+>)|(<\/\s*span>)$/) : undefined;
@@ -208,9 +206,9 @@ export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
     }
     markedOptions.renderer = renderer;
     // values that are too long will freeze the UI
-    let value = (_a = markdown.value) !== null && _a !== void 0 ? _a : '';
-    if (value.length > 100000) {
-        value = `${value.substr(0, 100000)}…`;
+    let value = markdown.value ?? '';
+    if (value.length > 100_000) {
+        value = `${value.substr(0, 100_000)}…`;
     }
     // escape theme icons
     if (markdown.supportThemeIcons) {
@@ -279,26 +277,25 @@ export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
     element.innerHTML = sanitizeRenderedMarkdown({ isTrusted: markdown.isTrusted, ...options.sanitizerOptions }, markdownHtmlDoc.body.innerHTML);
     if (codeBlocks.length > 0) {
         Promise.all(codeBlocks).then((tuples) => {
-            var _a, _b;
             if (isDisposed) {
                 return;
             }
             const renderedElements = new Map(tuples);
             const placeholderElements = element.querySelectorAll(`div[data-code]`);
             for (const placeholderElement of placeholderElements) {
-                const renderedElement = renderedElements.get((_a = placeholderElement.dataset['code']) !== null && _a !== void 0 ? _a : '');
+                const renderedElement = renderedElements.get(placeholderElement.dataset['code'] ?? '');
                 if (renderedElement) {
                     DOM.reset(placeholderElement, renderedElement);
                 }
             }
-            (_b = options.asyncRenderCallback) === null || _b === void 0 ? void 0 : _b.call(options);
+            options.asyncRenderCallback?.();
         });
     }
     else if (syncCodeBlocks.length > 0) {
         const renderedElements = new Map(syncCodeBlocks);
         const placeholderElements = element.querySelectorAll(`div[data-code]`);
         for (const placeholderElement of placeholderElements) {
-            const renderedElement = renderedElements.get((_b = placeholderElement.dataset['code']) !== null && _b !== void 0 ? _b : '');
+            const renderedElement = renderedElements.get(placeholderElement.dataset['code'] ?? '');
             if (renderedElement) {
                 DOM.reset(placeholderElement, renderedElement);
             }
@@ -348,11 +345,10 @@ function sanitizeRenderedMarkdown(options, renderedMarkdown) {
     const { config, allowedSchemes } = getSanitizerOptions(options);
     const store = new DisposableStore();
     store.add(addDompurifyHook('uponSanitizeAttribute', (element, e) => {
-        var _a;
         if (e.attrName === 'style' || e.attrName === 'class') {
             if (element.tagName === 'SPAN') {
                 if (e.attrName === 'style') {
-                    e.keepAttr = /^(color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z]+)+\));)?(background-color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z]+)+\));)?$/.test(e.attrValue);
+                    e.keepAttr = /^(color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z]+)+\));)?(background-color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z]+)+\));)?(border-radius:[0-9]+px;)?$/.test(e.attrValue);
                     return;
                 }
                 else if (e.attrName === 'class') {
@@ -363,7 +359,7 @@ function sanitizeRenderedMarkdown(options, renderedMarkdown) {
             e.keepAttr = false;
             return;
         }
-        else if (element.tagName === 'INPUT' && ((_a = element.attributes.getNamedItem('type')) === null || _a === void 0 ? void 0 : _a.value) === 'checkbox') {
+        else if (element.tagName === 'INPUT' && element.attributes.getNamedItem('type')?.value === 'checkbox') {
             if ((e.attrName === 'type' && e.attrValue === 'checkbox') || e.attrName === 'disabled' || e.attrName === 'checked') {
                 e.keepAttr = true;
                 return;
@@ -372,13 +368,12 @@ function sanitizeRenderedMarkdown(options, renderedMarkdown) {
         }
     }));
     store.add(addDompurifyHook('uponSanitizeElement', (element, e) => {
-        var _a, _b;
         if (e.tagName === 'input') {
-            if (((_a = element.attributes.getNamedItem('type')) === null || _a === void 0 ? void 0 : _a.value) === 'checkbox') {
+            if (element.attributes.getNamedItem('type')?.value === 'checkbox') {
                 element.setAttribute('disabled', '');
             }
             else if (!options.replaceWithPlaintext) {
-                (_b = element.parentElement) === null || _b === void 0 ? void 0 : _b.removeChild(element);
+                element.remove();
             }
         }
         if (options.replaceWithPlaintext && !e.allowedTags[e.tagName] && e.tagName !== 'body') {
@@ -428,6 +423,7 @@ export const allowedMarkdownAttr = [
     'alt',
     'checked',
     'class',
+    'colspan',
     'controls',
     'data-code',
     'data-href',
@@ -439,6 +435,7 @@ export const allowedMarkdownAttr = [
     'muted',
     'playsinline',
     'poster',
+    'rowspan',
     'src',
     'style',
     'target',
@@ -448,7 +445,6 @@ export const allowedMarkdownAttr = [
     'start',
 ];
 function getSanitizerOptions(options) {
-    var _a;
     const allowedSchemes = [
         Schemas.http,
         Schemas.https,
@@ -468,7 +464,7 @@ function getSanitizerOptions(options) {
             // Since we have our own sanitize function for marked, it's possible we missed some tag so let dompurify make sure.
             // HTML tags that can result from markdown are from reading https://spec.commonmark.org/0.29/
             // HTML table tags that can result from markdown are from https://github.github.com/gfm/#tables-extension-
-            ALLOWED_TAGS: (_a = options.allowedTags) !== null && _a !== void 0 ? _a : [...DOM.basicMarkupHtmlTags],
+            ALLOWED_TAGS: options.allowedTags ?? [...DOM.basicMarkupHtmlTags],
             ALLOWED_ATTR: allowedMarkdownAttr,
             ALLOW_UNKNOWN_PROTOCOLS: true,
         },
@@ -487,13 +483,12 @@ export function renderStringAsPlaintext(string) {
  * provide @param withCodeBlocks to retain code blocks
  */
 export function renderMarkdownAsPlaintext(markdown, withCodeBlocks) {
-    var _a;
     // values that are too long will freeze the UI
-    let value = (_a = markdown.value) !== null && _a !== void 0 ? _a : '';
-    if (value.length > 100000) {
-        value = `${value.substr(0, 100000)}…`;
+    let value = markdown.value ?? '';
+    if (value.length > 100_000) {
+        value = `${value.substr(0, 100_000)}…`;
     }
-    const html = marked.parse(value, { renderer: withCodeBlocks ? plainTextWithCodeBlocksRenderer.value : plainTextRenderer.value }).replace(/&(#\d+|[a-zA-Z]+);/g, m => { var _a; return (_a = unescapeInfo.get(m)) !== null && _a !== void 0 ? _a : m; });
+    const html = marked.parse(value, { renderer: withCodeBlocks ? plainTextWithCodeBlocksRenderer.value : plainTextRenderer.value }).replace(/&(#\d+|[a-zA-Z]+);/g, m => unescapeInfo.get(m) ?? m);
     return sanitizeRenderedMarkdown({ isTrusted: false }, html).toString();
 }
 const unescapeInfo = new Map([
@@ -569,7 +564,7 @@ const plainTextRenderer = new Lazy((withCodeBlocks) => createRenderer());
 const plainTextWithCodeBlocksRenderer = new Lazy(() => {
     const renderer = createRenderer();
     renderer.code = (code) => {
-        return '\n' + '```' + code + '```' + '\n';
+        return `\n\`\`\`\n${code}\n\`\`\`\n`;
     };
     return renderer;
 });
@@ -581,7 +576,6 @@ function mergeRawTokenText(tokens) {
     return mergedTokenText;
 }
 function completeSingleLinePattern(token) {
-    var _a, _b;
     if (!token.tokens) {
         return undefined;
     }
@@ -617,7 +611,7 @@ function completeSingleLinePattern(token) {
                 // Where "more text" is a title for the link or an argument to a vscode command link
                 if (
                 // If the link was parsed as a link, then look for a link token and a text token with a quote
-                ((_a = nextTwoSubTokens[0]) === null || _a === void 0 ? void 0 : _a.type) === 'link' && ((_b = nextTwoSubTokens[1]) === null || _b === void 0 ? void 0 : _b.type) === 'text' && nextTwoSubTokens[1].raw.match(/^ *"[^"]*$/) ||
+                nextTwoSubTokens[0]?.type === 'link' && nextTwoSubTokens[1]?.type === 'text' && nextTwoSubTokens[1].raw.match(/^ *"[^"]*$/) ||
                     // And if the link was not parsed as a link (eg command link), just look for a single quote in this token
                     lastLine.match(/^[^"]* +"[^"]*$/)) {
                     return completeLinkTargetArg(token);
@@ -639,7 +633,6 @@ function hasStartOfLinkTargetAndNoLinkText(str) {
     return !!str.match(/^[^\[]*\]\([^\)]*$/);
 }
 function completeListItemPattern(list) {
-    var _a;
     // Patch up this one list item
     const lastListItem = list.items[list.items.length - 1];
     const lastListSubToken = lastListItem.tokens ? lastListItem.tokens[lastListItem.tokens.length - 1] : undefined;
@@ -673,7 +666,7 @@ function completeListItemPattern(list) {
         codespan
     */
     let newToken;
-    if ((lastListSubToken === null || lastListSubToken === void 0 ? void 0 : lastListSubToken.type) === 'text' && !('inRawBlock' in lastListItem)) { // Why does Tag have a type of 'text'
+    if (lastListSubToken?.type === 'text' && !('inRawBlock' in lastListItem)) { // Why does Tag have a type of 'text'
         newToken = completeSingleLinePattern(lastListSubToken);
     }
     if (!newToken || newToken.type !== 'paragraph') { // 'text' item inside the list item turns into paragraph
@@ -681,8 +674,8 @@ function completeListItemPattern(list) {
         return;
     }
     const previousListItemsText = mergeRawTokenText(list.items.slice(0, -1));
-    // Grabbing the `- ` or `1. ` off the list item because I can't find a better way to do this
-    const lastListItemLead = (_a = lastListItem.raw.match(/^(\s*(-|\d+\.) +)/)) === null || _a === void 0 ? void 0 : _a[0];
+    // Grabbing the `- ` or `1. ` or `* ` off the list item because I can't find a better way to do this
+    const lastListItemLead = lastListItem.raw.match(/^(\s*(-|\d+\.|\*) +)/)?.[0];
     if (!lastListItemLead) {
         // Is badly formatted
         return;

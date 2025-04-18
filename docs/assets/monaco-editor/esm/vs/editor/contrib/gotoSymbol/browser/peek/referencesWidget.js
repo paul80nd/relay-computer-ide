@@ -37,6 +37,11 @@ import { IThemeService } from '../../../../../platform/theme/common/themeService
 import { IUndoRedoService } from '../../../../../platform/undoRedo/common/undoRedo.js';
 import { FileReferences, OneReference } from '../referencesModel.js';
 class DecorationsManager {
+    static { this.DecorationOptions = ModelDecorationOptions.register({
+        description: 'reference-decoration',
+        stickiness: 1 /* TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges */,
+        className: 'reference-decoration'
+    }); }
     constructor(_editor, _model) {
         this._editor = _editor;
         this._model = _model;
@@ -136,11 +141,6 @@ class DecorationsManager {
         this._decorations.clear();
     }
 }
-DecorationsManager.DecorationOptions = ModelDecorationOptions.register({
-    description: 'reference-decoration',
-    stickiness: 1 /* TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges */,
-    className: 'reference-decoration'
-});
 export class LayoutData {
     constructor() {
         this.ratio = 0.7;
@@ -154,7 +154,7 @@ export class LayoutData {
             ratio = data.ratio;
             heightInLines = data.heightInLines;
         }
-        catch (_a) {
+        catch {
             //
         }
         return {
@@ -321,7 +321,7 @@ let ReferenceWidget = class ReferenceWidget extends peekView.PeekViewWidget {
                 this._onDidSelectReference.fire({ element, kind, source: 'tree' });
             }
         };
-        this._tree.onDidOpen(e => {
+        this._disposables.add(this._tree.onDidOpen(e => {
             if (e.sideBySide) {
                 onEvent(e.element, 'side');
             }
@@ -331,7 +331,7 @@ let ReferenceWidget = class ReferenceWidget extends peekView.PeekViewWidget {
             else {
                 onEvent(e.element, 'show');
             }
-        });
+        }));
         dom.hide(this._treeContainer);
     }
     _onWidth(width) {

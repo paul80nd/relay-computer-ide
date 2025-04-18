@@ -24,7 +24,7 @@ import Severity from '../../../base/common/severity.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import './media/quickInput.css';
 import { localize } from '../../../nls.js';
-import { ItemActivation, NO_KEY_MODS, QuickInputHideReason } from '../common/quickInput.js';
+import { ItemActivation, NO_KEY_MODS, QuickInputButtonLocation, QuickInputHideReason } from '../common/quickInput.js';
 import { quickInputButtonToAction, renderQuickInputDescription } from './quickInputUtils.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
 import { IHoverService, WorkbenchHoverDelegate } from '../../hover/browser/hover.js';
@@ -44,6 +44,7 @@ export const backButton = {
     handle: -1 // TODO
 };
 class QuickInput extends Disposable {
+    static { this.noPromptMessage = localize('inputModeEntry', "Press 'Enter' to confirm your input or 'Escape' to cancel"); }
     constructor(ui) {
         super();
         this.ui = ui;
@@ -52,7 +53,9 @@ class QuickInput extends Disposable {
         this._enabled = true;
         this._busy = false;
         this._ignoreFocusOut = false;
-        this._buttons = [];
+        this._leftButtons = [];
+        this._rightButtons = [];
+        this._inlineButtons = [];
         this.buttonsUpdated = false;
         this._toggles = [];
         this.togglesUpdated = false;
@@ -124,11 +127,22 @@ class QuickInput extends Disposable {
             this.update();
         }
     }
+    get titleButtons() {
+        return this._leftButtons.length
+            ? [...this._leftButtons, this._rightButtons]
+            : this._rightButtons;
+    }
     get buttons() {
-        return this._buttons;
+        return [
+            ...this._leftButtons,
+            ...this._rightButtons,
+            ...this._inlineButtons
+        ];
     }
     set buttons(buttons) {
-        this._buttons = buttons;
+        this._leftButtons = buttons.filter(b => b === backButton);
+        this._rightButtons = buttons.filter(b => b !== backButton && b.location !== QuickInputButtonLocation.Inline);
+        this._inlineButtons = buttons.filter(b => b.location === QuickInputButtonLocation.Inline);
         this.buttonsUpdated = true;
         this.update();
     }
@@ -136,7 +150,7 @@ class QuickInput extends Disposable {
         return this._toggles;
     }
     set toggles(toggles) {
-        this._toggles = toggles !== null && toggles !== void 0 ? toggles : [];
+        this._toggles = toggles ?? [];
         this.togglesUpdated = true;
         this.update();
     }
@@ -197,7 +211,6 @@ class QuickInput extends Disposable {
         this.onWillHideEmitter.fire({ reason });
     }
     update() {
-        var _a, _b;
         if (!this.visible) {
             return;
         }
@@ -240,22 +253,24 @@ class QuickInput extends Disposable {
         if (this.buttonsUpdated) {
             this.buttonsUpdated = false;
             this.ui.leftActionBar.clear();
-            const leftButtons = this.buttons
-                .filter(button => button === backButton)
+            const leftButtons = this._leftButtons
                 .map((button, index) => quickInputButtonToAction(button, `id-${index}`, async () => this.onDidTriggerButtonEmitter.fire(button)));
             this.ui.leftActionBar.push(leftButtons, { icon: true, label: false });
             this.ui.rightActionBar.clear();
-            const rightButtons = this.buttons
-                .filter(button => button !== backButton)
+            const rightButtons = this._rightButtons
                 .map((button, index) => quickInputButtonToAction(button, `id-${index}`, async () => this.onDidTriggerButtonEmitter.fire(button)));
             this.ui.rightActionBar.push(rightButtons, { icon: true, label: false });
+            this.ui.inlineActionBar.clear();
+            const inlineButtons = this._inlineButtons
+                .map((button, index) => quickInputButtonToAction(button, `id-${index}`, async () => this.onDidTriggerButtonEmitter.fire(button)));
+            this.ui.inlineActionBar.push(inlineButtons, { icon: true, label: false });
         }
         if (this.togglesUpdated) {
             this.togglesUpdated = false;
             // HACK: Filter out toggles here that are not concrete Toggle objects. This is to workaround
             // a layering issue as quick input's interface is in common but Toggle is in browser and
             // it requires a HTMLElement on its interface
-            const concreteToggles = (_b = (_a = this.toggles) === null || _a === void 0 ? void 0 : _a.filter(opts => opts instanceof Toggle)) !== null && _b !== void 0 ? _b : [];
+            const concreteToggles = this.toggles?.filter(opts => opts instanceof Toggle) ?? [];
             this.ui.inputBox.toggles = concreteToggles;
         }
         this.ui.ignoreFocusOut = this.ignoreFocusOut;
@@ -323,7 +338,6 @@ class QuickInput extends Disposable {
         super.dispose();
     }
 }
-QuickInput.noPromptMessage = localize('inputModeEntry', "Press 'Enter' to confirm your input or 'Escape' to cancel");
 export class QuickPick extends QuickInput {
     constructor() {
         super(...arguments);
@@ -367,6 +381,7 @@ export class QuickPick extends QuickInput {
         this.onDidTriggerItemButton = this.onDidTriggerItemButtonEmitter.event;
         this.onDidTriggerSeparatorButton = this.onDidTriggerSeparatorButtonEmitter.event;
     }
+    static { this.DEFAULT_ARIA_LABEL = localize('quickInputBox.ariaLabel', "Type to narrow down results."); }
     get quickNavigate() {
         return this._quickNavigate;
     }
@@ -615,7 +630,7 @@ export class QuickPick extends QuickInput {
                 }
             }));
             this.visibleDisposables.add(this.ui.list.onChangedCheckedElements(checkedItems => {
-                if (!this.canSelectMany) {
+                if (!this.canSelectMany || !this.visible) {
                     return;
                 }
                 if (this.selectedItemsToConfirm !== this._selectedItems && equals(checkedItems, this._selectedItems, (a, b) => a === b)) {
@@ -692,7 +707,7 @@ export class QuickPick extends QuickInput {
         const scrollTopBefore = this.keepScrollPosition ? this.scrollTop : 0;
         const hasDescription = !!this.description;
         const visibilities = {
-            title: !!this.title || !!this.step || !!this.buttons.length,
+            title: !!this.title || !!this.step || !!this.titleButtons.length,
             description: hasDescription,
             checkAll: this.canSelectMany && !this._hideCheckAll,
             checkBox: this.canSelectMany,
@@ -727,7 +742,7 @@ export class QuickPick extends QuickInput {
             }
         }
         if (this.ui.list.ariaLabel !== ariaLabel) {
-            this.ui.list.ariaLabel = ariaLabel !== null && ariaLabel !== void 0 ? ariaLabel : null;
+            this.ui.list.ariaLabel = ariaLabel ?? null;
         }
         this.ui.list.matchOnDescription = this.matchOnDescription;
         this.ui.list.matchOnDetail = this.matchOnDetail;
@@ -741,9 +756,6 @@ export class QuickPick extends QuickInput {
                 // We want focus to exist in the list if there are items so that space can be used to toggle
                 this.ui.list.shouldLoop = !this.canSelectMany;
                 this.ui.list.filter(this.filterValue(this.ui.inputBox.value));
-                this.ui.checkAll.checked = this.ui.list.getAllVisibleChecked();
-                this.ui.visibleCount.setCount(this.ui.list.getVisibleCount());
-                this.ui.count.setCount(this.ui.list.getCheckedCount());
                 switch (this._itemActivation) {
                     case ItemActivation.NONE:
                         this._itemActivation = ItemActivation.FIRST; // only valid once, then unset
@@ -821,11 +833,10 @@ export class QuickPick extends QuickInput {
         if (this.activeItems[0]) {
             this._selectedItems = [this.activeItems[0]];
             this.onDidChangeSelectionEmitter.fire(this.selectedItems);
-            this.handleAccept(inBackground !== null && inBackground !== void 0 ? inBackground : false);
+            this.handleAccept(inBackground ?? false);
         }
     }
 }
-QuickPick.DEFAULT_ARIA_LABEL = localize('quickInputBox.ariaLabel', "Type to narrow down results.");
 export class InputBox extends QuickInput {
     constructor() {
         super(...arguments);
@@ -879,7 +890,7 @@ export class InputBox extends QuickInput {
         }
         this.ui.container.classList.remove('hidden-input');
         const visibilities = {
-            title: !!this.title || !!this.step || !!this.buttons.length,
+            title: !!this.title || !!this.step || !!this.titleButtons.length,
             description: !!this.description || !!this.step,
             inputBox: true,
             message: true,
@@ -907,10 +918,9 @@ let QuickInputHoverDelegate = class QuickInputHoverDelegate extends WorkbenchHov
         super('element', false, (options) => this.getOverrideOptions(options), configurationService, hoverService);
     }
     getOverrideOptions(options) {
-        var _a;
         // Only show the hover hint if the content is of a decent size
         const showHoverHint = (dom.isHTMLElement(options.content)
-            ? (_a = options.content.textContent) !== null && _a !== void 0 ? _a : ''
+            ? options.content.textContent ?? ''
             : typeof options.content === 'string'
                 ? options.content
                 : options.content.value).includes('\n');

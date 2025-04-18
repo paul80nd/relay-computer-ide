@@ -55,7 +55,9 @@ class DisposedModelInfo {
         this.alternativeVersionId = alternativeVersionId;
     }
 }
-let ModelService = ModelService_1 = class ModelService extends Disposable {
+let ModelService = class ModelService extends Disposable {
+    static { ModelService_1 = this; }
+    static { this.MAX_MEMORY_FOR_CLOSED_FILES_UNDO_STACK = 20 * 1024 * 1024; }
     constructor(_configurationService, _resourcePropertiesService, _undoRedoService, _languageService, _languageConfigurationService) {
         super();
         this._configurationService = _configurationService;
@@ -77,7 +79,6 @@ let ModelService = ModelService_1 = class ModelService extends Disposable {
         this._updateModelOptions(undefined);
     }
     static _readModelOptions(config, isForSimpleWidget) {
-        var _a;
         let tabSize = EDITOR_MODEL_DEFAULTS.tabSize;
         if (config.editor && typeof config.editor.tabSize !== 'undefined') {
             const parsedTabSize = parseInt(config.editor.tabSize, 10);
@@ -120,7 +121,7 @@ let ModelService = ModelService_1 = class ModelService extends Disposable {
             largeFileOptimizations = (config.editor.largeFileOptimizations === 'false' ? false : Boolean(config.editor.largeFileOptimizations));
         }
         let bracketPairColorizationOptions = EDITOR_MODEL_DEFAULTS.bracketPairColorizationOptions;
-        if (((_a = config.editor) === null || _a === void 0 ? void 0 : _a.bracketPairColorization) && typeof config.editor.bracketPairColorization === 'object') {
+        if (config.editor?.bracketPairColorization && typeof config.editor.bracketPairColorization === 'object') {
             bracketPairColorizationOptions = {
                 enabled: !!config.editor.bracketPairColorization.enabled,
                 independentColorPoolPerBracketType: !!config.editor.bracketPairColorization.independentColorPoolPerBracketType
@@ -394,7 +395,6 @@ let ModelService = ModelService_1 = class ModelService extends Disposable {
         return new DefaultModelSHA1Computer();
     }
 };
-ModelService.MAX_MEMORY_FOR_CLOSED_FILES_UNDO_STACK = 20 * 1024 * 1024;
 ModelService = ModelService_1 = __decorate([
     __param(0, IConfigurationService),
     __param(1, ITextResourcePropertiesService),
@@ -404,6 +404,7 @@ ModelService = ModelService_1 = __decorate([
 ], ModelService);
 export { ModelService };
 export class DefaultModelSHA1Computer {
+    static { this.MAX_MODEL_SIZE = 10 * 1024 * 1024; } // takes 200ms to compute a sha1 on a 10MB model on a new machine
     canComputeSHA1(model) {
         return (model.getValueLength() <= DefaultModelSHA1Computer.MAX_MODEL_SIZE);
     }
@@ -418,4 +419,3 @@ export class DefaultModelSHA1Computer {
         return shaComputer.digest();
     }
 }
-DefaultModelSHA1Computer.MAX_MODEL_SIZE = 10 * 1024 * 1024; // takes 200ms to compute a sha1 on a 10MB model on a new machine

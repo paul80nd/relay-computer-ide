@@ -156,6 +156,7 @@ class RemoteAuthoritiesImpl {
 export const RemoteAuthorities = new RemoteAuthoritiesImpl();
 export const VSCODE_AUTHORITY = 'vscode-app';
 class FileAccessImpl {
+    static { this.FALLBACK_AUTHORITY = VSCODE_AUTHORITY; }
     /**
      * Returns a URI to use in contexts where the browser is responsible
      * for loading (e.g. fetch()) or when used within the DOM.
@@ -190,7 +191,6 @@ class FileAccessImpl {
         return uri;
     }
 }
-FileAccessImpl.FALLBACK_AUTHORITY = VSCODE_AUTHORITY;
 export const FileAccess = new FileAccessImpl();
 export var COI;
 (function (COI) {
@@ -215,7 +215,7 @@ export var COI;
         else if (URI.isUri(url)) {
             params = new URL(url.toString(true)).searchParams;
         }
-        const value = params === null || params === void 0 ? void 0 : params.get(coiSearchParamName);
+        const value = params?.get(coiSearchParamName);
         if (!value) {
             return undefined;
         }

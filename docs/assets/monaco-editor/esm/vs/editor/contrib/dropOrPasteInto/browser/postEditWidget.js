@@ -28,7 +28,9 @@ import { IContextMenuService } from '../../../../platform/contextview/browser/co
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
-let PostEditWidget = PostEditWidget_1 = class PostEditWidget extends Disposable {
+let PostEditWidget = class PostEditWidget extends Disposable {
+    static { PostEditWidget_1 = this; }
+    static { this.baseId = 'editor.widget.postEditWidget'; }
     constructor(typeId, editor, visibleContext, showCommand, range, edits, onSelectNewEdit, _contextMenuService, contextKeyService, _keybindingService) {
         super();
         this.typeId = typeId;
@@ -58,8 +60,7 @@ let PostEditWidget = PostEditWidget_1 = class PostEditWidget extends Disposable 
         }));
     }
     _updateButtonTitle() {
-        var _a;
-        const binding = (_a = this._keybindingService.lookupKeybinding(this.showCommand.id)) === null || _a === void 0 ? void 0 : _a.getLabel();
+        const binding = this._keybindingService.lookupKeybinding(this.showCommand.id)?.getLabel();
         this.button.element.title = this.showCommand.label + (binding ? ` (${binding})` : '');
     }
     create() {
@@ -103,7 +104,6 @@ let PostEditWidget = PostEditWidget_1 = class PostEditWidget extends Disposable 
         });
     }
 };
-PostEditWidget.baseId = 'editor.widget.postEditWidget';
 PostEditWidget = PostEditWidget_1 = __decorate([
     __param(7, IContextMenuService),
     __param(8, IContextKeyService),
@@ -182,7 +182,7 @@ let PostEditWidgetManager = class PostEditWidgetManager extends Disposable {
             return;
         }
         if (canShowWidget && editResult.isApplied && edits.allEdits.length > 1) {
-            this.show(editRange !== null && editRange !== void 0 ? editRange : primaryRange, edits, onDidSelectEdit);
+            this.show(editRange ?? primaryRange, edits, onDidSelectEdit);
         }
     }
     show(range, edits, onDidSelectEdit) {
@@ -195,8 +195,7 @@ let PostEditWidgetManager = class PostEditWidgetManager extends Disposable {
         this._currentWidget.clear();
     }
     tryShowSelector() {
-        var _a;
-        (_a = this._currentWidget.value) === null || _a === void 0 ? void 0 : _a.showSelector();
+        this._currentWidget.value?.showSelector();
     }
 };
 PostEditWidgetManager = __decorate([

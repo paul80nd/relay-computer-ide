@@ -14,8 +14,7 @@ export class SashLayout {
         this._options = _options;
         this.dimensions = dimensions;
         this.sashLeft = derivedWithSetter(this, reader => {
-            var _a;
-            const ratio = (_a = this._sashRatio.read(reader)) !== null && _a !== void 0 ? _a : this._options.splitViewDefaultRatio.read(reader);
+            const ratio = this._sashRatio.read(reader) ?? this._options.splitViewDefaultRatio.read(reader);
             return this._computeSashLeft(ratio, reader);
         }, (value, tx) => {
             const contentWidth = this.dimensions.width.get();

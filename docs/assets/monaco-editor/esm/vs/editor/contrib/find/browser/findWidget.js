@@ -81,6 +81,7 @@ function stopPropagationForMultiLineDownwards(event, value, textarea) {
     }
 }
 export class FindWidget extends Widget {
+    static { this.ID = 'editor.contrib.findWidget'; }
     constructor(codeEditor, controller, state, contextViewProvider, keybindingService, contextKeyService, themeService, storageService, notificationService, _hoverService) {
         super();
         this._hoverService = _hoverService;
@@ -106,14 +107,14 @@ export class FindWidget extends Widget {
         this._tryUpdateWidgetWidth();
         this._findInput.inputBox.layout();
         this._register(this._codeEditor.onDidChangeConfiguration((e) => {
-            if (e.hasChanged(91 /* EditorOption.readOnly */)) {
-                if (this._codeEditor.getOption(91 /* EditorOption.readOnly */)) {
+            if (e.hasChanged(92 /* EditorOption.readOnly */)) {
+                if (this._codeEditor.getOption(92 /* EditorOption.readOnly */)) {
                     // Hide replace part if editor becomes read only
                     this._state.change({ isReplaceRevealed: false }, false);
                 }
                 this._updateButtons();
             }
-            if (e.hasChanged(145 /* EditorOption.layoutInfo */)) {
+            if (e.hasChanged(146 /* EditorOption.layoutInfo */)) {
                 this._tryUpdateWidgetWidth();
             }
             if (e.hasChanged(2 /* EditorOption.accessibilitySupport */)) {
@@ -226,7 +227,7 @@ export class FindWidget extends Widget {
         }
         if (e.isReplaceRevealed) {
             if (this._state.isReplaceRevealed) {
-                if (!this._codeEditor.getOption(91 /* EditorOption.readOnly */) && !this._isReplaceVisible) {
+                if (!this._codeEditor.getOption(92 /* EditorOption.readOnly */) && !this._isReplaceVisible) {
                     this._isReplaceVisible = true;
                     this._replaceInput.width = dom.getTotalWidth(this._findInput.domNode);
                     this._updateButtons();
@@ -302,9 +303,7 @@ export class FindWidget extends Widget {
             this._matchesCount.title = '';
         }
         // remove previous content
-        if (this._matchesCount.firstChild) {
-            this._matchesCount.removeChild(this._matchesCount.firstChild);
-        }
+        this._matchesCount.firstChild?.remove();
         let label;
         if (this._state.matchesCount > 0) {
             let matchesCount = String(this._state.matchesCount);
@@ -370,7 +369,7 @@ export class FindWidget extends Widget {
         this._replaceAllBtn.setEnabled(this._isVisible && this._isReplaceVisible && findInputIsNonEmpty);
         this._domNode.classList.toggle('replaceToggled', this._isReplaceVisible);
         this._toggleReplaceBtn.setExpanded(this._isReplaceVisible);
-        const canReplace = !this._codeEditor.getOption(91 /* EditorOption.readOnly */);
+        const canReplace = !this._codeEditor.getOption(92 /* EditorOption.readOnly */);
         this._toggleReplaceBtn.setEnabled(this._isVisible && canReplace);
     }
     _reveal() {
@@ -1059,10 +1058,8 @@ export class FindWidget extends Widget {
         this._findInput.setFocusInputOnOptionClick(value !== 2 /* AccessibilitySupport.Enabled */);
     }
 }
-FindWidget.ID = 'editor.contrib.findWidget';
 export class SimpleButton extends Widget {
     constructor(opts, hoverService) {
-        var _a;
         super();
         this._opts = opts;
         let className = 'button';
@@ -1077,19 +1074,18 @@ export class SimpleButton extends Widget {
         this._domNode.className = className;
         this._domNode.setAttribute('role', 'button');
         this._domNode.setAttribute('aria-label', this._opts.label);
-        this._register(hoverService.setupUpdatableHover((_a = opts.hoverDelegate) !== null && _a !== void 0 ? _a : getDefaultHoverDelegate('element'), this._domNode, this._opts.label));
+        this._register(hoverService.setupManagedHover(opts.hoverDelegate ?? getDefaultHoverDelegate('element'), this._domNode, this._opts.label));
         this.onclick(this._domNode, (e) => {
             this._opts.onTrigger();
             e.preventDefault();
         });
         this.onkeydown(this._domNode, (e) => {
-            var _a, _b;
             if (e.equals(10 /* KeyCode.Space */) || e.equals(3 /* KeyCode.Enter */)) {
                 this._opts.onTrigger();
                 e.preventDefault();
                 return;
             }
-            (_b = (_a = this._opts).onKeyDown) === null || _b === void 0 ? void 0 : _b.call(_a, e);
+            this._opts.onKeyDown?.(e);
         });
     }
     get domNode() {

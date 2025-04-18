@@ -9,6 +9,10 @@ import { RawContextKey } from '../../../../platform/contextkey/common/contextkey
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 export class InlineCompletionContextKeys extends Disposable {
+    static { this.inlineSuggestionVisible = new RawContextKey('inlineSuggestionVisible', false, localize('inlineSuggestionVisible', "Whether an inline suggestion is visible")); }
+    static { this.inlineSuggestionHasIndentation = new RawContextKey('inlineSuggestionHasIndentation', false, localize('inlineSuggestionHasIndentation', "Whether the inline suggestion starts with whitespace")); }
+    static { this.inlineSuggestionHasIndentationLessThanTabSize = new RawContextKey('inlineSuggestionHasIndentationLessThanTabSize', true, localize('inlineSuggestionHasIndentationLessThanTabSize', "Whether the inline suggestion starts with whitespace that is less than what would be inserted by tab")); }
+    static { this.suppressSuggestions = new RawContextKey('inlineSuggestionSuppressSuggestions', undefined, localize('suppressSuggestions', "Whether suggestions should be suppressed for the current suggestion")); }
     constructor(contextKeyService, model) {
         super();
         this.contextKeyService = contextKeyService;
@@ -20,10 +24,10 @@ export class InlineCompletionContextKeys extends Disposable {
         this._register(autorun(reader => {
             /** @description update context key: inlineCompletionVisible, suppressSuggestions */
             const model = this.model.read(reader);
-            const state = model === null || model === void 0 ? void 0 : model.state.read(reader);
-            const isInlineCompletionVisible = !!(state === null || state === void 0 ? void 0 : state.inlineCompletion) && (state === null || state === void 0 ? void 0 : state.primaryGhostText) !== undefined && !(state === null || state === void 0 ? void 0 : state.primaryGhostText.isEmpty());
+            const state = model?.state.read(reader);
+            const isInlineCompletionVisible = !!state?.inlineCompletion && state?.primaryGhostText !== undefined && !state?.primaryGhostText.isEmpty();
             this.inlineCompletionVisible.set(isInlineCompletionVisible);
-            if ((state === null || state === void 0 ? void 0 : state.primaryGhostText) && (state === null || state === void 0 ? void 0 : state.inlineCompletion)) {
+            if (state?.primaryGhostText && state?.inlineCompletion) {
                 this.suppressSuggestions.set(state.inlineCompletion.inlineCompletion.source.inlineCompletions.suppressSuggestions);
             }
         }));
@@ -32,8 +36,8 @@ export class InlineCompletionContextKeys extends Disposable {
             const model = this.model.read(reader);
             let startsWithIndentation = false;
             let startsWithIndentationLessThanTabSize = true;
-            const ghostText = model === null || model === void 0 ? void 0 : model.primaryGhostText.read(reader);
-            if (!!(model === null || model === void 0 ? void 0 : model.selectedSuggestItem) && ghostText && ghostText.parts.length > 0) {
+            const ghostText = model?.primaryGhostText.read(reader);
+            if (!!model?.selectedSuggestItem && ghostText && ghostText.parts.length > 0) {
                 const { column, lines } = ghostText.parts[0];
                 const firstLine = lines[0];
                 const indentationEndColumn = model.textModel.getLineIndentColumn(ghostText.lineNumber);
@@ -54,7 +58,3 @@ export class InlineCompletionContextKeys extends Disposable {
         }));
     }
 }
-InlineCompletionContextKeys.inlineSuggestionVisible = new RawContextKey('inlineSuggestionVisible', false, localize('inlineSuggestionVisible', "Whether an inline suggestion is visible"));
-InlineCompletionContextKeys.inlineSuggestionHasIndentation = new RawContextKey('inlineSuggestionHasIndentation', false, localize('inlineSuggestionHasIndentation', "Whether the inline suggestion starts with whitespace"));
-InlineCompletionContextKeys.inlineSuggestionHasIndentationLessThanTabSize = new RawContextKey('inlineSuggestionHasIndentationLessThanTabSize', true, localize('inlineSuggestionHasIndentationLessThanTabSize', "Whether the inline suggestion starts with whitespace that is less than what would be inserted by tab"));
-InlineCompletionContextKeys.suppressSuggestions = new RawContextKey('inlineSuggestionSuppressSuggestions', undefined, localize('suppressSuggestions', "Whether suggestions should be suppressed for the current suggestion"));

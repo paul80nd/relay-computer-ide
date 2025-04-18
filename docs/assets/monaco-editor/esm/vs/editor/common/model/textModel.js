@@ -105,7 +105,23 @@ class TextModelSnapshot {
     }
 }
 const invalidFunc = () => { throw new Error(`Invalid change accessor`); };
-let TextModel = TextModel_1 = class TextModel extends Disposable {
+let TextModel = class TextModel extends Disposable {
+    static { TextModel_1 = this; }
+    static { this._MODEL_SYNC_LIMIT = 50 * 1024 * 1024; } // 50 MB,  // used in tests
+    static { this.LARGE_FILE_SIZE_THRESHOLD = 20 * 1024 * 1024; } // 20 MB;
+    static { this.LARGE_FILE_LINE_COUNT_THRESHOLD = 300 * 1000; } // 300K lines
+    static { this.LARGE_FILE_HEAP_OPERATION_THRESHOLD = 256 * 1024 * 1024; } // 256M characters, usually ~> 512MB memory usage
+    static { this.DEFAULT_CREATION_OPTIONS = {
+        isForSimpleWidget: false,
+        tabSize: EDITOR_MODEL_DEFAULTS.tabSize,
+        indentSize: EDITOR_MODEL_DEFAULTS.indentSize,
+        insertSpaces: EDITOR_MODEL_DEFAULTS.insertSpaces,
+        detectIndentation: false,
+        defaultEOL: 1 /* model.DefaultEndOfLine.LF */,
+        trimAutoWhitespace: EDITOR_MODEL_DEFAULTS.trimAutoWhitespace,
+        largeFileOptimizations: EDITOR_MODEL_DEFAULTS.largeFileOptimizations,
+        bracketPairColorizationOptions: EDITOR_MODEL_DEFAULTS.bracketPairColorizationOptions,
+    }; }
     static resolveOptions(textBuffer, options) {
         if (options.detectIndentation) {
             const guessedIndentation = guessIndentation(textBuffer, options.tabSize, options.insertSpaces);
@@ -209,6 +225,10 @@ let TextModel = TextModel_1 = class TextModel extends Disposable {
             this._onDidChangeDecorations.endDeferredEmit();
         }));
         this._languageService.requestRichLanguageFeatures(languageId);
+        this._register(this._languageConfigurationService.onDidChange(e => {
+            this._bracketPairs.handleLanguageConfigurationServiceChange(e);
+            this._tokenizationTextModelPart.handleLanguageConfigurationServiceChange(e);
+        }));
     }
     dispose() {
         this.__isDisposing = true;
@@ -227,7 +247,7 @@ let TextModel = TextModel_1 = class TextModel extends Disposable {
     }
     _assertNotDisposed() {
         if (this._isDisposed) {
-            throw new Error('Model is disposed!');
+            throw new BugIndicatingError('Model is disposed!');
         }
     }
     _emitContentChangedEvent(rawChange, change) {
@@ -1472,21 +1492,6 @@ let TextModel = TextModel_1 = class TextModel extends Disposable {
         return indentOfLine(this.getLineContent(lineNumber)) + 1;
     }
 };
-TextModel._MODEL_SYNC_LIMIT = 50 * 1024 * 1024; // 50 MB,  // used in tests
-TextModel.LARGE_FILE_SIZE_THRESHOLD = 20 * 1024 * 1024; // 20 MB;
-TextModel.LARGE_FILE_LINE_COUNT_THRESHOLD = 300 * 1000; // 300K lines
-TextModel.LARGE_FILE_HEAP_OPERATION_THRESHOLD = 256 * 1024 * 1024; // 256M characters, usually ~> 512MB memory usage
-TextModel.DEFAULT_CREATION_OPTIONS = {
-    isForSimpleWidget: false,
-    tabSize: EDITOR_MODEL_DEFAULTS.tabSize,
-    indentSize: EDITOR_MODEL_DEFAULTS.indentSize,
-    insertSpaces: EDITOR_MODEL_DEFAULTS.insertSpaces,
-    detectIndentation: false,
-    defaultEOL: 1 /* model.DefaultEndOfLine.LF */,
-    trimAutoWhitespace: EDITOR_MODEL_DEFAULTS.trimAutoWhitespace,
-    largeFileOptimizations: EDITOR_MODEL_DEFAULTS.largeFileOptimizations,
-    bracketPairColorizationOptions: EDITOR_MODEL_DEFAULTS.bracketPairColorizationOptions,
-};
 TextModel = TextModel_1 = __decorate([
     __param(4, IUndoRedoService),
     __param(5, ILanguageService),
@@ -1672,18 +1677,16 @@ export class ModelDecorationOverviewRulerOptions extends DecorationOptions {
 }
 export class ModelDecorationGlyphMarginOptions {
     constructor(options) {
-        var _a;
-        this.position = (_a = options === null || options === void 0 ? void 0 : options.position) !== null && _a !== void 0 ? _a : model.GlyphMarginLane.Center;
-        this.persistLane = options === null || options === void 0 ? void 0 : options.persistLane;
+        this.position = options?.position ?? model.GlyphMarginLane.Center;
+        this.persistLane = options?.persistLane;
     }
 }
 export class ModelDecorationMinimapOptions extends DecorationOptions {
     constructor(options) {
-        var _a, _b;
         super(options);
         this.position = options.position;
-        this.sectionHeaderStyle = (_a = options.sectionHeaderStyle) !== null && _a !== void 0 ? _a : null;
-        this.sectionHeaderText = (_b = options.sectionHeaderText) !== null && _b !== void 0 ? _b : null;
+        this.sectionHeaderStyle = options.sectionHeaderStyle ?? null;
+        this.sectionHeaderText = options.sectionHeaderText ?? null;
     }
     getColor(theme) {
         if (!this._resolvedColor) {
@@ -1729,16 +1732,15 @@ export class ModelDecorationOptions {
         return new ModelDecorationOptions(options);
     }
     constructor(options) {
-        var _a, _b, _c, _d, _e, _f;
         this.description = options.description;
         this.blockClassName = options.blockClassName ? cleanClassName(options.blockClassName) : null;
-        this.blockDoesNotCollapse = (_a = options.blockDoesNotCollapse) !== null && _a !== void 0 ? _a : null;
-        this.blockIsAfterEnd = (_b = options.blockIsAfterEnd) !== null && _b !== void 0 ? _b : null;
-        this.blockPadding = (_c = options.blockPadding) !== null && _c !== void 0 ? _c : null;
+        this.blockDoesNotCollapse = options.blockDoesNotCollapse ?? null;
+        this.blockIsAfterEnd = options.blockIsAfterEnd ?? null;
+        this.blockPadding = options.blockPadding ?? null;
         this.stickiness = options.stickiness || 0 /* model.TrackedRangeStickiness.AlwaysGrowsWhenTypingAtEdges */;
         this.zIndex = options.zIndex || 0;
         this.className = options.className ? cleanClassName(options.className) : null;
-        this.shouldFillLineOnLineBreak = (_d = options.shouldFillLineOnLineBreak) !== null && _d !== void 0 ? _d : null;
+        this.shouldFillLineOnLineBreak = options.shouldFillLineOnLineBreak ?? null;
         this.hoverMessage = options.hoverMessage || null;
         this.glyphMarginHoverMessage = options.glyphMarginHoverMessage || null;
         this.lineNumberHoverMessage = options.lineNumberHoverMessage || null;
@@ -1760,8 +1762,8 @@ export class ModelDecorationOptions {
         this.afterContentClassName = options.afterContentClassName ? cleanClassName(options.afterContentClassName) : null;
         this.after = options.after ? ModelDecorationInjectedTextOptions.from(options.after) : null;
         this.before = options.before ? ModelDecorationInjectedTextOptions.from(options.before) : null;
-        this.hideInCommentTokens = (_e = options.hideInCommentTokens) !== null && _e !== void 0 ? _e : false;
-        this.hideInStringTokens = (_f = options.hideInStringTokens) !== null && _f !== void 0 ? _f : false;
+        this.hideInCommentTokens = options.hideInCommentTokens ?? false;
+        this.hideInStringTokens = options.hideInStringTokens ?? false;
     }
 }
 ModelDecorationOptions.EMPTY = ModelDecorationOptions.register({ description: 'empty' });
@@ -1798,13 +1800,12 @@ class DidChangeDecorationsEmitter extends Disposable {
         this._deferredCnt++;
     }
     endDeferredEmit() {
-        var _a;
         this._deferredCnt--;
         if (this._deferredCnt === 0) {
             if (this._shouldFireDeferred) {
                 this.doFire();
             }
-            (_a = this._affectedInjectedTextLines) === null || _a === void 0 ? void 0 : _a.clear();
+            this._affectedInjectedTextLines?.clear();
             this._affectedInjectedTextLines = null;
         }
     }
@@ -1815,11 +1816,10 @@ class DidChangeDecorationsEmitter extends Disposable {
         this._affectedInjectedTextLines.add(lineNumber);
     }
     checkAffectedAndFire(options) {
-        var _a, _b;
-        this._affectsMinimap || (this._affectsMinimap = !!((_a = options.minimap) === null || _a === void 0 ? void 0 : _a.position));
-        this._affectsOverviewRuler || (this._affectsOverviewRuler = !!((_b = options.overviewRuler) === null || _b === void 0 ? void 0 : _b.color));
-        this._affectsGlyphMargin || (this._affectsGlyphMargin = !!options.glyphMarginClassName);
-        this._affectsLineNumber || (this._affectsLineNumber = !!options.lineNumberClassName);
+        this._affectsMinimap ||= !!options.minimap?.position;
+        this._affectsOverviewRuler ||= !!options.overviewRuler?.color;
+        this._affectsGlyphMargin ||= !!options.glyphMarginClassName;
+        this._affectsLineNumber ||= !!options.lineNumberClassName;
         this.tryFire();
     }
     fire() {

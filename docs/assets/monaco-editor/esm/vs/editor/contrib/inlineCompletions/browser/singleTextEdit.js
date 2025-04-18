@@ -107,8 +107,8 @@ function rangeExtends(extendingRange, rangeToExtend) {
 }
 let lastRequest = undefined;
 function cachingDiff(originalValue, newValue) {
-    if ((lastRequest === null || lastRequest === void 0 ? void 0 : lastRequest.originalValue) === originalValue && (lastRequest === null || lastRequest === void 0 ? void 0 : lastRequest.newValue) === newValue) {
-        return lastRequest === null || lastRequest === void 0 ? void 0 : lastRequest.changes;
+    if (lastRequest?.originalValue === originalValue && lastRequest?.newValue === newValue) {
+        return lastRequest?.changes;
     }
     else {
         let changes = smartDiff(originalValue, newValue, true);

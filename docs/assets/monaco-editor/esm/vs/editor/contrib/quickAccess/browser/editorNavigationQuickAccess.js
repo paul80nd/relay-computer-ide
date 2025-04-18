@@ -23,10 +23,9 @@ export class AbstractEditorNavigationQuickAccessProvider {
     }
     //#region Provider methods
     provide(picker, token, runOptions) {
-        var _a;
         const disposables = new DisposableStore();
         // Apply options if any
-        picker.canAcceptInBackground = !!((_a = this.options) === null || _a === void 0 ? void 0 : _a.canAcceptInBackground);
+        picker.canAcceptInBackground = !!this.options?.canAcceptInBackground;
         // Disable filtering & sorting, we control the results
         picker.matchOnLabel = picker.matchOnDescription = picker.matchOnDetail = picker.sortByLabel = false;
         // Provide based on current active editor
@@ -42,7 +41,6 @@ export class AbstractEditorNavigationQuickAccessProvider {
         return disposables;
     }
     doProvide(picker, token, runOptions) {
-        var _a;
         const disposables = new DisposableStore();
         // With text control
         const editor = this.activeTextEditorControl;
@@ -56,17 +54,16 @@ export class AbstractEditorNavigationQuickAccessProvider {
                 // changes even later because it could be that the user has
                 // configured quick access to remain open when focus is lost and
                 // we always want to restore the current location.
-                let lastKnownEditorViewState = (_a = editor.saveViewState()) !== null && _a !== void 0 ? _a : undefined;
+                let lastKnownEditorViewState = editor.saveViewState() ?? undefined;
                 disposables.add(codeEditor.onDidChangeCursorPosition(() => {
-                    var _a;
-                    lastKnownEditorViewState = (_a = editor.saveViewState()) !== null && _a !== void 0 ? _a : undefined;
+                    lastKnownEditorViewState = editor.saveViewState() ?? undefined;
                 }));
                 context.restoreViewState = () => {
                     if (lastKnownEditorViewState && editor === this.activeTextEditorControl) {
                         editor.restoreViewState(lastKnownEditorViewState);
                     }
                 };
-                disposables.add(createSingleCallFunction(token.onCancellationRequested)(() => { var _a; return (_a = context.restoreViewState) === null || _a === void 0 ? void 0 : _a.call(context); }));
+                disposables.add(createSingleCallFunction(token.onCancellationRequested)(() => context.restoreViewState?.()));
             }
             // Clean up decorations on dispose
             disposables.add(toDisposable(() => this.clearDecorations(editor)));
@@ -97,9 +94,8 @@ export class AbstractEditorNavigationQuickAccessProvider {
         }
     }
     getModel(editor) {
-        var _a;
         return isDiffEditor(editor) ?
-            (_a = editor.getModel()) === null || _a === void 0 ? void 0 : _a.modified :
+            editor.getModel()?.modified :
             editor.getModel();
     }
     addDecorations(editor, range) {

@@ -17,7 +17,7 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { autorun, constObservable } from '../../../../base/common/observable.js';
 import { Range } from '../../../common/core/range.js';
 import { ILanguageService } from '../../../common/languages/language.js';
-import { HoverForeignElementAnchor } from '../../hover/browser/hoverTypes.js';
+import { HoverForeignElementAnchor, RenderedHoverParts } from '../../hover/browser/hoverTypes.js';
 import { InlineCompletionsController } from './inlineCompletionsController.js';
 import { InlineSuggestionHintsContentWidget } from './inlineCompletionsHintsWidget.js';
 import { MarkdownRenderer } from '../../../browser/widget/markdownRenderer/browser/markdownRenderer.js';
@@ -87,37 +87,43 @@ let InlineCompletionsHoverParticipant = class InlineCompletionsHoverParticipant 
         return [];
     }
     renderHoverParts(context, hoverParts) {
-        const disposableStore = new DisposableStore();
+        const disposables = new DisposableStore();
         const part = hoverParts[0];
         this._telemetryService.publicLog2('inlineCompletionHover.shown');
         if (this.accessibilityService.isScreenReaderOptimized() && !this._editor.getOption(8 /* EditorOption.screenReaderAnnounceInlineSuggestion */)) {
-            this.renderScreenReaderText(context, part, disposableStore);
+            disposables.add(this.renderScreenReaderText(context, part));
         }
         const model = part.controller.model.get();
         const w = this._instantiationService.createInstance(InlineSuggestionHintsContentWidget, this._editor, false, constObservable(null), model.selectedInlineCompletionIndex, model.inlineCompletionsCount, model.activeCommands);
-        context.fragment.appendChild(w.getDomNode());
+        const widgetNode = w.getDomNode();
+        context.fragment.appendChild(widgetNode);
         model.triggerExplicitly();
-        disposableStore.add(w);
-        return disposableStore;
+        disposables.add(w);
+        const renderedHoverPart = {
+            hoverPart: part,
+            hoverElement: widgetNode,
+            dispose() { disposables.dispose(); }
+        };
+        return new RenderedHoverParts([renderedHoverPart]);
     }
-    renderScreenReaderText(context, part, disposableStore) {
+    renderScreenReaderText(context, part) {
+        const disposables = new DisposableStore();
         const $ = dom.$;
         const markdownHoverElement = $('div.hover-row.markdown-hover');
         const hoverContentsElement = dom.append(markdownHoverElement, $('div.hover-contents', { ['aria-live']: 'assertive' }));
-        const renderer = disposableStore.add(new MarkdownRenderer({ editor: this._editor }, this._languageService, this._openerService));
+        const renderer = disposables.add(new MarkdownRenderer({ editor: this._editor }, this._languageService, this._openerService));
         const render = (code) => {
-            disposableStore.add(renderer.onDidRenderAsync(() => {
+            disposables.add(renderer.onDidRenderAsync(() => {
                 hoverContentsElement.className = 'hover-contents code-hover-contents';
                 context.onContentsChanged();
             }));
             const inlineSuggestionAvailable = nls.localize('inlineSuggestionFollows', "Suggestion:");
-            const renderedContents = disposableStore.add(renderer.render(new MarkdownString().appendText(inlineSuggestionAvailable).appendCodeblock('text', code)));
+            const renderedContents = disposables.add(renderer.render(new MarkdownString().appendText(inlineSuggestionAvailable).appendCodeblock('text', code)));
             hoverContentsElement.replaceChildren(renderedContents.element);
         };
-        disposableStore.add(autorun(reader => {
-            var _a;
+        disposables.add(autorun(reader => {
             /** @description update hover */
-            const ghostText = (_a = part.controller.model.read(reader)) === null || _a === void 0 ? void 0 : _a.primaryGhostText.read(reader);
+            const ghostText = part.controller.model.read(reader)?.primaryGhostText.read(reader);
             if (ghostText) {
                 const lineText = this._editor.getModel().getLineContent(ghostText.lineNumber);
                 render(ghostText.renderForScreenReader(lineText));
@@ -127,6 +133,7 @@ let InlineCompletionsHoverParticipant = class InlineCompletionsHoverParticipant 
             }
         }));
         context.fragment.appendChild(markdownHoverElement);
+        return disposables;
     }
 };
 InlineCompletionsHoverParticipant = __decorate([

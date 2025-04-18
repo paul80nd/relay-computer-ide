@@ -45,11 +45,10 @@ let InlineCompletionsHintsWidget = class InlineCompletionsHintsWidget extends Di
         this.editor = editor;
         this.model = model;
         this.instantiationService = instantiationService;
-        this.alwaysShowToolbar = observableFromEvent(this.editor.onDidChangeConfiguration, () => this.editor.getOption(62 /* EditorOption.inlineSuggest */).showToolbar === 'always');
+        this.alwaysShowToolbar = observableFromEvent(this, this.editor.onDidChangeConfiguration, () => this.editor.getOption(62 /* EditorOption.inlineSuggest */).showToolbar === 'always');
         this.sessionPosition = undefined;
         this.position = derived(this, reader => {
-            var _a, _b, _c;
-            const ghostText = (_a = this.model.read(reader)) === null || _a === void 0 ? void 0 : _a.primaryGhostText.read(reader);
+            const ghostText = this.model.read(reader)?.primaryGhostText.read(reader);
             if (!this.alwaysShowToolbar.read(reader) || !ghostText || ghostText.parts.length === 0) {
                 this.sessionPosition = undefined;
                 return null;
@@ -58,7 +57,7 @@ let InlineCompletionsHintsWidget = class InlineCompletionsHintsWidget extends Di
             if (this.sessionPosition && this.sessionPosition.lineNumber !== ghostText.lineNumber) {
                 this.sessionPosition = undefined;
             }
-            const position = new Position(ghostText.lineNumber, Math.min(firstColumn, (_c = (_b = this.sessionPosition) === null || _b === void 0 ? void 0 : _b.column) !== null && _c !== void 0 ? _c : Number.MAX_SAFE_INTEGER));
+            const position = new Position(ghostText.lineNumber, Math.min(firstColumn, this.sessionPosition?.column ?? Number.MAX_SAFE_INTEGER));
             this.sessionPosition = position;
             return position;
         });
@@ -99,8 +98,11 @@ InlineCompletionsHintsWidget = __decorate([
 export { InlineCompletionsHintsWidget };
 const inlineSuggestionHintsNextIcon = registerIcon('inline-suggestion-hints-next', Codicon.chevronRight, localize('parameterHintsNextIcon', 'Icon for show next parameter hint.'));
 const inlineSuggestionHintsPreviousIcon = registerIcon('inline-suggestion-hints-previous', Codicon.chevronLeft, localize('parameterHintsPreviousIcon', 'Icon for show previous parameter hint.'));
-let InlineSuggestionHintsContentWidget = InlineSuggestionHintsContentWidget_1 = class InlineSuggestionHintsContentWidget extends Disposable {
+let InlineSuggestionHintsContentWidget = class InlineSuggestionHintsContentWidget extends Disposable {
+    static { InlineSuggestionHintsContentWidget_1 = this; }
+    static { this._dropDownVisible = false; }
     static get dropDownVisible() { return this._dropDownVisible; }
+    static { this.id = 0; }
     createCommandAction(commandId, label, iconClassName) {
         const action = new Action(commandId, label, iconClassName, true, () => this._commandService.executeCommand(commandId));
         const kb = this.keybindingService.lookupKeybinding(commandId, this._contextKeyService);
@@ -226,8 +228,6 @@ let InlineSuggestionHintsContentWidget = InlineSuggestionHintsContentWidget_1 = 
         };
     }
 };
-InlineSuggestionHintsContentWidget._dropDownVisible = false;
-InlineSuggestionHintsContentWidget.id = 0;
 InlineSuggestionHintsContentWidget = InlineSuggestionHintsContentWidget_1 = __decorate([
     __param(6, ICommandService),
     __param(7, IInstantiationService),
@@ -287,10 +287,9 @@ let CustomizedMenuWorkbenchToolBar = class CustomizedMenuWorkbenchToolBar extend
         this.updateToolbar();
     }
     updateToolbar() {
-        var _a, _b, _c, _d, _e, _f, _g;
         const primary = [];
         const secondary = [];
-        createAndFillInActionBarActions(this.menu, (_a = this.options2) === null || _a === void 0 ? void 0 : _a.menuOptions, { primary, secondary }, (_c = (_b = this.options2) === null || _b === void 0 ? void 0 : _b.toolbarOptions) === null || _c === void 0 ? void 0 : _c.primaryGroup, (_e = (_d = this.options2) === null || _d === void 0 ? void 0 : _d.toolbarOptions) === null || _e === void 0 ? void 0 : _e.shouldInlineSubmenu, (_g = (_f = this.options2) === null || _f === void 0 ? void 0 : _f.toolbarOptions) === null || _g === void 0 ? void 0 : _g.useSeparatorsInPrimaryActions);
+        createAndFillInActionBarActions(this.menu, this.options2?.menuOptions, { primary, secondary }, this.options2?.toolbarOptions?.primaryGroup, this.options2?.toolbarOptions?.shouldInlineSubmenu, this.options2?.toolbarOptions?.useSeparatorsInPrimaryActions);
         secondary.push(...this.additionalActions);
         primary.unshift(...this.prependedPrimaryActions);
         this.setActions(primary, secondary);

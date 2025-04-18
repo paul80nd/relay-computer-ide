@@ -89,7 +89,7 @@ export class ViewContentWidgets extends ViewPart {
             const myWidget = this._widgets[widgetId];
             delete this._widgets[widgetId];
             const domNode = myWidget.domNode.domNode;
-            domNode.parentNode.removeChild(domNode);
+            domNode.remove();
             domNode.removeAttribute('monaco-visible-content-widget');
             this.setShouldRender();
         }
@@ -131,7 +131,7 @@ class Widget {
         this.allowEditorOverflow = this._actual.allowEditorOverflow || false;
         this.suppressMouseDown = this._actual.suppressMouseDown || false;
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
         this._fixedOverflowWidgets = options.get(42 /* EditorOption.fixedOverflowWidgets */);
         this._contentWidth = layoutInfo.contentWidth;
         this._contentLeft = layoutInfo.contentLeft;
@@ -152,8 +152,8 @@ class Widget {
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
         this._lineHeight = options.get(67 /* EditorOption.lineHeight */);
-        if (e.hasChanged(145 /* EditorOption.layoutInfo */)) {
-            const layoutInfo = options.get(145 /* EditorOption.layoutInfo */);
+        if (e.hasChanged(146 /* EditorOption.layoutInfo */)) {
+            const layoutInfo = options.get(146 /* EditorOption.layoutInfo */);
             this._contentLeft = layoutInfo.contentLeft;
             this._contentWidth = layoutInfo.contentWidth;
             this._maxWidth = this._getMaxWidth();
@@ -173,7 +173,7 @@ class Widget {
             // Do not trust that widgets give a valid position
             const validModelPosition = viewModel.model.validatePosition(position);
             if (viewModel.coordinatesConverter.modelPositionIsVisible(validModelPosition)) {
-                const viewPosition = viewModel.coordinatesConverter.convertModelPositionToViewPosition(validModelPosition, affinity !== null && affinity !== void 0 ? affinity : undefined);
+                const viewPosition = viewModel.coordinatesConverter.convertModelPositionToViewPosition(validModelPosition, affinity ?? undefined);
                 return new PositionPair(position, viewPosition);
             }
             return new PositionPair(position, null);
@@ -183,7 +183,7 @@ class Widget {
         const elDocument = this.domNode.domNode.ownerDocument;
         const elWindow = elDocument.defaultView;
         return (this.allowEditorOverflow
-            ? (elWindow === null || elWindow === void 0 ? void 0 : elWindow.innerWidth) || elDocument.documentElement.offsetWidth || elDocument.body.offsetWidth
+            ? elWindow?.innerWidth || elDocument.documentElement.offsetWidth || elDocument.body.offsetWidth
             : this._contentWidth);
     }
     setPosition(primaryAnchor, secondaryAnchor, preference, affinity) {
@@ -225,7 +225,6 @@ class Widget {
         return { fitsAbove, aboveTop, fitsBelow, belowTop, left };
     }
     _layoutHorizontalSegmentInPage(windowSize, domNodePosition, left, width) {
-        var _a;
         // Leave some clearance to the left/right
         const LEFT_PADDING = 15;
         const RIGHT_PADDING = 15;
@@ -234,7 +233,7 @@ class Widget {
         const MAX_LIMIT = Math.min(domNodePosition.left + domNodePosition.width + width, windowSize.width - RIGHT_PADDING);
         const elDocument = this._viewDomNode.domNode.ownerDocument;
         const elWindow = elDocument.defaultView;
-        let absoluteLeft = domNodePosition.left + left - ((_a = elWindow === null || elWindow === void 0 ? void 0 : elWindow.scrollX) !== null && _a !== void 0 ? _a : 0);
+        let absoluteLeft = domNodePosition.left + left - (elWindow?.scrollX ?? 0);
         if (absoluteLeft + width > MAX_LIMIT) {
             const delta = absoluteLeft - (MAX_LIMIT - width);
             absoluteLeft -= delta;
@@ -248,14 +247,13 @@ class Widget {
         return [left, absoluteLeft];
     }
     _layoutBoxInPage(anchor, width, height, ctx) {
-        var _a, _b;
         const aboveTop = anchor.top - height;
         const belowTop = anchor.top + anchor.height;
         const domNodePosition = dom.getDomNodePagePosition(this._viewDomNode.domNode);
         const elDocument = this._viewDomNode.domNode.ownerDocument;
         const elWindow = elDocument.defaultView;
-        const absoluteAboveTop = domNodePosition.top + aboveTop - ((_a = elWindow === null || elWindow === void 0 ? void 0 : elWindow.scrollY) !== null && _a !== void 0 ? _a : 0);
-        const absoluteBelowTop = domNodePosition.top + belowTop - ((_b = elWindow === null || elWindow === void 0 ? void 0 : elWindow.scrollY) !== null && _b !== void 0 ? _b : 0);
+        const absoluteAboveTop = domNodePosition.top + aboveTop - (elWindow?.scrollY ?? 0);
+        const absoluteBelowTop = domNodePosition.top + belowTop - (elWindow?.scrollY ?? 0);
         const windowSize = dom.getClientArea(elDocument.body);
         const [left, absoluteAboveLeft] = this._layoutHorizontalSegmentInPage(windowSize, domNodePosition, anchor.left - ctx.scrollLeft + this._contentLeft, width);
         // Leave some clearance to the top/bottom
@@ -283,9 +281,8 @@ class Widget {
      * The content widget should touch if possible the secondary anchor.
      */
     _getAnchorsCoordinates(ctx) {
-        var _a, _b;
         const primary = getCoordinates(this._primaryAnchor.viewPosition, this._affinity, this._lineHeight);
-        const secondaryViewPosition = (((_a = this._secondaryAnchor.viewPosition) === null || _a === void 0 ? void 0 : _a.lineNumber) === ((_b = this._primaryAnchor.viewPosition) === null || _b === void 0 ? void 0 : _b.lineNumber) ? this._secondaryAnchor.viewPosition : null);
+        const secondaryViewPosition = (this._secondaryAnchor.viewPosition?.lineNumber === this._primaryAnchor.viewPosition?.lineNumber ? this._secondaryAnchor.viewPosition : null);
         const secondary = getCoordinates(secondaryViewPosition, this._affinity, this._lineHeight);
         return { primary, secondary };
         function getCoordinates(position, affinity, lineHeight) {
@@ -419,13 +416,12 @@ class Widget {
         this._renderData = this._prepareRenderWidget(ctx);
     }
     render(ctx) {
-        var _a;
         if (!this._renderData || this._renderData.kind === 'offViewport') {
             // This widget should be invisible
             if (this._isVisible) {
                 this.domNode.removeAttribute('monaco-visible-content-widget');
                 this._isVisible = false;
-                if (((_a = this._renderData) === null || _a === void 0 ? void 0 : _a.kind) === 'offViewport' && this._renderData.preserveFocus) {
+                if (this._renderData?.kind === 'offViewport' && this._renderData.preserveFocus) {
                     // widget wants to be shown, but it is outside of the viewport and it
                     // has focus which we need to preserve
                     this.domNode.setTop(-1000);
@@ -483,7 +479,7 @@ function safeInvoke(fn, thisArg, ...args) {
     try {
         return fn.call(thisArg, ...args);
     }
-    catch (_a) {
+    catch {
         // ignore
         return null;
     }

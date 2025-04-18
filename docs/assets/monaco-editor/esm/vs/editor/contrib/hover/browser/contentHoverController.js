@@ -11,25 +11,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var ContentHoverController_1;
 import * as dom from '../../../../base/browser/dom.js';
-import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
-import { Position } from '../../../common/core/position.js';
-import { Range } from '../../../common/core/range.js';
-import { ModelDecorationOptions } from '../../../common/model/textModel.js';
+import { Disposable } from '../../../../base/common/lifecycle.js';
 import { TokenizationRegistry } from '../../../common/languages.js';
 import { HoverOperation } from './hoverOperation.js';
 import { HoverParticipantRegistry, HoverRangeAnchor } from './hoverTypes.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
-import { MarkdownHoverParticipant } from './markdownHoverParticipant.js';
-import { InlayHintsHover } from '../../inlayHints/browser/inlayHintsHover.js';
 import { ContentHoverWidget } from './contentHoverWidget.js';
 import { ContentHoverComputer } from './contentHoverComputer.js';
-import { ContentHoverVisibleData, HoverResult } from './contentHoverTypes.js';
-import { EditorHoverStatusBar } from './contentHoverStatusBar.js';
+import { HoverResult } from './contentHoverTypes.js';
 import { Emitter } from '../../../../base/common/event.js';
-let ContentHoverController = ContentHoverController_1 = class ContentHoverController extends Disposable {
+import { RenderedContentHover } from './contentHoverRendered.js';
+let ContentHoverController = class ContentHoverController extends Disposable {
     constructor(_editor, _instantiationService, _keybindingService) {
         super();
         this._editor = _editor;
@@ -38,19 +32,25 @@ let ContentHoverController = ContentHoverController_1 = class ContentHoverContro
         this._currentResult = null;
         this._onContentsChanged = this._register(new Emitter());
         this.onContentsChanged = this._onContentsChanged.event;
-        this._widget = this._register(this._instantiationService.createInstance(ContentHoverWidget, this._editor));
-        // Instantiate participants and sort them by `hoverOrdinal` which is relevant for rendering order.
-        this._participants = [];
-        for (const participant of HoverParticipantRegistry.getAll()) {
-            const participantInstance = this._instantiationService.createInstance(participant, this._editor);
-            if (participantInstance instanceof MarkdownHoverParticipant && !(participantInstance instanceof InlayHintsHover)) {
-                this._markdownHoverParticipant = participantInstance;
-            }
-            this._participants.push(participantInstance);
-        }
-        this._participants.sort((p1, p2) => p1.hoverOrdinal - p2.hoverOrdinal);
+        this._contentHoverWidget = this._register(this._instantiationService.createInstance(ContentHoverWidget, this._editor));
+        this._participants = this._initializeHoverParticipants();
         this._computer = new ContentHoverComputer(this._editor, this._participants);
         this._hoverOperation = this._register(new HoverOperation(this._editor, this._computer));
+        this._registerListeners();
+    }
+    _initializeHoverParticipants() {
+        const participants = [];
+        for (const participant of HoverParticipantRegistry.getAll()) {
+            const participantInstance = this._instantiationService.createInstance(participant, this._editor);
+            participants.push(participantInstance);
+        }
+        participants.sort((p1, p2) => p1.hoverOrdinal - p2.hoverOrdinal);
+        this._register(this._contentHoverWidget.onDidResize(() => {
+            this._participants.forEach(participant => participant.handleResize?.());
+        }));
+        return participants;
+    }
+    _registerListeners() {
         this._register(this._hoverOperation.onResult((result) => {
             if (!this._computer.anchor) {
                 // invalid state, ignore result
@@ -59,13 +59,13 @@ let ContentHoverController = ContentHoverController_1 = class ContentHoverContro
             const messages = (result.hasLoadingMessage ? this._addLoadingMessage(result.value) : result.value);
             this._withResult(new HoverResult(this._computer.anchor, messages, result.isComplete));
         }));
-        this._register(dom.addStandardDisposableListener(this._widget.getDomNode(), 'keydown', (e) => {
+        this._register(dom.addStandardDisposableListener(this._contentHoverWidget.getDomNode(), 'keydown', (e) => {
             if (e.equals(9 /* KeyCode.Escape */)) {
                 this.hide();
             }
         }));
         this._register(TokenizationRegistry.onDidChange(() => {
-            if (this._widget.position && this._currentResult) {
+            if (this._contentHoverWidget.position && this._currentResult) {
                 this._setCurrentResult(this._currentResult); // render again
             }
         }));
@@ -74,37 +74,38 @@ let ContentHoverController = ContentHoverController_1 = class ContentHoverContro
      * Returns true if the hover shows now or will show.
      */
     _startShowingOrUpdateHover(anchor, mode, source, focus, mouseEvent) {
-        if (!this._widget.position || !this._currentResult) {
-            // The hover is not visible
+        const contentHoverIsVisible = this._contentHoverWidget.position && this._currentResult;
+        if (!contentHoverIsVisible) {
             if (anchor) {
                 this._startHoverOperationIfNecessary(anchor, mode, source, focus, false);
                 return true;
             }
             return false;
         }
-        // The hover is currently visible
         const isHoverSticky = this._editor.getOption(60 /* EditorOption.hover */).sticky;
-        const isGettingCloser = (isHoverSticky
-            && mouseEvent
-            && this._widget.isMouseGettingCloser(mouseEvent.event.posx, mouseEvent.event.posy));
-        if (isGettingCloser) {
-            // The mouse is getting closer to the hover, so we will keep the hover untouched
-            // But we will kick off a hover update at the new anchor, insisting on keeping the hover visible.
+        const isMouseGettingCloser = mouseEvent && this._contentHoverWidget.isMouseGettingCloser(mouseEvent.event.posx, mouseEvent.event.posy);
+        const isHoverStickyAndIsMouseGettingCloser = isHoverSticky && isMouseGettingCloser;
+        // The mouse is getting closer to the hover, so we will keep the hover untouched
+        // But we will kick off a hover update at the new anchor, insisting on keeping the hover visible.
+        if (isHoverStickyAndIsMouseGettingCloser) {
             if (anchor) {
                 this._startHoverOperationIfNecessary(anchor, mode, source, focus, true);
             }
             return true;
         }
+        // If mouse is not getting closer and anchor not defined, hide the hover
         if (!anchor) {
             this._setCurrentResult(null);
             return false;
         }
-        if (anchor && this._currentResult.anchor.equals(anchor)) {
-            // The widget is currently showing results for the exact same anchor, so no update is needed
+        // If mouse if not getting closer and anchor is defined, and the new anchor is the same as the previous anchor
+        const currentAnchorEqualsPreviousAnchor = this._currentResult.anchor.equals(anchor);
+        if (currentAnchorEqualsPreviousAnchor) {
             return true;
         }
-        if (!anchor.canAdoptVisibleHover(this._currentResult.anchor, this._widget.position)) {
-            // The new anchor is not compatible with the previous anchor
+        // If mouse if not getting closer and anchor is defined, and the new anchor is not compatible with the previous anchor
+        const currentAnchorCompatibleWithPreviousAnchor = anchor.canAdoptVisibleHover(this._currentResult.anchor, this._contentHoverWidget.position);
+        if (!currentAnchorCompatibleWithPreviousAnchor) {
             this._setCurrentResult(null);
             this._startHoverOperationIfNecessary(anchor, mode, source, focus, false);
             return true;
@@ -116,8 +117,8 @@ let ContentHoverController = ContentHoverController_1 = class ContentHoverContro
         return true;
     }
     _startHoverOperationIfNecessary(anchor, mode, source, focus, insistOnKeepingHoverVisible) {
-        if (this._computer.anchor && this._computer.anchor.equals(anchor)) {
-            // We have to start a hover operation at the exact same anchor as before, so no work is needed
+        const currentAnchorEqualToPreviousHover = this._computer.anchor && this._computer.anchor.equals(anchor);
+        if (currentAnchorEqualToPreviousHover) {
             return;
         }
         this._hoverOperation.cancel();
@@ -128,202 +129,170 @@ let ContentHoverController = ContentHoverController_1 = class ContentHoverContro
         this._hoverOperation.start(mode);
     }
     _setCurrentResult(hoverResult) {
-        if (this._currentResult === hoverResult) {
-            // avoid updating the DOM to avoid resetting the user selection
+        let currentHoverResult = hoverResult;
+        const currentResultEqualToPreviousResult = this._currentResult === currentHoverResult;
+        if (currentResultEqualToPreviousResult) {
             return;
         }
-        if (hoverResult && hoverResult.messages.length === 0) {
-            hoverResult = null;
+        const currentHoverResultIsEmpty = currentHoverResult && currentHoverResult.hoverParts.length === 0;
+        if (currentHoverResultIsEmpty) {
+            currentHoverResult = null;
         }
-        this._currentResult = hoverResult;
+        this._currentResult = currentHoverResult;
         if (this._currentResult) {
-            this._renderMessages(this._currentResult.anchor, this._currentResult.messages);
+            this._showHover(this._currentResult);
         }
         else {
-            this._widget.hide();
+            this._hideHover();
         }
     }
     _addLoadingMessage(result) {
-        if (this._computer.anchor) {
-            for (const participant of this._participants) {
-                if (participant.createLoadingMessage) {
-                    const loadingMessage = participant.createLoadingMessage(this._computer.anchor);
-                    if (loadingMessage) {
-                        return result.slice(0).concat([loadingMessage]);
-                    }
-                }
+        if (!this._computer.anchor) {
+            return result;
+        }
+        for (const participant of this._participants) {
+            if (!participant.createLoadingMessage) {
+                continue;
             }
+            const loadingMessage = participant.createLoadingMessage(this._computer.anchor);
+            if (!loadingMessage) {
+                continue;
+            }
+            return result.slice(0).concat([loadingMessage]);
         }
         return result;
     }
     _withResult(hoverResult) {
-        if (this._widget.position && this._currentResult && this._currentResult.isComplete) {
-            // The hover is visible with a previous complete result.
-            if (!hoverResult.isComplete) {
-                // Instead of rendering the new partial result, we wait for the result to be complete.
-                return;
-            }
-            if (this._computer.insistOnKeepingHoverVisible && hoverResult.messages.length === 0) {
-                // The hover would now hide normally, so we'll keep the previous messages
-                return;
-            }
+        const previousHoverIsVisibleWithCompleteResult = this._contentHoverWidget.position && this._currentResult && this._currentResult.isComplete;
+        if (!previousHoverIsVisibleWithCompleteResult) {
+            this._setCurrentResult(hoverResult);
+        }
+        // The hover is visible with a previous complete result.
+        const isCurrentHoverResultComplete = hoverResult.isComplete;
+        if (!isCurrentHoverResultComplete) {
+            // Instead of rendering the new partial result, we wait for the result to be complete.
+            return;
+        }
+        const currentHoverResultIsEmpty = hoverResult.hoverParts.length === 0;
+        const insistOnKeepingPreviousHoverVisible = this._computer.insistOnKeepingHoverVisible;
+        const shouldKeepPreviousHoverVisible = currentHoverResultIsEmpty && insistOnKeepingPreviousHoverVisible;
+        if (shouldKeepPreviousHoverVisible) {
+            // The hover would now hide normally, so we'll keep the previous messages
+            return;
         }
         this._setCurrentResult(hoverResult);
     }
-    _renderMessages(anchor, messages) {
-        const { showAtPosition, showAtSecondaryPosition, highlightRange } = ContentHoverController_1.computeHoverRanges(this._editor, anchor.range, messages);
-        const disposables = new DisposableStore();
-        const statusBar = disposables.add(new EditorHoverStatusBar(this._keybindingService));
-        const fragment = document.createDocumentFragment();
-        let colorPicker = null;
-        const context = {
-            fragment,
-            statusBar,
-            setColorPicker: (widget) => colorPicker = widget,
-            onContentsChanged: () => this._doOnContentsChanged(),
-            setMinimumDimensions: (dimensions) => this._widget.setMinimumDimensions(dimensions),
-            hide: () => this.hide()
-        };
-        for (const participant of this._participants) {
-            const hoverParts = messages.filter(msg => msg.owner === participant);
-            if (hoverParts.length > 0) {
-                disposables.add(participant.renderHoverParts(context, hoverParts));
-            }
-        }
-        const isBeforeContent = messages.some(m => m.isBeforeContent);
-        if (statusBar.hasContent) {
-            fragment.appendChild(statusBar.hoverElement);
-        }
-        if (fragment.hasChildNodes()) {
-            if (highlightRange) {
-                const highlightDecoration = this._editor.createDecorationsCollection();
-                highlightDecoration.set([{
-                        range: highlightRange,
-                        options: ContentHoverController_1._DECORATION_OPTIONS
-                    }]);
-                disposables.add(toDisposable(() => {
-                    highlightDecoration.clear();
-                }));
-            }
-            this._widget.showAt(fragment, new ContentHoverVisibleData(anchor.initialMousePosX, anchor.initialMousePosY, colorPicker, showAtPosition, showAtSecondaryPosition, this._editor.getOption(60 /* EditorOption.hover */).above, this._computer.shouldFocus, this._computer.source, isBeforeContent, disposables));
+    _showHover(hoverResult) {
+        const context = this._getHoverContext();
+        this._renderedContentHover = new RenderedContentHover(this._editor, hoverResult, this._participants, this._computer, context, this._keybindingService);
+        if (this._renderedContentHover.domNodeHasChildren) {
+            this._contentHoverWidget.show(this._renderedContentHover);
         }
         else {
-            disposables.dispose();
+            this._renderedContentHover.dispose();
         }
     }
-    _doOnContentsChanged() {
-        this._onContentsChanged.fire();
-        this._widget.onContentsChanged();
+    _hideHover() {
+        this._contentHoverWidget.hide();
     }
-    static computeHoverRanges(editor, anchorRange, messages) {
-        let startColumnBoundary = 1;
-        if (editor.hasModel()) {
-            // Ensure the range is on the current view line
-            const viewModel = editor._getViewModel();
-            const coordinatesConverter = viewModel.coordinatesConverter;
-            const anchorViewRange = coordinatesConverter.convertModelRangeToViewRange(anchorRange);
-            const anchorViewRangeStart = new Position(anchorViewRange.startLineNumber, viewModel.getLineMinColumn(anchorViewRange.startLineNumber));
-            startColumnBoundary = coordinatesConverter.convertViewPositionToModelPosition(anchorViewRangeStart).column;
-        }
-        // The anchor range is always on a single line
-        const anchorLineNumber = anchorRange.startLineNumber;
-        let renderStartColumn = anchorRange.startColumn;
-        let highlightRange = messages[0].range;
-        let forceShowAtRange = null;
-        for (const msg of messages) {
-            highlightRange = Range.plusRange(highlightRange, msg.range);
-            if (msg.range.startLineNumber === anchorLineNumber && msg.range.endLineNumber === anchorLineNumber) {
-                // this message has a range that is completely sitting on the line of the anchor
-                renderStartColumn = Math.max(Math.min(renderStartColumn, msg.range.startColumn), startColumnBoundary);
-            }
-            if (msg.forceShowAtRange) {
-                forceShowAtRange = msg.range;
-            }
-        }
-        const showAtPosition = forceShowAtRange ? forceShowAtRange.getStartPosition() : new Position(anchorLineNumber, anchorRange.startColumn);
-        const showAtSecondaryPosition = forceShowAtRange ? forceShowAtRange.getStartPosition() : new Position(anchorLineNumber, renderStartColumn);
-        return {
-            showAtPosition,
-            showAtSecondaryPosition,
-            highlightRange
+    _getHoverContext() {
+        const hide = () => {
+            this.hide();
         };
+        const onContentsChanged = () => {
+            this._onContentsChanged.fire();
+            this._contentHoverWidget.onContentsChanged();
+        };
+        const setMinimumDimensions = (dimensions) => {
+            this._contentHoverWidget.setMinimumDimensions(dimensions);
+        };
+        return { hide, onContentsChanged, setMinimumDimensions };
     }
     showsOrWillShow(mouseEvent) {
-        if (this._widget.isResizing) {
+        const isContentWidgetResizing = this._contentHoverWidget.isResizing;
+        if (isContentWidgetResizing) {
             return true;
         }
-        const anchorCandidates = [];
-        for (const participant of this._participants) {
-            if (participant.suggestHoverAnchor) {
-                const anchor = participant.suggestHoverAnchor(mouseEvent);
-                if (anchor) {
-                    anchorCandidates.push(anchor);
-                }
-            }
-        }
-        const target = mouseEvent.target;
-        if (target.type === 6 /* MouseTargetType.CONTENT_TEXT */) {
-            anchorCandidates.push(new HoverRangeAnchor(0, target.range, mouseEvent.event.posx, mouseEvent.event.posy));
-        }
-        if (target.type === 7 /* MouseTargetType.CONTENT_EMPTY */) {
-            const epsilon = this._editor.getOption(50 /* EditorOption.fontInfo */).typicalHalfwidthCharacterWidth / 2;
-            if (!target.detail.isAfterLines
-                && typeof target.detail.horizontalDistanceToText === 'number'
-                && target.detail.horizontalDistanceToText < epsilon) {
-                // Let hover kick in even when the mouse is technically in the empty area after a line, given the distance is small enough
-                anchorCandidates.push(new HoverRangeAnchor(0, target.range, mouseEvent.event.posx, mouseEvent.event.posy));
-            }
-        }
-        if (anchorCandidates.length === 0) {
+        const anchorCandidates = this._findHoverAnchorCandidates(mouseEvent);
+        const anchorCandidatesExist = anchorCandidates.length > 0;
+        if (!anchorCandidatesExist) {
             return this._startShowingOrUpdateHover(null, 0 /* HoverStartMode.Delayed */, 0 /* HoverStartSource.Mouse */, false, mouseEvent);
         }
+        const anchor = anchorCandidates[0];
+        return this._startShowingOrUpdateHover(anchor, 0 /* HoverStartMode.Delayed */, 0 /* HoverStartSource.Mouse */, false, mouseEvent);
+    }
+    _findHoverAnchorCandidates(mouseEvent) {
+        const anchorCandidates = [];
+        for (const participant of this._participants) {
+            if (!participant.suggestHoverAnchor) {
+                continue;
+            }
+            const anchor = participant.suggestHoverAnchor(mouseEvent);
+            if (!anchor) {
+                continue;
+            }
+            anchorCandidates.push(anchor);
+        }
+        const target = mouseEvent.target;
+        switch (target.type) {
+            case 6 /* MouseTargetType.CONTENT_TEXT */: {
+                anchorCandidates.push(new HoverRangeAnchor(0, target.range, mouseEvent.event.posx, mouseEvent.event.posy));
+                break;
+            }
+            case 7 /* MouseTargetType.CONTENT_EMPTY */: {
+                const epsilon = this._editor.getOption(50 /* EditorOption.fontInfo */).typicalHalfwidthCharacterWidth / 2;
+                // Let hover kick in even when the mouse is technically in the empty area after a line, given the distance is small enough
+                const mouseIsWithinLinesAndCloseToHover = !target.detail.isAfterLines
+                    && typeof target.detail.horizontalDistanceToText === 'number'
+                    && target.detail.horizontalDistanceToText < epsilon;
+                if (!mouseIsWithinLinesAndCloseToHover) {
+                    break;
+                }
+                anchorCandidates.push(new HoverRangeAnchor(0, target.range, mouseEvent.event.posx, mouseEvent.event.posy));
+                break;
+            }
+        }
         anchorCandidates.sort((a, b) => b.priority - a.priority);
-        return this._startShowingOrUpdateHover(anchorCandidates[0], 0 /* HoverStartMode.Delayed */, 0 /* HoverStartSource.Mouse */, false, mouseEvent);
+        return anchorCandidates;
     }
     startShowingAtRange(range, mode, source, focus) {
         this._startShowingOrUpdateHover(new HoverRangeAnchor(0, range, undefined, undefined), mode, source, focus, null);
     }
-    async updateMarkdownHoverVerbosityLevel(action, index, focus) {
-        var _a;
-        (_a = this._markdownHoverParticipant) === null || _a === void 0 ? void 0 : _a.updateMarkdownHoverVerbosityLevel(action, index, focus);
+    async updateHoverVerbosityLevel(action, index, focus) {
+        this._renderedContentHover?.updateHoverVerbosityLevel(action, index, focus);
     }
-    markdownHoverContentAtIndex(index) {
-        var _a, _b;
-        return (_b = (_a = this._markdownHoverParticipant) === null || _a === void 0 ? void 0 : _a.markdownHoverContentAtIndex(index)) !== null && _b !== void 0 ? _b : '';
-    }
-    doesMarkdownHoverAtIndexSupportVerbosityAction(index, action) {
-        var _a, _b;
-        return (_b = (_a = this._markdownHoverParticipant) === null || _a === void 0 ? void 0 : _a.doesMarkdownHoverAtIndexSupportVerbosityAction(index, action)) !== null && _b !== void 0 ? _b : false;
+    focusedHoverPartIndex() {
+        return this._renderedContentHover?.focusedHoverPartIndex ?? -1;
     }
     containsNode(node) {
-        return (node ? this._widget.getDomNode().contains(node) : false);
+        return (node ? this._contentHoverWidget.getDomNode().contains(node) : false);
     }
     focus() {
-        this._widget.focus();
+        this._contentHoverWidget.focus();
     }
     scrollUp() {
-        this._widget.scrollUp();
+        this._contentHoverWidget.scrollUp();
     }
     scrollDown() {
-        this._widget.scrollDown();
+        this._contentHoverWidget.scrollDown();
     }
     scrollLeft() {
-        this._widget.scrollLeft();
+        this._contentHoverWidget.scrollLeft();
     }
     scrollRight() {
-        this._widget.scrollRight();
+        this._contentHoverWidget.scrollRight();
     }
     pageUp() {
-        this._widget.pageUp();
+        this._contentHoverWidget.pageUp();
     }
     pageDown() {
-        this._widget.pageDown();
+        this._contentHoverWidget.pageDown();
     }
     goToTop() {
-        this._widget.goToTop();
+        this._contentHoverWidget.goToTop();
     }
     goToBottom() {
-        this._widget.goToBottom();
+        this._contentHoverWidget.goToBottom();
     }
     hide() {
         this._computer.anchor = null;
@@ -331,29 +300,25 @@ let ContentHoverController = ContentHoverController_1 = class ContentHoverContro
         this._setCurrentResult(null);
     }
     get isColorPickerVisible() {
-        return this._widget.isColorPickerVisible;
+        return this._renderedContentHover?.isColorPickerVisible() ?? false;
     }
     get isVisibleFromKeyboard() {
-        return this._widget.isVisibleFromKeyboard;
+        return this._contentHoverWidget.isVisibleFromKeyboard;
     }
     get isVisible() {
-        return this._widget.isVisible;
+        return this._contentHoverWidget.isVisible;
     }
     get isFocused() {
-        return this._widget.isFocused;
+        return this._contentHoverWidget.isFocused;
     }
     get isResizing() {
-        return this._widget.isResizing;
+        return this._contentHoverWidget.isResizing;
     }
     get widget() {
-        return this._widget;
+        return this._contentHoverWidget;
     }
 };
-ContentHoverController._DECORATION_OPTIONS = ModelDecorationOptions.register({
-    description: 'content-hover-highlight',
-    className: 'hoverHighlight'
-});
-ContentHoverController = ContentHoverController_1 = __decorate([
+ContentHoverController = __decorate([
     __param(1, IInstantiationService),
     __param(2, IKeybindingService)
 ], ContentHoverController);

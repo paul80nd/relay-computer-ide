@@ -208,7 +208,7 @@ export class SimpleWorkerClient extends Disposable {
         }, (err) => {
             // in Firefox, web workers fail lazily :(
             // we will reject the proxy
-            lazyProxyReject === null || lazyProxyReject === void 0 ? void 0 : lazyProxyReject(err);
+            lazyProxyReject?.(err);
         }));
         this._protocol = new SimpleWorkerProtocol({
             sendMessage: (msg, transfer) => {

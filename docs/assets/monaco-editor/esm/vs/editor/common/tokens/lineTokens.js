@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 import { TokenMetadata } from '../encodedTokenAttributes.js';
 export class LineTokens {
+    static { this.defaultTokenMetadata = ((0 /* FontStyle.None */ << 11 /* MetadataConsts.FONT_STYLE_OFFSET */)
+        | (1 /* ColorId.DefaultForeground */ << 15 /* MetadataConsts.FOREGROUND_OFFSET */)
+        | (2 /* ColorId.DefaultBackground */ << 24 /* MetadataConsts.BACKGROUND_OFFSET */)) >>> 0; }
     static createEmpty(lineContent, decoder) {
         const defaultMetadata = LineTokens.defaultTokenMetadata;
         const tokens = new Uint32Array(2);
@@ -193,9 +196,6 @@ export class LineTokens {
         }
     }
 }
-LineTokens.defaultTokenMetadata = ((0 /* FontStyle.None */ << 11 /* MetadataConsts.FONT_STYLE_OFFSET */)
-    | (1 /* ColorId.DefaultForeground */ << 15 /* MetadataConsts.FOREGROUND_OFFSET */)
-    | (2 /* ColorId.DefaultBackground */ << 24 /* MetadataConsts.BACKGROUND_OFFSET */)) >>> 0;
 class SliceLineTokens {
     constructor(source, startOffset, endOffset, deltaOffset) {
         this._source = source;

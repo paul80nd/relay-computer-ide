@@ -1,6 +1,6 @@
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.50.0(cfceb029dc52d8f5a1d29e141c56ebdee3479b85)
+ * Version: 0.50.0(10517d799fb613d069ab531d3b2dd4304c2dd40a)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
@@ -47,7 +47,7 @@ var language = {
     "str"
   ],
   registers: ["a", "b", "c", "d", "j", "j1", "j2", "m", "m1", "m2", "x", "y", "xy"],
-  operators: ["+", "-"],
+  operators: ["=", "+", "-", "*", "/", "%"],
   // we include these common regular expressions
   symbols: /[=><!~?:&|+\-*\/\^%]+/,
   // The main tokenizer for our languages
@@ -71,7 +71,7 @@ var language = {
       // Comments
       [/;.*$/, "comment"],
       // delimiters and operators
-      [/[{}]/, "@brackets"],
+      [/[{}()]/, "@brackets"],
       [/[,§]/, "delimiter"],
       [/@symbols/, { cases: { "@operators": "operator", "@default": "" } }],
       // numbers

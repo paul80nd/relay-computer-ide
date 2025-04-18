@@ -271,7 +271,7 @@ export class LanguageConfigurationRegistry extends Disposable {
     }
     getLanguageConfiguration(languageId) {
         const entries = this._entries.get(languageId);
-        return (entries === null || entries === void 0 ? void 0 : entries.getResolvedConfiguration()) || null;
+        return entries?.getResolvedConfiguration() || null;
     }
 }
 /**

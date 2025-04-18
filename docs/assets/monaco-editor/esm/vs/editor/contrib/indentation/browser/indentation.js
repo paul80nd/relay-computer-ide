@@ -26,6 +26,7 @@ import { getGoodIndentForLine, getIndentMetadata } from '../../../common/languag
 import { getReindentEditOperations } from '../common/indentation.js';
 import { getStandardTokenTypeAtPosition } from '../../../common/tokens/lineTokens.js';
 export class IndentationToSpacesAction extends EditorAction {
+    static { this.ID = 'editor.action.indentationToSpaces'; }
     constructor() {
         super({
             id: IndentationToSpacesAction.ID,
@@ -56,8 +57,8 @@ export class IndentationToSpacesAction extends EditorAction {
         });
     }
 }
-IndentationToSpacesAction.ID = 'editor.action.indentationToSpaces';
 export class IndentationToTabsAction extends EditorAction {
+    static { this.ID = 'editor.action.indentationToTabs'; }
     constructor() {
         super({
             id: IndentationToTabsAction.ID,
@@ -88,7 +89,6 @@ export class IndentationToTabsAction extends EditorAction {
         });
     }
 }
-IndentationToTabsAction.ID = 'editor.action.indentationToTabs';
 export class ChangeIndentationSizeAction extends EditorAction {
     constructor(insertSpaces, displaySizeOnly, opts) {
         super(opts);
@@ -142,6 +142,7 @@ export class ChangeIndentationSizeAction extends EditorAction {
     }
 }
 export class IndentUsingTabs extends ChangeIndentationSizeAction {
+    static { this.ID = 'editor.action.indentUsingTabs'; }
     constructor() {
         super(false, false, {
             id: IndentUsingTabs.ID,
@@ -154,8 +155,8 @@ export class IndentUsingTabs extends ChangeIndentationSizeAction {
         });
     }
 }
-IndentUsingTabs.ID = 'editor.action.indentUsingTabs';
 export class IndentUsingSpaces extends ChangeIndentationSizeAction {
+    static { this.ID = 'editor.action.indentUsingSpaces'; }
     constructor() {
         super(true, false, {
             id: IndentUsingSpaces.ID,
@@ -168,8 +169,8 @@ export class IndentUsingSpaces extends ChangeIndentationSizeAction {
         });
     }
 }
-IndentUsingSpaces.ID = 'editor.action.indentUsingSpaces';
 export class ChangeTabDisplaySize extends ChangeIndentationSizeAction {
+    static { this.ID = 'editor.action.changeTabDisplaySize'; }
     constructor() {
         super(true, true, {
             id: ChangeTabDisplaySize.ID,
@@ -182,8 +183,8 @@ export class ChangeTabDisplaySize extends ChangeIndentationSizeAction {
         });
     }
 }
-ChangeTabDisplaySize.ID = 'editor.action.changeTabDisplaySize';
 export class DetectIndentation extends EditorAction {
+    static { this.ID = 'editor.action.detectIndentation'; }
     constructor() {
         super({
             id: DetectIndentation.ID,
@@ -205,7 +206,6 @@ export class DetectIndentation extends EditorAction {
         model.detectIndentation(creationOpts.insertSpaces, creationOpts.tabSize);
     }
 }
-DetectIndentation.ID = 'editor.action.detectIndentation';
 export class ReindentLinesAction extends EditorAction {
     constructor() {
         super({
@@ -316,6 +316,7 @@ export class AutoIndentOnPasteCommand {
     }
 }
 let AutoIndentOnPaste = class AutoIndentOnPaste {
+    static { this.ID = 'editor.contrib.autoIndentOnPaste'; }
     constructor(editor, _languageConfigurationService) {
         this.editor = editor;
         this._languageConfigurationService = _languageConfigurationService;
@@ -347,6 +348,10 @@ let AutoIndentOnPaste = class AutoIndentOnPaste {
         }
         const model = this.editor.getModel();
         if (!model) {
+            return;
+        }
+        const containsOnlyWhitespace = this.rangeContainsOnlyWhitespaceCharacters(model, range);
+        if (containsOnlyWhitespace) {
             return;
         }
         if (isStartOrEndInString(model, range)) {
@@ -390,7 +395,7 @@ let AutoIndentOnPaste = class AutoIndentOnPaste {
                         range: new Range(startLineNumber, 1, startLineNumber, oldIndentation.length + 1),
                         text: newIndent
                     });
-                    firstLineText = newIndent + firstLineText.substr(oldIndentation.length);
+                    firstLineText = newIndent + firstLineText.substring(oldIndentation.length);
                 }
                 else {
                     const indentMetadata = getIndentMetadata(model, startLineNumber, this._languageConfigurationService);
@@ -464,6 +469,37 @@ let AutoIndentOnPaste = class AutoIndentOnPaste {
             this.editor.pushUndoStop();
         }
     }
+    rangeContainsOnlyWhitespaceCharacters(model, range) {
+        const lineContainsOnlyWhitespace = (content) => {
+            return content.trim().length === 0;
+        };
+        let containsOnlyWhitespace = true;
+        if (range.startLineNumber === range.endLineNumber) {
+            const lineContent = model.getLineContent(range.startLineNumber);
+            const linePart = lineContent.substring(range.startColumn - 1, range.endColumn - 1);
+            containsOnlyWhitespace = lineContainsOnlyWhitespace(linePart);
+        }
+        else {
+            for (let i = range.startLineNumber; i <= range.endLineNumber; i++) {
+                const lineContent = model.getLineContent(i);
+                if (i === range.startLineNumber) {
+                    const linePart = lineContent.substring(range.startColumn - 1);
+                    containsOnlyWhitespace = lineContainsOnlyWhitespace(linePart);
+                }
+                else if (i === range.endLineNumber) {
+                    const linePart = lineContent.substring(0, range.endColumn - 1);
+                    containsOnlyWhitespace = lineContainsOnlyWhitespace(linePart);
+                }
+                else {
+                    containsOnlyWhitespace = model.getLineFirstNonWhitespaceColumn(i) === 0;
+                }
+                if (!containsOnlyWhitespace) {
+                    break;
+                }
+            }
+        }
+        return containsOnlyWhitespace;
+    }
     shouldIgnoreLine(model, lineNumber) {
         model.tokenization.forceTokenization(lineNumber);
         const nonWhitespaceColumn = model.getLineFirstNonWhitespaceColumn(lineNumber);
@@ -484,7 +520,6 @@ let AutoIndentOnPaste = class AutoIndentOnPaste {
         this.callOnModel.dispose();
     }
 };
-AutoIndentOnPaste.ID = 'editor.contrib.autoIndentOnPaste';
 AutoIndentOnPaste = __decorate([
     __param(1, ILanguageConfigurationService)
 ], AutoIndentOnPaste);
