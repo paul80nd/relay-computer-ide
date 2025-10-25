@@ -12,9 +12,13 @@ export class OutputComponent {
   stateType: string = 'info';
   stateText: string = 'ready';
 
+  code: string = '';
+
   @Input()
   set dasm(val: string) {
+    console.log("Setting DASM output, length=", val.length, val.substring(0, 30));
     this.editor?.getModel()?.setValue(val);
+    this.code = val;
   }
 
   @Output() gotoSource = new EventEmitter<number>();
@@ -47,6 +51,7 @@ export class OutputComponent {
         this.gotoSource.emit(addr);
       },
     });
+    this.editor?.getModel()?.setValue(this.code);
   }
 
   setStateAssembledOk(byteCount: number) {
