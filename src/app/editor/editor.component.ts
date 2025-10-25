@@ -62,7 +62,6 @@ export class RcasmEditorComponent {
 
     const code = localStorage.getItem("code") || this.getDefaultCode();
     editor.getModel()?.setValue(code);
-    this.codeChanged.emit(code);
   }
 
   getDefaultCode(): string {
@@ -80,7 +79,6 @@ export class RcasmEditorComponent {
   loadExample(example: string) {
     this.http.get(`/assets/examples/${example}`, { responseType: 'text' }).subscribe(data => {
       this.editor?.getModel()?.setValue(data);
-      this.codeChanged.emit(data);
     });
   }
 

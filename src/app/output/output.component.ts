@@ -16,7 +16,6 @@ export class OutputComponent {
 
   @Input()
   set dasm(val: string) {
-    console.log("Setting DASM output, length=", val.length, val.substring(0, 30));
     this.editor?.getModel()?.setValue(val);
     this.code = val;
   }
