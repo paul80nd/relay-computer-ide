@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { EditorComponent } from 'ngx-monaco-editor-v2';
+import { EditorComponent } from '../ngx-monaco-editor-v2';
 import * as monaco from 'monaco-editor';
 
 @Component({

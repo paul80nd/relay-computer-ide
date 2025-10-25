@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
+import { MonacoEditorModule } from '../ngx-monaco-editor-v2';
 import * as monaco from 'monaco-editor';
 
 @Component({
