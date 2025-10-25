@@ -53,6 +53,7 @@ export class AppComponent implements OnInit {
     const { prg, errors, warnings, labels, debugInfo } = rcasm.assemble(code);
     this.lastCompile = prg;
     this.lastPcToLocs = debugInfo?.pcToLocs
+    this.editor().setDiagnostics(errors, warnings);
     if (errors.length > 0) {
       this.didAssemble = false;
       this.output().setStateAssembledWithErrors(errors.length, warnings.length);

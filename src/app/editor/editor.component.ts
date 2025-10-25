@@ -2,6 +2,7 @@ import { Component, EventEmitter, OnInit, Output, inject, NgZone } from '@angula
 import { HttpClient } from '@angular/common/http';
 import { EditorComponent } from '../ngx-monaco-editor-v2';
 import * as monaco from 'monaco-editor';
+import * as rcasm from '@paul80nd/rcasm';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -92,4 +93,27 @@ export class RcasmEditorComponent implements OnInit {
     this.editor?.setPosition({ lineNumber: lineNo, column: 1 });
     this.editor?.focus();
   }
+
+  setDiagnostics(errors: rcasm.Diagnostic[], warnings: rcasm.Diagnostic[]) {
+    if (!this.editor || !this.editor.getModel()) return;
+
+    const markers: monaco.editor.IMarkerData[] = [];
+
+    const toDiagnostic = (e: rcasm.Diagnostic, s: monaco.MarkerSeverity): monaco.editor.IMarkerData => {
+      return {
+        severity: s,
+        startLineNumber: e.loc.start.line,
+        startColumn: e.loc.start.column,
+        endLineNumber: e.loc.end.line,
+        endColumn: e.loc.end.column,
+        message: e.msg,
+        source: 'rcasm'
+      };
+    };
+
+    markers.push(...errors.map(e => toDiagnostic(e, monaco.MarkerSeverity.Error)));
+    markers.push(...warnings.map(e => toDiagnostic(e, monaco.MarkerSeverity.Warning)));
+    (window as any).monaco.editor.setModelMarkers(this.editor.getModel()!, 'rcasm', markers);
+  }
+
 }
