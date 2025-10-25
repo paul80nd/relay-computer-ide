@@ -26,27 +26,7 @@ export function onMonacoLoad() {
   var monaco = (window as any).monaco;
   monaco.languages.register({ id: 'rcasm' });
   monaco.languages.register({ id: 'rcdsm' });
-  monaco.languages.setLanguageConfiguration('rcasm', {
-    comments: {
-      lineComment: ';'
-    },
-    brackets: [
-      ["{", "}"],
-      ["(", ")"]
-    ],
-    autoClosingPairs: [
-      //        ["{", "}"],
-      //        ["(", ")"],
-      //        { "open": "'", "close": "'", "notIn": ["string", "comment"] },
-      //		{ "open": "\"", "close": "\"", "notIn": ["string"] }
-    ],
-    surroundingPairs: [
-      //        ["{", "}"],
-      //        ["(", ")"]
-    ],
-    //    "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)"
-
-  });
+  monaco.languages.setLanguageConfiguration('rcasm', rcasmLang.conf);
   monaco.languages.setMonarchTokensProvider("rcasm", rcasmLang.language);
 }
 
