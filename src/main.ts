@@ -15,25 +15,47 @@ import {
   importIcon,
   exportIcon
 } from '@cds/core/icon';
-import * as monaco from 'monaco-editor';
-//import * as rcasmLang from './basic-languages/rcasm';
+import * as rcasmLang from './basic-languages/rcasm';
 
 if (environment.production) {
   enableProdMode();
 }
 
-//export function onMonacoLoad() {
-//  monaco.languages.register({ id: "rcasm" });
-//  monaco.languages.register({ id: "rcdsm" });
-// monaco.languages.setMonarchTokensProvider("rcasm", rcasmLang.language);
-//}
+export function onMonacoLoad() {
+
+  var monaco = (window as any).monaco;
+  monaco.languages.register({ id: 'rcasm' });
+  monaco.languages.register({ id: 'rcdsm' });
+  monaco.languages.setLanguageConfiguration('rcasm', {
+    comments: {
+      lineComment: ';'
+    },
+    brackets: [
+      ["{", "}"],
+      ["(", ")"]
+    ],
+    autoClosingPairs: [
+      //        ["{", "}"],
+      //        ["(", ")"],
+      //        { "open": "'", "close": "'", "notIn": ["string", "comment"] },
+      //		{ "open": "\"", "close": "\"", "notIn": ["string"] }
+    ],
+    surroundingPairs: [
+      //        ["{", "}"],
+      //        ["(", ")"]
+    ],
+    //    "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)"
+
+  });
+  monaco.languages.setMonarchTokensProvider("rcasm", rcasmLang.language);
+}
 
 ClarityIcons.addIcons(cogIcon, libraryIcon, minusIcon, plusIcon, terminalIcon, importIcon, exportIcon);
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideMonacoEditor({
-//      onMonacoLoad
+      onMonacoLoad
     }),
     provideHttpClient(withInterceptorsFromDi()),
     provideAnimations()
