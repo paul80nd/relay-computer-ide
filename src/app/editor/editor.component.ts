@@ -2,13 +2,14 @@ import { Component, EventEmitter, OnInit, Output, inject, NgZone } from '@angula
 import { HttpClient } from '@angular/common/http';
 import { EditorComponent } from '../ngx-monaco-editor-v2';
 import * as monaco from 'monaco-editor';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-ride-editor',
   templateUrl: './editor.component.html',
-  imports: [EditorComponent]
+  imports: [EditorComponent, FormsModule]
 })
-export class RcasmEditorComponent {
+export class RcasmEditorComponent implements OnInit {
   private http = inject(HttpClient);
   private ngZone = inject(NgZone);
 
@@ -17,6 +18,8 @@ export class RcasmEditorComponent {
 
   stateType: string = 'info';
   stateText: string = 'ready';
+
+  code: string = '';
 
   editor: monaco.editor.IStandaloneCodeEditor | null = null;
 
@@ -30,16 +33,13 @@ export class RcasmEditorComponent {
     // minimap: { enabled: false }
   };
 
+  ngOnInit(): void {
+    const code = localStorage.getItem("code") || this.getDefaultCode();
+    this.code = code;
+  }
+
   onInit(editor: monaco.editor.IStandaloneCodeEditor) {
     this.editor = editor;
-
-    editor.onDidChangeModelContent(() => {
-      const code = editor.getModel()?.getValue()
-      if (code) {
-        localStorage.setItem("code", code);
-        this.codeChanged.emit(code);
-      }
-    });
 
     editor.onDidChangeCursorPosition(e => {
       this.ngZone.run(() => {
@@ -60,8 +60,12 @@ export class RcasmEditorComponent {
       }
     });
 
-    const code = localStorage.getItem("code") || this.getDefaultCode();
-    editor.getModel()?.setValue(code);
+    this.codeChanged.emit(this.code);
+  }
+
+  onCodeChange() {
+    localStorage.setItem("code", this.code);
+    this.codeChanged.emit(this.code);
   }
 
   getDefaultCode(): string {
@@ -78,7 +82,8 @@ export class RcasmEditorComponent {
 
   loadExample(example: string) {
     this.http.get(`/assets/examples/${example}`, { responseType: 'text' }).subscribe(data => {
-      this.editor?.getModel()?.setValue(data);
+      this.code = data;
+      this.editor?.revealLineInCenter(0);
     });
   }
 
