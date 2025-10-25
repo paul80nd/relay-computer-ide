@@ -1,11 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { EditorComponent } from '../ngx-monaco-editor-v2';
+import { FormsModule } from '@angular/forms';
 import * as monaco from 'monaco-editor';
 
 @Component({
   selector: 'app-ride-output',
   templateUrl: './output.component.html',
-  imports: [EditorComponent]
+  imports: [EditorComponent, FormsModule]
 })
 export class OutputComponent {
 
@@ -16,7 +17,6 @@ export class OutputComponent {
 
   @Input()
   set dasm(val: string) {
-    this.editor?.getModel()?.setValue(val);
     this.code = val;
   }
 
@@ -50,7 +50,6 @@ export class OutputComponent {
         this.gotoSource.emit(addr);
       },
     });
-    this.editor?.getModel()?.setValue(this.code);
   }
 
   setStateAssembledOk(byteCount: number) {
