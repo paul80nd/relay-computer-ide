@@ -41,7 +41,7 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
     this._options = Object.assign({}, this.config.defaultOptions, options);
     if (this._editor) {
       this._editor.dispose();
-      this.initMonaco(options, this.insideNg);
+      this.initMonaco(this._options, this.insideNg);
     }
   }
 
