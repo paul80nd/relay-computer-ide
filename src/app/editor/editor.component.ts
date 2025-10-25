@@ -1,14 +1,16 @@
-import { Component, EventEmitter, Output, inject } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, inject, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
+import { EditorComponent } from 'ngx-monaco-editor-v2';
+import * as monaco from 'monaco-editor';
 
 @Component({
   selector: 'app-ride-editor',
   templateUrl: './editor.component.html',
-  imports: [MonacoEditorModule]
+  imports: [EditorComponent]
 })
-export class EditorComponent {
+export class RcasmEditorComponent {
   private http = inject(HttpClient);
+  private ngZone = inject(NgZone);
 
   @Output() codeChanged = new EventEmitter<string>();
   @Output() gotoAssembled = new EventEmitter<number>();
@@ -40,7 +42,9 @@ export class EditorComponent {
     });
 
     editor.onDidChangeCursorPosition(e => {
-      this.stateText = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
+      this.ngZone.run(() => {
+        this.stateText = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
+      });
     });
 
     editor.addAction(<monaco.editor.IActionDescriptor>{
@@ -48,16 +52,17 @@ export class EditorComponent {
       label: "Go to Assembled",
       contextMenuGroupId: "navigation",
       contextMenuOrder: 1.5,
-      run: (ed) => {
+      run: (ed: monaco.editor.ICodeEditor) => {
         const pos = ed.getPosition();
         if (pos) {
-          this.gotoAssembled.emit(pos.lineNumber)
+          this.gotoAssembled.emit(pos.lineNumber);
         }
       }
     });
 
     const code = localStorage.getItem("code") || this.getDefaultCode();
     editor.getModel()?.setValue(code);
+    this.codeChanged.emit(code);
   }
 
   getDefaultCode(): string {
@@ -75,6 +80,7 @@ export class EditorComponent {
   loadExample(example: string) {
     this.http.get(`/assets/examples/${example}`, { responseType: 'text' }).subscribe(data => {
       this.editor?.getModel()?.setValue(data);
+      this.codeChanged.emit(data);
     });
   }
 

@@ -1,10 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { MonacoEditorModule } from '@materia-ui/ngx-monaco-editor';
+import { EditorComponent } from 'ngx-monaco-editor-v2';
+import * as monaco from 'monaco-editor';
 
 @Component({
   selector: 'app-ride-output',
   templateUrl: './output.component.html',
-  imports: [MonacoEditorModule]
+  imports: [EditorComponent]
 })
 export class OutputComponent {
 
@@ -38,7 +39,7 @@ export class OutputComponent {
       label: "Go to Source",
       contextMenuGroupId: "navigation",
       contextMenuOrder: 1.5,
-      run: (ed) => {
+      run: (ed: monaco.editor.IStandaloneCodeEditor) => {
         const pos = ed.getPosition();
         const addrText = pos ? ed.getModel()?.getLineContent(pos.lineNumber).substring(0, 4) : '';
         if (!addrText) { return; }

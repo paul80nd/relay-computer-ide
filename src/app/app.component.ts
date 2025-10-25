@@ -3,7 +3,7 @@ import { EmulatorComponent } from './emulator/emulator.component';
 import { OutputComponent } from './output/output.component';
 import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
-import { EditorComponent } from './editor/editor.component';
+import { RcasmEditorComponent } from './editor/editor.component';
 import { ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule } from '@clr/angular';
 import { DocsComponent } from './docs/docs.component';
 import { ExamplesComponent } from './examples/examples.component';
@@ -12,14 +12,14 @@ import { DiffComponent } from './diff/diff.component';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, EditorComponent, ExamplesComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent]
+  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, RcasmEditorComponent, ExamplesComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent]
 })
 export class AppComponent implements OnInit {
   private _clipboardService = inject(ClipboardService);
 
   readonly output = viewChild.required(OutputComponent);
 
-  readonly editor = viewChild.required(EditorComponent);
+  readonly editor = viewChild.required(RcasmEditorComponent);
 
   readonly emulator = viewChild.required(EmulatorComponent);
 
