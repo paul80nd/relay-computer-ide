@@ -35,8 +35,15 @@ export class OutputComponent {
     minimap: { enabled: false }
   };
 
+  labels?: {
+    [k: string]: {
+      name: string;
+    };
+  }
+
   onInit(editor: monaco.editor.IStandaloneCodeEditor) {
     this.editor = editor;
+
     editor.addAction(<monaco.editor.IActionDescriptor>{
       id: "rcasm-jump-to-source",
       label: "Go to Source",
@@ -48,6 +55,71 @@ export class OutputComponent {
         if (!addrText) { return; }
         const addr = parseInt(addrText, 16);
         this.gotoSource.emit(addr);
+      }
+    });
+
+    var commandId = editor.addCommand(
+      0,
+      (_, addrText: string) => {
+        if (addrText) {
+          const addr = parseInt(addrText, 16);
+          this.gotoSource.emit(addr);
+        }
+      },
+      ""
+    );
+
+    (window as any).monaco.languages.registerCodeLensProvider("rcdsm", {
+      provideCodeLenses: (model: monaco.editor.ITextModel, token: monaco.CancellationToken) => {
+        console.log("provideCodeLenses called");
+        if (!this.labels) {
+          return { lenses: [], dispose: () => { } };
+        }
+
+        var labelLenses: {
+          range: {
+            startLineNumber: number;
+            startColumn: number;
+            endLineNumber: number;
+            endColumn: number;
+          };
+          id: string;
+          command: {
+            id: string | null;
+            title: string;
+            arguments?: unknown[]
+          };
+        }[] = [];
+
+        model.getLinesContent().forEach((v, idx) => {
+          const addr = v.substring(0, 4)
+          const label = this.labels![addr];
+          if (label) {
+            labelLenses.push({
+              range: {
+                startLineNumber: idx + 1,
+                startColumn: 1,
+                endLineNumber: idx + 1,
+                endColumn: 1,
+              },
+              id: `${addr}:${label.name}`,
+              command: {
+                id: commandId,
+                title: label.name,
+                arguments: [addr]
+              },
+            });
+          }
+        });
+
+        return {
+          lenses: labelLenses,
+          dispose: () => { },
+        };
+
+      },
+      resolveCodeLens: function (model: monaco.editor.ITextModel, codeLens: monaco.languages.CodeLens, token: monaco.CancellationToken) {
+        return codeLens;
       },
     });
   }
@@ -83,4 +155,13 @@ export class OutputComponent {
       this.editor.focus();
     }
   }
+
+  clearLabels() {
+    this.labels = undefined;
+  }
+
+  setLabels(labels: { [k: string]: { name: string; }; }) {
+    this.labels = labels;
+  }
+
 }

@@ -54,6 +54,7 @@ export class AppComponent implements OnInit {
     this.lastCompile = prg;
     this.lastPcToLocs = debugInfo?.pcToLocs
     this.editor().setDiagnostics(errors, warnings);
+    this.output().clearLabels();
     if (errors.length > 0) {
       this.didAssemble = false;
       this.output().setStateAssembledWithErrors(errors.length, warnings.length);
@@ -76,8 +77,14 @@ export class AppComponent implements OnInit {
         this.dasm += labels.map(l => `🔹 ${l.addr.toString(16).padStart(4, '0')}: ${l.name}`).join('\n');
         this.dasm += '\n\n'
       }
-      this.dasm += rcasm.disassemble(prg, { isInstruction: debugInfo!.info().isInstruction }).join('\n');
+      this.dasm += rcasm.disassemble(prg, {
+        isInstruction: debugInfo?.info().isInstruction,
+        isData: debugInfo?.info().isData,
+        dataLength: debugInfo?.info().dataLength
+      }).join('\n');
       this.emulator().load(this.lastCompile);
+      let labelDict = Object.fromEntries(labels.map(l => [l.addr.toString(16).padStart(4, '0').toUpperCase(), { name: l.name }]));
+      this.output().setLabels(labelDict);
     }
   }
 
