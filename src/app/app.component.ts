@@ -65,7 +65,6 @@ export class AppComponent implements OnInit {
     } else {
       this.didAssemble = true;
       if (warnings.length > 0) {
-        const msg = `Assembled with ${warnings.length} warning${warnings.length === 1 ? '' : 's'}`;
         this.output().setStateAssembledWithWarnings(warnings.length);
         this.dasm = warnings.map(w => `🔸 ${w.loc.start.line}:${w.loc.start.column} ${w.msg}`).join('\n');
         this.dasm += '\n\n'

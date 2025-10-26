@@ -11,7 +11,7 @@ export const language = <languages.IMonarchLanguage>{
   tokenizer: {
     root: [
       // Compile outcome
-      [/🔸.*$/, 'invalid'],
+      [/🔸.*$/, ''],
       [/❌.*/, 'invalid'],
 
       // whitespace
