@@ -23,14 +23,6 @@ header {
       margin-right: 0;
     }
   }
-
-  .header-actions {
-    padding-right: .5em;
-
-    .dropdown-toggle {
-      padding: var(--cds-global-space-5) var(--cds-global-space-5) !important;
-    }
-  }
 }
 
 .main-container .content-container .clr-vertical-nav {
@@ -181,7 +173,8 @@ header {
   background-color: #428BCA;
 }
 
-.simulation td.pc-marker a, .simulation td.m-marker a {
+.simulation td.pc-marker a,
+.simulation td.m-marker a {
   color: white;
 }
 
