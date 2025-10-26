@@ -8,12 +8,12 @@
       </a>
     </div>
     <div class="header-actions">
-      <a href="#" (click)="showDocs = !showDocs" class="nav-link"><input type="checkbox" clrToggle
-          (click)="showDocs = !showDocs" [checked]="showDocs" />
-        <span class="nav-text">Documentation</span>
-      </a>
-      <a href="#" (click)="showEmu = !showEmu" class="nav-link" cds-layout="m-r:xl"><input type="checkbox" clrToggle
-          (click)="showEmu = !showEmu" [checked]="showEmu" /><span class="nav-text">Emulator</span></a>
+      <div class="nav-link">
+        <input id="docsToggle" type="checkbox" clrToggle [(ngModel)]="showDocs" />
+        <label for="docsToggle" class="nav-text" cds-layout="m-r:md">Documentation</label>
+        <input id="emuToggle" type="checkbox" clrToggle [(ngModel)]="showEmu" />
+        <label for="emuToggle" class="nav-text">Emulator</label>
+      </div>
       <clr-dropdown>
         <button class="nav-icon" clrDropdownTrigger>
           <cds-icon shape="import"></cds-icon> Import
@@ -57,12 +57,14 @@
     </div>
     }
     <div class="content-area" style="margin: 0; padding: 0;">
-      <app-ride-editor #editor (codeChanged)="onEditorCodeChanged($event)" (gotoAssembled)="gotoAssembled($event)" class="editor-container"></app-ride-editor>
+      <app-ride-editor #editor (codeChanged)="onEditorCodeChanged($event)" (gotoAssembled)="gotoAssembled($event)"
+        class="editor-container"></app-ride-editor>
     </div>
     <clr-vertical-nav>
       <app-ride-emulator #emulator [style.display]="showEmu ? 'block':'none'"
         class="content-area simulator-container"></app-ride-emulator>
-      <app-ride-output #output [dasm]="dasm" (gotoSource)="gotoSource($event)" class="editor-container"></app-ride-output>
+      <app-ride-output #output [dasm]="dasm" (gotoSource)="gotoSource($event)"
+        class="editor-container"></app-ride-output>
     </clr-vertical-nav>
   </div>
   } @else {

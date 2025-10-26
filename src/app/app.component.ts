@@ -8,11 +8,12 @@ import { ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule } from '@clr
 import { DocsComponent } from './docs/docs.component';
 import { ExamplesComponent } from './examples/examples.component';
 import { DiffComponent } from './diff/diff.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, RcasmEditorComponent, ExamplesComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent]
+  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, RcasmEditorComponent, ExamplesComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent, FormsModule]
 })
 export class AppComponent implements OnInit {
   private _clipboardService = inject(ClipboardService);
