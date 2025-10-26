@@ -44,6 +44,7 @@ export class OutputComponent {
   onInit(editor: monaco.editor.IStandaloneCodeEditor) {
     this.editor = editor;
 
+    // Add goto source action
     editor.addAction(<monaco.editor.IActionDescriptor>{
       id: "rcasm-jump-to-source",
       label: "Go to Source",
@@ -58,6 +59,7 @@ export class OutputComponent {
       }
     });
 
+    // Add goto source command
     var commandId = editor.addCommand(
       0,
       (_, addrText: string) => {
@@ -69,28 +71,15 @@ export class OutputComponent {
       ""
     );
 
-    (window as any).monaco.languages.registerCodeLensProvider("rcdsm", {
+    // Add labels code lens
+    (window as any).monaco.languages.registerCodeLensProvider("rcdsm", <monaco.languages.CodeLensProvider>{
       provideCodeLenses: (model: monaco.editor.ITextModel, token: monaco.CancellationToken) => {
-        console.log("provideCodeLenses called");
         if (!this.labels) {
           return { lenses: [], dispose: () => { } };
         }
 
-        var labelLenses: {
-          range: {
-            startLineNumber: number;
-            startColumn: number;
-            endLineNumber: number;
-            endColumn: number;
-          };
-          id: string;
-          command: {
-            id: string | null;
-            title: string;
-            arguments?: unknown[]
-          };
-        }[] = [];
-
+        // Review line-by-line looking for label matches by address
+        var labelLenses: monaco.languages.CodeLens[] = [];
         model.getLinesContent().forEach((v, idx) => {
           const addr = v.substring(0, 4)
           const label = this.labels![addr];
@@ -104,7 +93,7 @@ export class OutputComponent {
               },
               id: `${addr}:${label.name}`,
               command: {
-                id: commandId,
+                id: commandId!,
                 title: label.name,
                 arguments: [addr]
               },
@@ -112,11 +101,7 @@ export class OutputComponent {
           }
         });
 
-        return {
-          lenses: labelLenses,
-          dispose: () => { },
-        };
-
+        return { lenses: labelLenses, dispose: () => { }, };
       },
       resolveCodeLens: function (model: monaco.editor.ITextModel, codeLens: monaco.languages.CodeLens, token: monaco.CancellationToken) {
         return codeLens;
