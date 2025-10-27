@@ -64,7 +64,7 @@
       <app-ride-emulator #emulator [style.display]="showEmu ? 'block':'none'"
         class="content-area simulator-container"></app-ride-emulator>
       <app-ride-output #output [dasm]="dasm" (gotoSource)="gotoSource($event)"
-        class="editor-container"></app-ride-output>
+        (gotoSourcePosition)="gotoSourcePosition($event)" class="editor-container"></app-ride-output>
     </clr-vertical-nav>
   </div>
   } @else {

@@ -1,4 +1,24 @@
-<ngx-monaco-editor style="height: 100%" [options]="editorOptions" [ngModel]="code" (init)="onInit($event)" class="editor" />
+@if (errors.length > 0 || warnings.length > 0)
+{
+<div cds-layout="p-t:sm p-b:md p-x:lg gap:xxs">
+  @for (item of errors; track $index) {
+  <p cds-text="secondary regular" cds-layout="m-t:xxs">
+    <cds-icon shape="times-circle" status="danger" cds-layout="m-b:xxs"></cds-icon> {{item.msg}}
+    <a href="#" (click)="onNavigateDiagnostic(item)"><small>at Ln {{item.loc.start.line}}, Col
+        {{item.loc.start.column}}</small></a>
+  </p>
+  }
+  @for (item of warnings; track $index) {
+  <p cds-text="secondary regular" cds-layout="m-t:xxs">
+    <cds-icon shape="warning-standard" status="warning" cds-layout="m-b:xxs"></cds-icon> {{item.msg}}
+    <a href="#" (click)="onNavigateDiagnostic(item)"><small>at Ln {{item.loc.start.line}}, Col
+        {{item.loc.start.column}}</small></a>
+  </p>
+  }
+</div>
+}
+<ngx-monaco-editor style="height: 100%" [options]="editorOptions" [ngModel]="code" (init)="onInit($event)"
+  class="editor" />
 <div class="editor-footer" [attr.status]="stateType" cds-layout="horizontal gap:xs align:vertical-center">
   <span cds-text="secondary regular" [innerHTML]="stateText"></span>
 </div>

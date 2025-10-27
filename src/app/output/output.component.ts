@@ -1,16 +1,20 @@
 import { Component, Input, output } from '@angular/core';
 import { MonacoEditorComponent } from '../ngx-monaco-editor';
 import { FormsModule } from '@angular/forms';
+import * as rcasm from '@paul80nd/rcasm';
+import { ClrIconModule } from '@clr/angular';
 
 @Component({
   selector: 'app-ride-output',
   templateUrl: './output.component.html',
-  imports: [MonacoEditorComponent, FormsModule]
+  imports: [MonacoEditorComponent, FormsModule, ClrIconModule]
 })
 export class OutputComponent {
 
   stateType: string = 'info';
   stateText: string = 'ready';
+  errors: rcasm.Diagnostic[] = [];
+  warnings: rcasm.Diagnostic[] = [];
 
   code: string = '';
 
@@ -20,6 +24,7 @@ export class OutputComponent {
   }
 
   readonly gotoSource = output<number>();
+  readonly gotoSourcePosition = output<rcasm.SourceLoc>();
 
   editor: monaco.editor.IStandaloneCodeEditor | null = null;
 
@@ -111,16 +116,26 @@ export class OutputComponent {
   setStateAssembledOk(byteCount: number) {
     this.stateType = 'success';
     this.stateText = `Assembled OK : ${byteCount} bytes`;
+    this.warnings = [];
+    this.errors = [];
   }
-  setStateAssembledWithWarnings(warnCount: number) {
+  setStateAssembledWithWarnings(warnings: rcasm.Diagnostic[]) {
+    var count = warnings.length;
     this.stateType = 'warning';
-    this.stateText = `Assembled with ${warnCount} warning${warnCount === 1 ? '' : 's'}`;
+    this.stateText = `Assembled with ${count} warning${count === 1 ? '' : 's'}`;
+    this.warnings = warnings;
+    this.errors = [];
   }
-  setStateAssembledWithErrors(errorCount: number, warnCount: number) {
+  setStateAssembledWithErrors(errors: rcasm.Diagnostic[], warnings: rcasm.Diagnostic[]) {
+    var errorCount = errors.length;
+    var warnCount = warnings.length;
     const errorText = `${errorCount} error${errorCount === 1 ? '' : 's'}`;
     const warningText = warnCount > 0 ? `, ${warnCount} warning${warnCount === 1 ? '' : 's'}` : '';
-    this.stateText = `Assembly failed with ${errorText}${warningText}`;
+    var stateText = `Assembly failed with ${errorText}${warningText}`;
+    this.stateText = stateText;
     this.stateType = 'danger';
+    this.errors = errors;
+    this.warnings = warnings;
   }
   setStateInformation(message: string) {
     this.stateText = message;
@@ -138,6 +153,10 @@ export class OutputComponent {
       this.editor.setPosition({ lineNumber: lineNo, column: 1 });
       this.editor.focus();
     }
+  }
+
+  onNavigateDiagnostic(diag: rcasm.Diagnostic) {
+    this.gotoSourcePosition.emit(diag.loc);
   }
 
   clearLabels() {

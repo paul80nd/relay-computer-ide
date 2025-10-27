@@ -14,7 +14,8 @@ import {
   plusIcon,
   terminalIcon,
   importIcon,
-  exportIcon
+  exportIcon,
+  timesCircleIcon
 } from '@cds/core/icon';
 import * as rcasmLang from './basic-languages/rcasm';
 import * as rcdsmLang from './basic-languages/rcdsm';
@@ -33,7 +34,7 @@ export function onMonacoLoad() {
   monaco.languages.setMonarchTokensProvider("rcdsm", rcdsmLang.language);
 }
 
-ClarityIcons.addIcons(cogIcon, libraryIcon, minusIcon, plusIcon, terminalIcon, importIcon, exportIcon);
+ClarityIcons.addIcons(cogIcon, libraryIcon, minusIcon, plusIcon, terminalIcon, importIcon, exportIcon, timesCircleIcon);
 
 bootstrapApplication(AppComponent, {
   providers: [

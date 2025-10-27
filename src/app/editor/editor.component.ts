@@ -28,8 +28,7 @@ export class EditorComponent implements OnInit {
     renderLineHighlight: 'none',
     scrollBeyondLastLine: true,
     theme: (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'vs-dark' : 'vs-light',
-    padding: { top: 15 },
-    // minimap: { enabled: false }
+    padding: { top: 15 }
   };
 
   ngOnInit(): void {
@@ -84,9 +83,9 @@ export class EditorComponent implements OnInit {
     });
   }
 
-  gotoLine(lineNo: number) {
-    this.editor?.revealLineInCenter(lineNo);
-    this.editor?.setPosition({ lineNumber: lineNo, column: 1 });
+  gotoPosition(position: monaco.IPosition) {
+    this.editor?.revealLineInCenter(position.lineNumber);
+    this.editor?.setPosition(position);
     this.editor?.focus();
   }
 

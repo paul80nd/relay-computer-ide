@@ -74,16 +74,13 @@ export class AppComponent implements OnInit {
     this.output().clearLabels();
     if (errors.length > 0) {
       this.didAssemble = false;
-      this.output().setStateAssembledWithErrors(errors.length, warnings.length);
-      this.dasm = errors.map(w => `❌ ${w.loc.start.line}:${w.loc.start.column} ${w.msg}`).join('\n');
-      this.dasm += '\n'
-      this.dasm += warnings.map(w => `🔸 ${w.loc.start.line}:${w.loc.start.column} ${w.msg}`).join('\n');
+      this.output().setStateAssembledWithErrors(errors, warnings);
+      this.dasm = `❌ Assembly failed (${errors.length} error${errors.length === 1 ? '' : 's'})`;
     } else {
       this.didAssemble = true;
       if (warnings.length > 0) {
-        this.output().setStateAssembledWithWarnings(warnings.length);
-        this.dasm = warnings.map(w => `🔸 ${w.loc.start.line}:${w.loc.start.column} ${w.msg}`).join('\n');
-        this.dasm += '\n\n'
+        this.output().setStateAssembledWithWarnings(warnings);
+        this.dasm = '';
       } else {
         this.output().setStateAssembledOk(prg.length);
         this.dasm = '';
@@ -110,8 +107,12 @@ export class AppComponent implements OnInit {
     }
 
     if (locs) {
-      this.editor().gotoLine(locs[0].lineNo);
+      this.editor().gotoPosition({ lineNumber: locs[0].lineNo, column: 1 });
     }
+  }
+
+  gotoSourcePosition(loc: rcasm.SourceLoc) {
+    this.editor().gotoPosition({ lineNumber: loc.start.line, column: loc.start.column });
   }
 
   gotoAssembled(line: number) {
