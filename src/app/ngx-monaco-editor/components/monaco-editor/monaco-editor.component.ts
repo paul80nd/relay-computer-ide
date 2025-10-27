@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, OnInit, OnChanges, OnDestroy, ChangeDetectionStrategy, forwardRef, SimpleChanges, inject, input, output } from '@angular/core';
+import { Component, ElementRef, OnInit, OnChanges, OnDestroy, ChangeDetectionStrategy, forwardRef, SimpleChanges, inject, input, output, viewChild } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, Validator, NG_VALIDATORS, ValidationErrors } from '@angular/forms';
 import { filter, take } from 'rxjs/operators';
 
@@ -52,7 +52,7 @@ export class MonacoEditorComponent implements OnInit, OnChanges, OnDestroy, Cont
     readonly options = input.required<MonacoEditorConstructionOptions>();
     readonly uri = input<MonacoEditorUri>();
     readonly init = output<MonacoStandaloneCodeEditor>();
-    @ViewChild('editor', { static: true }) editorContent!: ElementRef;
+    readonly editorContent = viewChild.required<ElementRef>('editor');
 
     editor!: MonacoStandaloneCodeEditor;
     modelUriInstance!: monaco.editor.ITextModel;
@@ -165,7 +165,7 @@ export class MonacoEditorComponent implements OnInit, OnChanges, OnDestroy, Cont
 
         const optionsValue = this.options();
         this.editor = monaco.editor.create(
-          this.editorContent.nativeElement,
+          this.editorContent().nativeElement,
           optionsValue ? { ...options, ...optionsValue } : options
         );
 
