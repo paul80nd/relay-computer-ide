@@ -1,8 +1,6 @@
 // Inspired by: https://github.com/microsoft/monaco-languages/blob/master/src/mips/mips.ts
 
-import type { languages } from 'monaco-editor';
-
-export const conf = <languages.LanguageConfiguration> {
+export const conf = <monaco.languages.LanguageConfiguration> {
   comments: {
     lineComment: ';'
   },
@@ -25,7 +23,7 @@ export const conf = <languages.LanguageConfiguration> {
 
 };
 
-export const language = <languages.IMonarchLanguage>{
+export const language = <monaco.languages.IMonarchLanguage>{
   defaultToken: '',
   ignoreCase: true,
   tokenPostfix: '.rcasm',

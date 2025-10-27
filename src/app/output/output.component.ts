@@ -1,12 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { EditorComponent } from '../ngx-monaco-editor-v2';
+import { MonacoEditorModule } from '../ngx-monaco-editor';
 import { FormsModule } from '@angular/forms';
-import * as monaco from 'monaco-editor';
 
 @Component({
   selector: 'app-ride-output',
   templateUrl: './output.component.html',
-  imports: [EditorComponent, FormsModule]
+  imports: [MonacoEditorModule, FormsModule]
 })
 export class OutputComponent {
 
@@ -29,7 +28,7 @@ export class OutputComponent {
     lineNumbers: 'off',
     renderLineHighlight: 'none',
     readOnly: true, domReadOnly: true,
-    scrollBeyondLastLine: true,
+    scrollBeyondLastLine: false,
     theme: (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'vs-dark' : 'vs-light',
     padding: { top: 15 },
     minimap: { enabled: false }

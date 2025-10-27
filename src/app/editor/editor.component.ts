@@ -1,14 +1,13 @@
 import { Component, EventEmitter, OnInit, Output, inject, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { EditorComponent } from '../ngx-monaco-editor-v2';
-import * as monaco from 'monaco-editor';
+import { MonacoEditorModule } from '../ngx-monaco-editor';
 import * as rcasm from '@paul80nd/rcasm';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-ride-editor',
   templateUrl: './editor.component.html',
-  imports: [EditorComponent, FormsModule]
+  imports: [MonacoEditorModule, FormsModule]
 })
 export class RcasmEditorComponent implements OnInit {
   private http = inject(HttpClient);

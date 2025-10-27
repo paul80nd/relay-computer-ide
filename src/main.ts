@@ -4,7 +4,8 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { AppComponent } from './app/app.component';
-import { provideMonacoEditor } from './app/ngx-monaco-editor-v2';
+import { provideMonacoEditor } from './app/ngx-monaco-editor';
+
 import {
   ClarityIcons,
   cogIcon,

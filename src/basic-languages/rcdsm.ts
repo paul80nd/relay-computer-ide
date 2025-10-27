@@ -1,8 +1,6 @@
-import type { languages } from 'monaco-editor';
+export const conf = <monaco.languages.LanguageConfiguration>{};
 
-export const conf = <languages.LanguageConfiguration>{};
-
-export const language = <languages.IMonarchLanguage>{
+export const language = <monaco.languages.IMonarchLanguage>{
   defaultToken: '',
   ignoreCase: false,
   tokenPostfix: '.rcdsm',
