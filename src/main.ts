@@ -38,6 +38,7 @@ ClarityIcons.addIcons(cogIcon, libraryIcon, minusIcon, plusIcon, terminalIcon, i
 bootstrapApplication(AppComponent, {
   providers: [
     provideMonacoEditor({
+      monacoPath: 'assets/monaco-editor/min/vs',
       onMonacoLoad
     }),
     provideHttpClient(withInterceptorsFromDi()),

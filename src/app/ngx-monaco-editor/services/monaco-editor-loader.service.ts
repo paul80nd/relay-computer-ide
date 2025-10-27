@@ -1,6 +1,6 @@
 import { Injectable, NgZone, Optional, Inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { MONACO_PATH, MonacoEditorConfig, NGX_MONACO_EDITOR_CONFIG } from '../interfaces';
+import { MonacoEditorConfig, NGX_MONACO_EDITOR_CONFIG } from '../interfaces';
 
 @Injectable({ providedIn: 'root' })
 export class MonacoEditorLoaderService {
@@ -15,8 +15,7 @@ export class MonacoEditorLoaderService {
   }
 
   constructor(private ngZone: NgZone,
-    @Optional() @Inject(MONACO_PATH) public monacoPathConfig: string,
-    @Optional() @Inject(NGX_MONACO_EDITOR_CONFIG) public monacoEditorConfig: MonacoEditorConfig) {
+    @Optional() @Inject(NGX_MONACO_EDITOR_CONFIG) public config: MonacoEditorConfig) {
     if ((<any>window).monacoEditorAlreadyInitialized) {
       ngZone.run(() => this.isMonacoLoaded$.next(true));
       return;
@@ -24,8 +23,8 @@ export class MonacoEditorLoaderService {
 
     (<any>window).monacoEditorAlreadyInitialized = true;
 
-    if (this.monacoPathConfig) {
-      this.monacoPath = this.monacoPathConfig;
+    if (this.config && this.config.monacoPath) {
+      this.monacoPath = this.config.monacoPath;
     }
 
     this.loadMonaco();
@@ -54,8 +53,8 @@ export class MonacoEditorLoaderService {
 
       // Load monaco
       (<any>window).amdRequire(['vs/editor/editor.main'], () => {
-        if (this.monacoEditorConfig && typeof this.monacoEditorConfig.onMonacoLoad === 'function') {
-          this.monacoEditorConfig.onMonacoLoad();
+        if (this.config && typeof this.config.onMonacoLoad === 'function') {
+          this.config.onMonacoLoad();
         }
         this.ngZone.run(() => this.isMonacoLoaded$.next(true));
       }, (error: any) => console.error('Error loading monaco-editor: ', error));
