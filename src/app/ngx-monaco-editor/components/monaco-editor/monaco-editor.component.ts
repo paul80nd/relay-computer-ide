@@ -46,7 +46,6 @@ import { MonacoEditorConstructionOptions, MonacoEditorUri, MonacoStandaloneCodeE
 }`
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false,
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,

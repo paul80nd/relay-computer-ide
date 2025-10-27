@@ -5,17 +5,16 @@ import { MonacoDiffEditorComponent } from './components/monaco-diff-editor/monac
 import { MonacoEditorConfig, NGX_MONACO_EDITOR_CONFIG } from './interfaces';
 
 @NgModule({
-    imports: [],
-    declarations: [
-        MonacoEditorLoaderDirective,
-        MonacoEditorComponent,
-        MonacoDiffEditorComponent
-    ],
-    exports: [
-        MonacoEditorLoaderDirective,
-        MonacoEditorComponent,
-        MonacoDiffEditorComponent
-    ]
+  imports: [
+    MonacoEditorLoaderDirective,
+    MonacoEditorComponent,
+    MonacoDiffEditorComponent
+  ],
+  exports: [
+    MonacoEditorLoaderDirective,
+    MonacoEditorComponent,
+    MonacoDiffEditorComponent
+  ]
 })
 export class MonacoEditorModule { }
 

@@ -43,9 +43,8 @@ import { MonacoDiffEditorConstructionOptions, MonacoStandaloneDiffEditor } from 
   min-width: 0;
 }`
     ],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
-})
+    changeDetection: ChangeDetectionStrategy.OnPush
+  })
 export class MonacoDiffEditorComponent implements OnInit, OnChanges, OnDestroy {
     container!: HTMLDivElement;
     editor!: MonacoStandaloneDiffEditor;
