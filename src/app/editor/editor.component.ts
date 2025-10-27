@@ -59,9 +59,14 @@ export class EditorComponent implements OnInit {
     this.codeChanged.emit(this.code);
   }
 
+  private changeTimeoutId?: number;
   onCodeChange() {
-    localStorage.setItem("code", this.code);
-    this.codeChanged.emit(this.code);
+    // Debounce change by up to 500ms
+    clearTimeout(this.changeTimeoutId);
+    this.changeTimeoutId = setTimeout(() => {
+      localStorage.setItem("code", this.code);
+      this.codeChanged.emit(this.code);
+    }, 500);
   }
 
   getDefaultCode(): string {
