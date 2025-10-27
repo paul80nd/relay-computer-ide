@@ -27,7 +27,6 @@ export class AppComponent implements OnInit {
   _showDocs = false;
   _showEmu = false;
 
-
   get showDocs() { return this._showDocs; }
   set showDocs(value: boolean) {
     this._showDocs = value;

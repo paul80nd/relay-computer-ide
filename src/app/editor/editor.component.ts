@@ -1,13 +1,13 @@
 import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { MonacoEditorModule } from '../ngx-monaco-editor';
+import { MonacoEditorComponent } from '../ngx-monaco-editor';
 import * as rcasm from '@paul80nd/rcasm';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-ride-editor',
   templateUrl: './editor.component.html',
-  imports: [MonacoEditorModule, FormsModule]
+  imports: [MonacoEditorComponent, FormsModule]
 })
 export class EditorComponent implements OnInit {
   private http = inject(HttpClient);

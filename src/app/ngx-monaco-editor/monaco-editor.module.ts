@@ -4,19 +4,6 @@ import { MonacoEditorComponent } from './components/monaco-editor/monaco-editor.
 import { MonacoDiffEditorComponent } from './components/monaco-diff-editor/monaco-diff-editor.component';
 import { MonacoEditorConfig, NGX_MONACO_EDITOR_CONFIG } from './interfaces';
 
-@NgModule({
-  imports: [
-    MonacoEditorLoaderDirective,
-    MonacoEditorComponent,
-    MonacoDiffEditorComponent
-  ],
-  exports: [
-    MonacoEditorLoaderDirective,
-    MonacoEditorComponent,
-    MonacoDiffEditorComponent
-  ]
-})
-export class MonacoEditorModule { }
 
 export function provideMonacoEditor(config: MonacoEditorConfig = {}) {
   return makeEnvironmentProviders([

@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { MonacoEditorModule } from '../ngx-monaco-editor';
+import { MonacoEditorComponent } from '../ngx-monaco-editor';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-ride-output',
   templateUrl: './output.component.html',
-  imports: [MonacoEditorModule, FormsModule]
+  imports: [MonacoEditorComponent, FormsModule]
 })
 export class OutputComponent {
 

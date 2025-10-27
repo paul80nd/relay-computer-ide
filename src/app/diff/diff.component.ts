@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { MonacoEditorModule } from '../ngx-monaco-editor';
+import { MonacoDiffEditorComponent } from '../ngx-monaco-editor';
 
 @Component({
   selector: 'app-ride-diff',
   templateUrl: './diff.component.html',
-  imports: [MonacoEditorModule]
+  imports: [MonacoDiffEditorComponent]
 })
 export class DiffComponent {
 
