@@ -1,6 +1,6 @@
 import { Component, isDevMode, OnInit, inject, viewChild } from '@angular/core';
 import { EmulatorComponent } from './emulator/emulator.component';
-import { OutputComponent } from './output/output.component';
+import { IAssemblyDiagnostic, IAssemblyError, IAssemblyOutcome, IAssemblyWarning, OutputComponent } from './output/output.component';
 import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
 import { EditorComponent } from './editor/editor.component';
@@ -72,28 +72,25 @@ export class AppComponent implements OnInit {
     this.lastPcToLocs = debugInfo?.pcToLocs
     this.editor().setDiagnostics(errors, warnings);
     this.output().clearLabels();
-    if (errors.length > 0) {
-      this.didAssemble = false;
-      this.output().setStateAssembledWithErrors(errors, warnings);
-      this.dasm = `❌ Assembly failed (${errors.length} error${errors.length === 1 ? '' : 's'})`;
-    } else {
-      this.didAssemble = true;
-      if (warnings.length > 0) {
-        this.output().setStateAssembledWithWarnings(warnings);
-        this.dasm = '';
-      } else {
-        this.output().setStateAssembledOk(prg.length);
-        this.dasm = '';
-      }
-      this.dasm += rcasm.disassemble(prg, {
+    this.didAssemble = errors.length == 0;
+    const outcome = <IAssemblyOutcome>{
+      bytes: prg.length,
+      errors: errors.map(e => <IAssemblyError>{ message: e.msg, line: e.loc.start.line, column: e.loc.start.column }),
+      warnings: warnings.map(w => <IAssemblyWarning>{ message: w.msg, line: w.loc.start.line, column: w.loc.start.column })
+    }
+    if (this.didAssemble) {
+      this.dasm = rcasm.disassemble(prg, {
         isInstruction: debugInfo?.info().isInstruction,
         isData: debugInfo?.info().isData,
         dataLength: debugInfo?.info().dataLength
       }).join('\n');
-      this.emulator().load(this.lastCompile);
       let labelDict = Object.fromEntries(labels.map(l => [l.addr.toString(16).padStart(4, '0').toUpperCase(), { name: l.name }]));
       this.output().setLabels(labelDict);
+      this.emulator().load(this.lastCompile);
+    } else {
+      this.dasm = `❌ Assembly failed (${errors.length} error${errors.length === 1 ? '' : 's'})`;
     }
+    this.output().didAssemble(outcome);
   }
 
   gotoSource(addr: number) {
@@ -111,8 +108,8 @@ export class AppComponent implements OnInit {
     }
   }
 
-  gotoSourcePosition(loc: rcasm.SourceLoc) {
-    this.editor().gotoPosition({ lineNumber: loc.start.line, column: loc.start.column });
+  gotoSourcePosition(diag: IAssemblyDiagnostic) {
+    this.editor().gotoPosition({ lineNumber: diag.line, column: diag.column });
   }
 
   gotoAssembled(line: number) {

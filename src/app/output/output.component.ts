@@ -1,7 +1,6 @@
 import { Component, Input, output } from '@angular/core';
 import { MonacoEditorComponent } from '../ngx-monaco-editor';
 import { FormsModule } from '@angular/forms';
-import * as rcasm from '@paul80nd/rcasm';
 import { ClrIconModule } from '@clr/angular';
 
 @Component({
@@ -10,11 +9,8 @@ import { ClrIconModule } from '@clr/angular';
   imports: [MonacoEditorComponent, FormsModule, ClrIconModule]
 })
 export class OutputComponent {
-
-  stateType: string = 'info';
-  stateText: string = 'ready';
-  errors: rcasm.Diagnostic[] = [];
-  warnings: rcasm.Diagnostic[] = [];
+  status: { type: string, text: string } = { type: 'info', text: 'ready' }
+  outcome: IAssemblyOutcome = { bytes: 0, errors: [], warnings: [] };
 
   code: string = '';
 
@@ -24,7 +20,7 @@ export class OutputComponent {
   }
 
   readonly gotoSource = output<number>();
-  readonly gotoSourcePosition = output<rcasm.SourceLoc>();
+  readonly gotoSourcePosition = output<IAssemblyDiagnostic>();
 
   editor: monaco.editor.IStandaloneCodeEditor | null = null;
 
@@ -113,34 +109,30 @@ export class OutputComponent {
     });
   }
 
-  setStateAssembledOk(byteCount: number) {
-    this.stateType = 'success';
-    this.stateText = `Assembled OK : ${byteCount} bytes`;
-    this.warnings = [];
-    this.errors = [];
-  }
-  setStateAssembledWithWarnings(warnings: rcasm.Diagnostic[]) {
-    var count = warnings.length;
-    this.stateType = 'warning';
-    this.stateText = `Assembled with ${count} warning${count === 1 ? '' : 's'}`;
-    this.warnings = warnings;
-    this.errors = [];
-  }
-  setStateAssembledWithErrors(errors: rcasm.Diagnostic[], warnings: rcasm.Diagnostic[]) {
-    var errorCount = errors.length;
-    var warnCount = warnings.length;
-    const errorText = `${errorCount} error${errorCount === 1 ? '' : 's'}`;
-    const warningText = warnCount > 0 ? `, ${warnCount} warning${warnCount === 1 ? '' : 's'}` : '';
-    var stateText = `Assembly failed with ${errorText}${warningText}`;
-    this.stateText = stateText;
-    this.stateType = 'danger';
-    this.errors = errors;
-    this.warnings = warnings;
-  }
   setStateInformation(message: string) {
-    this.stateText = message;
-    this.stateType = 'info';
+    this.status = { type: 'info', text: message };
   }
+
+  didAssemble(outcome: IAssemblyOutcome) {
+    this.outcome = outcome;
+    if (outcome.errors.length > 0) {
+      // Had errors (and potentially warnings too)
+      this.status = { type: 'danger', text: this.errorText(outcome.errors.length, outcome.warnings.length) };
+    } else if (outcome.warnings.length > 0) {
+      // Had warnings
+      this.status = { type: 'warning', text: this.warningText(outcome.warnings.length) };
+    } else {
+      // Was OK
+      this.status = { type: 'success', text: `Assembled OK : ${outcome.bytes} bytes` };
+    }
+  }
+
+  private warningText = (warns: number) => `Assembled with ${warns} warning${warns === 1 ? '' : 's'}`;
+  private errorText = (errors: number, warns: number) => {
+    const errorText = `${errors} error${errors === 1 ? '' : 's'}`;
+    const warningText = warns > 0 ? ` and ${warns} warning${warns === 1 ? '' : 's'}` : '';
+    return `Assembly failed with ${errorText}${warningText}`;
+  };
 
   gotoLine(hexAddr: string) {
     const model = this.editor?.getModel();
@@ -155,8 +147,8 @@ export class OutputComponent {
     }
   }
 
-  onNavigateDiagnostic(diag: rcasm.Diagnostic) {
-    this.gotoSourcePosition.emit(diag.loc);
+  onNavigateDiagnostic(diag: IAssemblyDiagnostic) {
+    this.gotoSourcePosition.emit(diag);
   }
 
   clearLabels() {
@@ -168,3 +160,18 @@ export class OutputComponent {
   }
 
 }
+
+export interface IAssemblyOutcome {
+  bytes: number,
+  errors: IAssemblyError[],
+  warnings: IAssemblyWarning[],
+}
+
+export interface IAssemblyDiagnostic {
+  message: string,
+  line: number,
+  column: number
+}
+export interface IAssemblyError extends IAssemblyDiagnostic { }
+export interface IAssemblyWarning extends IAssemblyDiagnostic { }
+
