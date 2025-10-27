@@ -24,8 +24,21 @@ export class AppComponent implements OnInit {
 
   readonly emulator = viewChild.required(EmulatorComponent);
 
-  showDocs = false;
-  showEmu = true;
+  _showDocs = false;
+  _showEmu = false;
+
+
+  get showDocs() { return this._showDocs; }
+  set showDocs(value: boolean) {
+    this._showDocs = value;
+    localStorage.setItem('showDocs', value ? 'true' : 'false');
+  }
+
+  get showEmu() { return this._showEmu; }
+  set showEmu(value: boolean) {
+    this._showEmu = value;
+    localStorage.setItem('showEmu', value ? 'true' : 'false');
+  }
 
   dasm = ''
   isDevMode: boolean;
@@ -39,6 +52,10 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Show toggles
+    this._showDocs = (localStorage.getItem('showDocs') ?? 'false') == 'true';
+    this._showEmu = (localStorage.getItem('showEmu') ?? 'true') == 'true';
+
     // Initially check if dark mode is enabled on system
     const darkModeOn =
       window.matchMedia &&
