@@ -193,10 +193,12 @@ header {
 
 
 .documentation table th {
-  min-width: 4rem;
+  min-width: 6rem;
   font-family: "Inconsolata", monospace;
-  font-size: var(--cds-global-typography-body-font-size);
+  font-size: var(--cds-global-typography-body-font-size) !important;
+  line-height: var(--cds-global-typography-body-line-height);
   font-weight: var(--cds-global-typography-font-weight-regular) !important;
+  letter-spacing: var(--cds-global-typography-body-letter-spacing);
 }
 
 .documentation table td {
