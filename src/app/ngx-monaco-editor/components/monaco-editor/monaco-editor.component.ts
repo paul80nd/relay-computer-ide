@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, EventEmitter, OnInit, OnChanges, OnDestroy, Input, ChangeDetectionStrategy, forwardRef, SimpleChanges, Output, inject } from '@angular/core';
+import { Component, ViewChild, ElementRef, EventEmitter, OnInit, OnChanges, OnDestroy, ChangeDetectionStrategy, forwardRef, SimpleChanges, Output, inject, input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, Validator, NG_VALIDATORS, ValidationErrors } from '@angular/forms';
 import { filter, take } from 'rxjs/operators';
 
@@ -49,8 +49,8 @@ import { MonacoEditorConstructionOptions, MonacoEditorUri, MonacoStandaloneCodeE
 export class MonacoEditorComponent implements OnInit, OnChanges, OnDestroy, ControlValueAccessor, Validator {
     private monacoLoader = inject(MonacoEditorLoaderService);
 
-    @Input() options!: MonacoEditorConstructionOptions;
-    @Input() uri?: MonacoEditorUri;
+    readonly options = input.required<MonacoEditorConstructionOptions>();
+    readonly uri = input<MonacoEditorUri>();
     @Output() init: EventEmitter<MonacoStandaloneCodeEditor> = new EventEmitter();
     @ViewChild('editor', { static: true }) editorContent!: ElementRef;
 
@@ -88,9 +88,10 @@ export class MonacoEditorComponent implements OnInit, OnChanges, OnDestroy, Cont
           const { language: fromLanguage, theme: fromTheme } = changes['options'].previousValue;
 
           if (fromLanguage !== toLanguage) {
+              const optionsValue = this.options();
               monaco.editor.setModelLanguage(
                   this.editor.getModel()!,
-                  this.options && this.options.language ? this.options.language : 'text'
+                  optionsValue && optionsValue.language ? optionsValue.language : 'text'
               );
           }
 
@@ -118,7 +119,7 @@ export class MonacoEditorComponent implements OnInit, OnChanges, OnDestroy, Cont
               existingModel = monaco.editor.getModels().find((model) => model.uri.path === toUri.path);
             }
 
-            this.modelUriInstance = existingModel ? existingModel : monaco.editor.createModel(value, this.options.language || 'text', this.uri);
+            this.modelUriInstance = existingModel ? existingModel : monaco.editor.createModel(value, this.options().language || 'text', this.uri());
             this.editor.setModel(this.modelUriInstance);
           }
         }
@@ -162,9 +163,10 @@ export class MonacoEditorComponent implements OnInit, OnChanges, OnDestroy, Cont
             theme: 'vc'
         };
 
+        const optionsValue = this.options();
         this.editor = monaco.editor.create(
           this.editorContent.nativeElement,
-          this.options ? { ...options, ...this.options } : options
+          optionsValue ? { ...options, ...optionsValue } : options
         );
 
         this.registerEditorListeners();

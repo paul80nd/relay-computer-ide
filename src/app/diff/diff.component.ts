@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MonacoDiffEditorComponent } from '../ngx-monaco-editor';
 
@@ -7,12 +7,14 @@ import { MonacoDiffEditorComponent } from '../ngx-monaco-editor';
   templateUrl: './diff.component.html',
   imports: [MonacoDiffEditorComponent]
 })
-export class DiffComponent {
-
+export class DiffComponent implements OnInit {
   private http = inject(HttpClient);
 
   stateType: string = 'info';
   stateText: string = 'ready';
+
+  original: string = '';
+  modified: string = '';
 
   editor: monaco.editor.IStandaloneDiffEditor | null = null;
 
@@ -26,32 +28,19 @@ export class DiffComponent {
     // minimap: { enabled: false }
   };
 
-  onInit(editor: monaco.editor.IStandaloneDiffEditor) {
-    this.editor = editor;
-
-    const code = localStorage.getItem("code") || "";
-
-    const originalModel = monaco.editor.createModel(
-      code,
-      "text/rcasm"
-    );
-
-    const diffCode = localStorage.getItem("diffcode") || "";
-    const modifiedModel = monaco.editor.createModel(
-      diffCode,
-      "text/rcasm"
-    );
-    editor.setModel({
-      original: originalModel,
-      modified: modifiedModel,
-    });
-
-    editor.getModifiedEditor().onDidChangeModelContent(() => {
-      const code = editor.getModifiedEditor().getModel()?.getValue()
-      if (code) {
-        localStorage.setItem("diffcode", code);
-      }
-    });
+  ngOnInit(): void {
+    this.original = localStorage.getItem("code") || "";
+    this.modified = localStorage.getItem("diffcode") || "";
   }
 
+  onInit(editor: monaco.editor.IStandaloneDiffEditor) {
+    this.editor = editor;
+  }
+
+  onModifiedChanged() {
+    const code = this.editor?.getModifiedEditor().getModel()?.getValue()
+    if (code) {
+      localStorage.setItem("diffcode", code);
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, EventEmitter, OnInit, OnChanges, OnDestroy, Output, Input, ChangeDetectionStrategy, SimpleChanges, inject } from '@angular/core';
+import { Component, ViewChild, ElementRef, EventEmitter, OnInit, OnChanges, OnDestroy, Output, ChangeDetectionStrategy, SimpleChanges, inject, input } from '@angular/core';
 import { filter, take } from 'rxjs/operators';
 
 import { MonacoEditorLoaderService } from '../../services/monaco-editor-loader.service';
@@ -39,10 +39,10 @@ export class MonacoDiffEditorComponent implements OnInit, OnChanges, OnDestroy {
     container!: HTMLDivElement;
     editor!: MonacoStandaloneDiffEditor;
 
-    @Input() original!: string;
-    @Input() modified!: string;
-    @Input() options!: MonacoDiffEditorConstructionOptions;
-    @Output() init: EventEmitter< MonacoStandaloneDiffEditor> = new EventEmitter();
+    readonly original = input.required<string>();
+    readonly modified = input.required<string>();
+    readonly options = input.required<MonacoDiffEditorConstructionOptions>();
+    @Output() init: EventEmitter<MonacoStandaloneDiffEditor> = new EventEmitter();
 
     @ViewChild('diffEditor', {static: true}) editorContent!: ElementRef;
 
@@ -58,8 +58,8 @@ export class MonacoDiffEditorComponent implements OnInit, OnChanges, OnDestroy {
 
     ngOnChanges(changes: SimpleChanges) {
         if (this.editor && ((changes['code'] && !changes['code'].firstChange) || (changes['modified'] && !changes['modified'].firstChange))) {
-            const modified = monaco.editor.createModel(this.modified);
-            const original = monaco.editor.createModel(this.original);
+            const modified = monaco.editor.createModel(this.modified());
+            const original = monaco.editor.createModel(this.original());
             this.editor.setModel({
                 original,
                 modified
@@ -84,13 +84,14 @@ export class MonacoDiffEditorComponent implements OnInit, OnChanges, OnDestroy {
             automaticLayout: true,
             theme: 'vc'
         };
-        if (this.options) {
-            opts = Object.assign({}, opts, this.options);
+        const options = this.options();
+        if (options) {
+            opts = Object.assign({}, opts, options);
         }
         this.editor = monaco.editor.createDiffEditor(this.container, opts);
 
-        const original = monaco.editor.createModel(this.original);
-        const modified = monaco.editor.createModel(this.modified);
+        const original = monaco.editor.createModel(this.original());
+        const modified = monaco.editor.createModel(this.modified());
 
         this.editor.setModel({
             original,

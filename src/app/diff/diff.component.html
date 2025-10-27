@@ -7,6 +7,6 @@
 
 </header>
 <div class="content-container">
-  <ngx-monaco-diff-editor style="height: 100%" [options]="editorOptions" (init)="onInit($event)"
+  <ngx-monaco-diff-editor style="height: 100%" [options]="editorOptions" [original]="original" [modified]="modified" (modifiedChanged)="onModifiedChanged()" (init)="onInit($event)"
     class="editor"></ngx-monaco-diff-editor>
 </div>
