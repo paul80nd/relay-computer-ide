@@ -1,17 +1,4 @@
-import {
-    Component,
-    ViewChild,
-    ElementRef,
-    EventEmitter,
-    OnInit,
-    OnChanges,
-    OnDestroy,
-    Input,
-    ChangeDetectionStrategy,
-    forwardRef,
-    SimpleChanges,
-    Output
-} from '@angular/core';
+import { Component, ViewChild, ElementRef, EventEmitter, OnInit, OnChanges, OnDestroy, Input, ChangeDetectionStrategy, forwardRef, SimpleChanges, Output, inject } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, Validator, NG_VALIDATORS, ValidationErrors } from '@angular/forms';
 import { filter, take } from 'rxjs/operators';
 
@@ -60,6 +47,8 @@ import { MonacoEditorConstructionOptions, MonacoEditorUri, MonacoStandaloneCodeE
     ]
 })
 export class MonacoEditorComponent implements OnInit, OnChanges, OnDestroy, ControlValueAccessor, Validator {
+    private monacoLoader = inject(MonacoEditorLoaderService);
+
     @Input() options!: MonacoEditorConstructionOptions;
     @Input() uri?: MonacoEditorUri;
     @Output() init: EventEmitter<MonacoStandaloneCodeEditor> = new EventEmitter();
@@ -83,8 +72,6 @@ export class MonacoEditorComponent implements OnInit, OnChanges, OnDestroy, Cont
         resource: this.model.uri
       });
     }
-
-    constructor(private monacoLoader: MonacoEditorLoaderService) { }
 
     ngOnInit() {
         this.monacoLoader.isMonacoLoaded$.pipe(

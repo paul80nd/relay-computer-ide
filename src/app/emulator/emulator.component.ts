@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 
 import { BinPipe } from './bin.pipe';
 import { DecPipe } from './dec.pipe';
@@ -12,6 +12,7 @@ import { ClrIconModule, ClrSignpostModule } from '@clr/angular';
   imports: [BinPipe, DecPipe, HexPipe, ClrSignpostModule, ClrIconModule]
 })
 export class EmulatorComponent implements OnInit {
+  private cdr = inject(ChangeDetectorRef);
 
   memoryOffset = 0;
   memoryArray: number[];
@@ -57,7 +58,7 @@ export class EmulatorComponent implements OnInit {
 
   running = false;
 
-  constructor(private cdr: ChangeDetectorRef) {
+  constructor() {
     this.memoryArray = new Array(32768);
   }
 

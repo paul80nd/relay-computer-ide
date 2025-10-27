@@ -1,16 +1,4 @@
-import {
-    Component,
-    ViewChild,
-    ElementRef,
-    EventEmitter,
-    OnInit,
-    OnChanges,
-    OnDestroy,
-    Output,
-    Input,
-    ChangeDetectionStrategy,
-    SimpleChanges
-} from '@angular/core';
+import { Component, ViewChild, ElementRef, EventEmitter, OnInit, OnChanges, OnDestroy, Output, Input, ChangeDetectionStrategy, SimpleChanges, inject } from '@angular/core';
 import { filter, take } from 'rxjs/operators';
 
 import { MonacoEditorLoaderService } from '../../services/monaco-editor-loader.service';
@@ -46,6 +34,8 @@ import { MonacoDiffEditorConstructionOptions, MonacoStandaloneDiffEditor } from 
     changeDetection: ChangeDetectionStrategy.OnPush
   })
 export class MonacoDiffEditorComponent implements OnInit, OnChanges, OnDestroy {
+    private monacoLoader = inject(MonacoEditorLoaderService);
+
     container!: HTMLDivElement;
     editor!: MonacoStandaloneDiffEditor;
 
@@ -55,8 +45,6 @@ export class MonacoDiffEditorComponent implements OnInit, OnChanges, OnDestroy {
     @Output() init: EventEmitter< MonacoStandaloneDiffEditor> = new EventEmitter();
 
     @ViewChild('diffEditor', {static: true}) editorContent!: ElementRef;
-
-    constructor(private monacoLoader: MonacoEditorLoaderService) { }
 
     ngOnInit() {
         this.container = this.editorContent.nativeElement;
