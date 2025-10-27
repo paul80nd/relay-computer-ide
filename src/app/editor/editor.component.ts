@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, inject, NgZone } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MonacoEditorModule } from '../ngx-monaco-editor';
 import * as rcasm from '@paul80nd/rcasm';
@@ -9,9 +9,8 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './editor.component.html',
   imports: [MonacoEditorModule, FormsModule]
 })
-export class RcasmEditorComponent implements OnInit {
+export class EditorComponent implements OnInit {
   private http = inject(HttpClient);
-  private ngZone = inject(NgZone);
 
   @Output() codeChanged = new EventEmitter<string>();
   @Output() gotoAssembled = new EventEmitter<number>();
@@ -42,9 +41,7 @@ export class RcasmEditorComponent implements OnInit {
     this.editor = editor;
 
     editor.onDidChangeCursorPosition(e => {
-      this.ngZone.run(() => {
-        this.stateText = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
-      });
+      this.stateText = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
     });
 
     editor.addAction(<monaco.editor.IActionDescriptor>{
