@@ -3,7 +3,7 @@ import { EmulatorComponent } from './emulator/emulator.component';
 import { OutputComponent } from './output/output.component';
 import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
-import { RcasmEditorComponent } from './editor/editor.component';
+import { EditorComponent } from './editor/editor.component';
 import { ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule } from '@clr/angular';
 import { DocsComponent } from './docs/docs.component';
 import { ExamplesComponent } from './examples/examples.component';
@@ -13,14 +13,14 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, RcasmEditorComponent, ExamplesComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent, FormsModule]
+  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, EditorComponent, ExamplesComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent, FormsModule]
 })
 export class AppComponent implements OnInit {
   private _clipboardService = inject(ClipboardService);
 
   readonly output = viewChild.required(OutputComponent);
 
-  readonly editor = viewChild.required(RcasmEditorComponent);
+  readonly editor = viewChild.required(EditorComponent);
 
   readonly emulator = viewChild.required(EmulatorComponent);
 
