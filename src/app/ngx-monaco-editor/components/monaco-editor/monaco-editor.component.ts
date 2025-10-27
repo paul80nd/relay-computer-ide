@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, EventEmitter, OnInit, OnChanges, OnDestroy, ChangeDetectionStrategy, forwardRef, SimpleChanges, Output, inject, input } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnInit, OnChanges, OnDestroy, ChangeDetectionStrategy, forwardRef, SimpleChanges, inject, input, output } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, Validator, NG_VALIDATORS, ValidationErrors } from '@angular/forms';
 import { filter, take } from 'rxjs/operators';
 
@@ -51,7 +51,7 @@ export class MonacoEditorComponent implements OnInit, OnChanges, OnDestroy, Cont
 
     readonly options = input.required<MonacoEditorConstructionOptions>();
     readonly uri = input<MonacoEditorUri>();
-    @Output() init: EventEmitter<MonacoStandaloneCodeEditor> = new EventEmitter();
+    readonly init = output<MonacoStandaloneCodeEditor>();
     @ViewChild('editor', { static: true }) editorContent!: ElementRef;
 
     editor!: MonacoStandaloneCodeEditor;

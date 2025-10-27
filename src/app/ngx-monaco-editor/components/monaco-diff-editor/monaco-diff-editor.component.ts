@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, EventEmitter, OnInit, OnChanges, OnDestroy, Output, ChangeDetectionStrategy, SimpleChanges, inject, input } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnInit, OnChanges, OnDestroy, ChangeDetectionStrategy, SimpleChanges, inject, input, output } from '@angular/core';
 import { filter, take } from 'rxjs/operators';
 
 import { MonacoEditorLoaderService } from '../../services/monaco-editor-loader.service';
@@ -42,7 +42,7 @@ export class MonacoDiffEditorComponent implements OnInit, OnChanges, OnDestroy {
     readonly original = input.required<string>();
     readonly modified = input.required<string>();
     readonly options = input.required<MonacoDiffEditorConstructionOptions>();
-    @Output() init: EventEmitter<MonacoStandaloneDiffEditor> = new EventEmitter();
+    readonly init = output<MonacoStandaloneDiffEditor>();
 
     @ViewChild('diffEditor', {static: true}) editorContent!: ElementRef;
 

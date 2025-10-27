@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
+import { Component, OnInit, inject, output } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MonacoEditorComponent } from '../ngx-monaco-editor';
 import * as rcasm from '@paul80nd/rcasm';
@@ -12,8 +12,8 @@ import { FormsModule } from '@angular/forms';
 export class EditorComponent implements OnInit {
   private http = inject(HttpClient);
 
-  @Output() codeChanged = new EventEmitter<string>();
-  @Output() gotoAssembled = new EventEmitter<number>();
+  readonly codeChanged = output<string>();
+  readonly gotoAssembled = output<number>();
 
   stateType: string = 'info';
   stateText: string = 'ready';

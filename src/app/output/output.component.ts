@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input, output } from '@angular/core';
 import { MonacoEditorComponent } from '../ngx-monaco-editor';
 import { FormsModule } from '@angular/forms';
 
@@ -19,7 +19,7 @@ export class OutputComponent {
     this.code = val;
   }
 
-  @Output() gotoSource = new EventEmitter<number>();
+  readonly gotoSource = output<number>();
 
   editor: monaco.editor.IStandaloneCodeEditor | null = null;
 
