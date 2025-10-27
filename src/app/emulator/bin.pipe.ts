@@ -1,9 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({
-    name: 'bin',
-    standalone: true
-})
+@Pipe({ name: 'bin' })
 export class BinPipe implements PipeTransform {
   transform(value: number, length: string): string {
     const len = parseInt(length) * 4;
