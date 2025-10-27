@@ -88,11 +88,6 @@ export class AppComponent implements OnInit {
         this.output().setStateAssembledOk(prg.length);
         this.dasm = '';
       }
-      if (code.startsWith('; LABELS')) {
-        this.dasm += `🔹 LABELS (${labels.length})\n`;
-        this.dasm += labels.map(l => `🔹 ${l.addr.toString(16).padStart(4, '0')}: ${l.name}`).join('\n');
-        this.dasm += '\n\n'
-      }
       this.dasm += rcasm.disassemble(prg, {
         isInstruction: debugInfo?.info().isInstruction,
         isData: debugInfo?.info().isData,
