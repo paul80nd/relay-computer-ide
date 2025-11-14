@@ -325,10 +325,10 @@
     <tbody>
       <tr>
         <td>
-          <button class="btn btn-link btn-icon btn-sm" [disabled]="ipr == 1" cds-layout="m:none"
+          <button class="btn btn-link btn-icon btn-sm" [disabled]="ipr === 1" cds-layout="m:none"
             (click)="setIpr(ipr / 2)"> <cds-icon shape="minus"></cds-icon></button>
           {{ipr}}
-          <button class="btn btn-link btn-icon btn-sm" [disabled]="ipr == 32" cds-layout="m:none"
+          <button class="btn btn-link btn-icon btn-sm" [disabled]="ipr === 32" cds-layout="m:none"
             (click)="setIpr(ipr * 2)"> <cds-icon shape="plus"></cds-icon></button>
         </td>
       </tr>

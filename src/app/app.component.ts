@@ -1,6 +1,6 @@
 import { Component, isDevMode, OnInit, inject, viewChild } from '@angular/core';
 import { EmulatorComponent } from './emulator/emulator.component';
-import { OutputComponent } from './output/output.component';
+import { IAssemblyDiagnostic, IAssemblyError, IAssemblyOutcome, IAssemblyWarning, OutputComponent } from './output/output.component';
 import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
 import { EditorComponent } from './editor/editor.component';
@@ -8,11 +8,12 @@ import { ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule } from '@clr
 import { DocsComponent } from './docs/docs.component';
 import { ExamplesComponent } from './examples/examples.component';
 import { DiffComponent } from './diff/diff.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, EditorComponent, ExamplesComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent]
+  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, EditorComponent, ExamplesComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent, FormsModule]
 })
 export class AppComponent implements OnInit {
   private _clipboardService = inject(ClipboardService);
@@ -23,8 +24,20 @@ export class AppComponent implements OnInit {
 
   readonly emulator = viewChild.required(EmulatorComponent);
 
-  showDocs = false;
-  showEmu = true;
+  _showDocs = false;
+  _showEmu = false;
+
+  get showDocs() { return this._showDocs; }
+  set showDocs(value: boolean) {
+    this._showDocs = value;
+    localStorage.setItem('showDocs', value ? 'true' : 'false');
+  }
+
+  get showEmu() { return this._showEmu; }
+  set showEmu(value: boolean) {
+    this._showEmu = value;
+    localStorage.setItem('showEmu', value ? 'true' : 'false');
+  }
 
   dasm = ''
   isDevMode: boolean;
@@ -38,6 +51,10 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Show toggles
+    this._showDocs = (localStorage.getItem('showDocs') ?? 'false') == 'true';
+    this._showEmu = (localStorage.getItem('showEmu') ?? 'true') == 'true';
+
     // Initially check if dark mode is enabled on system
     const darkModeOn =
       window.matchMedia &&
@@ -53,31 +70,27 @@ export class AppComponent implements OnInit {
     const { prg, errors, warnings, labels, debugInfo } = rcasm.assemble(code);
     this.lastCompile = prg;
     this.lastPcToLocs = debugInfo?.pcToLocs
-    if (errors.length > 0) {
-      this.didAssemble = false;
-      this.output().setStateAssembledWithErrors(errors.length, warnings.length);
-      this.dasm = errors.map(w => `❌ ${w.loc.start.line}:${w.loc.start.column} ${w.msg}`).join('\n');
-      this.dasm += '\n'
-      this.dasm += warnings.map(w => `🔸 ${w.loc.start.line}:${w.loc.start.column} ${w.msg}`).join('\n');
-    } else {
-      this.didAssemble = true;
-      if (warnings.length > 0) {
-        const msg = `Assembled with ${warnings.length} warning${warnings.length === 1 ? '' : 's'}`;
-        this.output().setStateAssembledWithWarnings(warnings.length);
-        this.dasm = warnings.map(w => `🔸 ${w.loc.start.line}:${w.loc.start.column} ${w.msg}`).join('\n');
-        this.dasm += '\n\n'
-      } else {
-        this.output().setStateAssembledOk(prg.length);
-        this.dasm = '';
-      }
-      if (code.startsWith('; LABELS')) {
-        this.dasm += `🔹 LABELS (${labels.length})\n`;
-        this.dasm += labels.map(l => `🔹 ${l.addr.toString(16).padStart(4, '0')}: ${l.name}`).join('\n');
-        this.dasm += '\n\n'
-      }
-      this.dasm += rcasm.disassemble(prg, { isInstruction: debugInfo!.info().isInstruction }).join('\n');
-      this.emulator().load(this.lastCompile);
+    this.editor().setDiagnostics(errors, warnings);
+    this.output().clearLabels();
+    this.didAssemble = errors.length == 0;
+    const outcome = <IAssemblyOutcome>{
+      bytes: prg.length,
+      errors: errors.map(e => <IAssemblyError>{ message: e.msg, line: e.loc.start.line, column: e.loc.start.column }),
+      warnings: warnings.map(w => <IAssemblyWarning>{ message: w.msg, line: w.loc.start.line, column: w.loc.start.column })
     }
+    if (this.didAssemble) {
+      this.dasm = rcasm.disassemble(prg, {
+        isInstruction: debugInfo?.info().isInstruction,
+        isData: debugInfo?.info().isData,
+        dataLength: debugInfo?.info().dataLength
+      }).join('\n');
+      let labelDict = Object.fromEntries(labels.map(l => [l.addr.toString(16).padStart(4, '0').toUpperCase(), { name: l.name }]));
+      this.output().setLabels(labelDict);
+      this.emulator().load(this.lastCompile);
+    } else {
+      this.dasm = `❌ Assembly failed (${errors.length} error${errors.length === 1 ? '' : 's'})`;
+    }
+    this.output().didAssemble(outcome);
   }
 
   gotoSource(addr: number) {
@@ -91,8 +104,12 @@ export class AppComponent implements OnInit {
     }
 
     if (locs) {
-      this.editor().gotoLine(locs[0].lineNo);
+      this.editor().gotoPosition({ lineNumber: locs[0].lineNo, column: 1 });
     }
+  }
+
+  gotoSourcePosition(diag: IAssemblyDiagnostic) {
+    this.editor().gotoPosition({ lineNumber: diag.line, column: diag.column });
   }
 
   gotoAssembled(line: number) {

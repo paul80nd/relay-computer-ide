@@ -23,14 +23,6 @@ header {
       margin-right: 0;
     }
   }
-
-  .header-actions {
-    padding-right: .5em;
-
-    .dropdown-toggle {
-      padding: var(--cds-global-space-5) var(--cds-global-space-5) !important;
-    }
-  }
 }
 
 .main-container .content-container .clr-vertical-nav {
@@ -181,7 +173,8 @@ header {
   background-color: #428BCA;
 }
 
-.simulation td.pc-marker a, .simulation td.m-marker a {
+.simulation td.pc-marker a,
+.simulation td.m-marker a {
   color: white;
 }
 
@@ -200,10 +193,12 @@ header {
 
 
 .documentation table th {
-  min-width: 4rem;
+  min-width: 6rem;
   font-family: "Inconsolata", monospace;
-  font-size: var(--cds-global-typography-body-font-size);
+  font-size: var(--cds-global-typography-body-font-size) !important;
+  line-height: var(--cds-global-typography-body-line-height);
   font-weight: var(--cds-global-typography-font-weight-regular) !important;
+  letter-spacing: var(--cds-global-typography-body-letter-spacing);
 }
 
 .documentation table td {

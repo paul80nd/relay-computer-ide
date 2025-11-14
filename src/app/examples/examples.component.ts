@@ -1,4 +1,4 @@
-import { Component, EventEmitter, isDevMode, Output } from '@angular/core';
+import { Component, isDevMode, output } from '@angular/core';
 import { ClrAccordionModule, ClrSidePanelModule, ClrAlertModule, ClrConditionalModule } from '@clr/angular';
 
 @Component({
@@ -7,7 +7,7 @@ import { ClrAccordionModule, ClrSidePanelModule, ClrAlertModule, ClrConditionalM
   imports: [ClrAccordionModule, ClrSidePanelModule, ClrAlertModule, ClrConditionalModule]
 })
 export class ExamplesComponent {
-  @Output() exampleRequested = new EventEmitter<string>();
+  readonly exampleRequested = output<string>();
 
   showExamples: boolean = false;
   isDevMode: boolean;
