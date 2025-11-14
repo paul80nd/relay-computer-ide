@@ -5,25 +5,49 @@ export const AppEditor = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
+  const getDefaultCode = (): string => {
+    return [
+      '; *****************************************************',
+      ';  Welcome to Relay Computer Assembly (RCASM)',
+      ';',
+      ';  Start typing your program below or open an example',
+      ';  from the examples folder top left',
+      '; *****************************************************',
+      '',
+      '',
+    ].join('\n');
+  };
+
+  let changeTimeoutId: number | undefined;
+  const onCodeChange = () => {
+    // Debounce change by up to 500ms
+    clearTimeout(changeTimeoutId);
+    changeTimeoutId = setTimeout(() => {
+      const code = editorRef.current?.getValue();
+      if (code) {
+        localStorage.setItem('code', code);
+      }
+    }, 500);
+  };
+
   useEffect(() => {
     if (!containerRef.current) return;
 
     if (!editorRef.current) {
+      const code = localStorage.getItem('code') || getDefaultCode();
+
       editorRef.current = monaco.editor.create(containerRef.current, {
-        value: [
-          '; Welcome to the Relay Computer Editor',
-          '; Load examples using the button to the left',
-        ].join('\n'),
-        theme:
-          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-            ? 'vs-dark'
-            : 'vs-light',
+        theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light',
+        value: code,
         language: 'rcasm',
+        lineNumbers: 'on',
         renderLineHighlight: 'none',
         padding: { top: 15 },
         automaticLayout: true,
-        scrollBeyondLastLine: false
+        scrollBeyondLastLine: true,
       });
+
+      editorRef.current.onDidChangeModelContent(() => onCodeChange());
     }
 
     return () => {

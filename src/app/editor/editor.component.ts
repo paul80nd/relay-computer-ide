@@ -22,14 +22,8 @@ export class EditorComponent implements OnInit {
 
   editor: monaco.editor.IStandaloneCodeEditor | null = null;
 
-  editorOptions = <monaco.editor.IStandaloneEditorConstructionOptions>{
-    language: 'rcasm',
-    lineNumbers: 'on',
-    renderLineHighlight: 'none',
-    scrollBeyondLastLine: true,
-    theme: (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'vs-dark' : 'vs-light',
-    padding: { top: 15 }
-  };
+  editorOptions = {
+  } as monaco.editor.IStandaloneEditorConstructionOptions;
 
   ngOnInit(): void {
     const code = localStorage.getItem("code") || this.getDefaultCode();
@@ -70,15 +64,7 @@ export class EditorComponent implements OnInit {
   }
 
   getDefaultCode(): string {
-    return [
-      ';*****************************************************',
-      '; Welcome to Relay Computer Assembly (RCASM)',
-      ';',
-      '; Start typing your program below or open an example',
-      '; using the import menu at the top right',
-      ';*****************************************************',
-      '',
-      ''].join('\n');
+    return '';
   }
 
   loadExample(example: string) {

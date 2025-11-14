@@ -1,6 +1,6 @@
 import type { JSXElement, ToolbarProps } from '@fluentui/react-components';
 import { Caption1, makeStyles, tokens } from '@fluentui/react-components';
-import { AppToolbar } from './components/Toolbar';
+import { AppToolbar } from './components/toolbar';
 import { AppSideToolbar } from './components/side-toolbar';
 import { AppEditor } from './components/editor';
 import { AppOutput } from './components/output';
@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { Prefs } from './prefs';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AppWelcome } from './components/Welcome';
+import { AppWelcome } from './components/welcome';
 import { AppEmulator } from './components/emulator';
 import { AppExport } from './components/export';
 import { AppExamples } from './components/examples';
