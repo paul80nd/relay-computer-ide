@@ -1,3 +1,1 @@
-export const AppExamples = () => {
-  return <div>Examples</div>;
-};
+export const AppExamples = () => <div>Examples</div>;

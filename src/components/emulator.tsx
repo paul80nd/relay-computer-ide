@@ -1,3 +1,1 @@
-export const AppEmulator = () => {
-  return <div>Emulator</div>;
-};
+export const AppEmulator = () => <div>Emulator</div>;

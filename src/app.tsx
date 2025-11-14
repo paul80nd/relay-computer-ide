@@ -2,7 +2,7 @@ import type { JSXElement, ToolbarProps } from '@fluentui/react-components';
 import { Caption1, makeStyles, tokens } from '@fluentui/react-components';
 import { AppToolbar } from './components/toolbar';
 import { AppSideToolbar } from './components/side-toolbar';
-import { AppEditor } from './components/editor';
+import Editor from './components/editor/editor';
 import { AppOutput } from './components/output';
 import { useEffect, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
@@ -12,6 +12,7 @@ import { AppWelcome } from './components/welcome';
 import { AppEmulator } from './components/emulator';
 import { AppExport } from './components/export';
 import { AppExamples } from './components/examples';
+import useDebounce from './hooks/useDebounce';
 
 const useStyles = makeStyles({
   container: {
@@ -81,6 +82,18 @@ export const App = (): JSXElement => {
     });
   };
 
+  // Current code (updated immediately) plus debounced code (updated no less than 300ms since last update)
+  const [code, setCode] = useState('');
+  const debouncedCode = useDebounce(code, 300);
+  const onEditorChanged = (value?: string) => setCode(value ?? '');
+  useEffect(() => {
+    if (debouncedCode) {
+      localStorage.setItem('code', debouncedCode);
+    }
+  }, [debouncedCode]);
+
+  const onEditorValidated = (markers: monaco.editor.IMarker[]) => console.log(markers);
+
   const styles = useStyles();
 
   return (
@@ -107,7 +120,7 @@ export const App = (): JSXElement => {
             <Panel order={2} id='middle'>
               <PanelGroup direction='vertical' autoSaveId='persistence'>
                 <Panel id='editor' minSize={33} order={1}>
-                  <AppEditor />
+                  <Editor onChange={onEditorChanged} onValidate={onEditorValidated} />
                 </Panel>
                 {isBottomPanelVisible && (
                   <>

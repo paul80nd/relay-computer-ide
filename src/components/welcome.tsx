@@ -1,3 +1,1 @@
-export const AppWelcome = () => {
-  return <div>Welcome</div>;
-};
+export const AppWelcome = () => <div>Welcome</div>;

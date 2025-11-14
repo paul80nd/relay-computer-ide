@@ -1,9 +1,13 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import type { EditorProps } from './types';
 
-export const AppEditor = () => {
+function Editor({ onChange, onValidate }: EditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const subscriptionRef = useRef<monaco.IDisposable | undefined>(undefined);
+
+  const [isEditorReady, setIsEditorReady] = useState(false);
 
   const getDefaultCode = (): string => {
     return [
@@ -16,18 +20,6 @@ export const AppEditor = () => {
       '',
       '',
     ].join('\n');
-  };
-
-  let changeTimeoutId: number | undefined;
-  const onCodeChange = () => {
-    // Debounce change by up to 500ms
-    clearTimeout(changeTimeoutId);
-    changeTimeoutId = setTimeout(() => {
-      const code = editorRef.current?.getValue();
-      if (code) {
-        localStorage.setItem('code', code);
-      }
-    }, 500);
   };
 
   useEffect(() => {
@@ -46,9 +38,9 @@ export const AppEditor = () => {
         automaticLayout: true,
         scrollBeyondLastLine: true,
       });
-
-      editorRef.current.onDidChangeModelContent(() => onCodeChange());
     }
+
+    setIsEditorReady(true);
 
     return () => {
       editorRef.current?.dispose();
@@ -56,5 +48,41 @@ export const AppEditor = () => {
     };
   }, []);
 
+  // onChange
+  useEffect(() => {
+    if (isEditorReady && onChange) {
+      subscriptionRef.current?.dispose();
+      subscriptionRef.current = editorRef.current?.onDidChangeModelContent(event => {
+        onChange(editorRef.current!.getValue(), event);
+      });
+    }
+  }, [isEditorReady, onChange]);
+
+  // onValidate
+  useEffect(() => {
+    if (isEditorReady) {
+      const changeMarkersListener = monaco.editor.onDidChangeMarkers(uris => {
+        const editorUri = editorRef.current!.getModel()?.uri;
+
+        if (editorUri) {
+          const currentEditorHasMarkerChanges = uris.find(uri => uri.path === editorUri.path);
+          if (currentEditorHasMarkerChanges) {
+            const markers = monaco.editor.getModelMarkers({
+              resource: editorUri,
+            });
+            onValidate?.(markers);
+          }
+        }
+      });
+
+      return () => changeMarkersListener?.dispose();
+    }
+    return () => {
+      // eslint happy
+    };
+  }, [isEditorReady, onValidate]);
+
   return <div style={{ height: '100%' }} ref={containerRef}></div>;
-};
+}
+
+export default Editor;
