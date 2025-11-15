@@ -1,3 +1,4 @@
+import type { AssemblerResult } from "../../assembler";
 
 export type OnCommand = (command: string) => void;
 
@@ -7,6 +8,8 @@ export type StatusBarProps = {
 
   position?: monaco.IPosition;
 
+  assembly?: AssemblerResult;
+
   /**
    * Signature: function(command: string) => void
    * An event is emitted when a command was initated
@@ -15,7 +18,6 @@ export type StatusBarProps = {
 }
 
 export type StatusBarValidation = {
-  isValid: boolean;
   warnings: number;
   errors: number;
 }

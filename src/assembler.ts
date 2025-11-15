@@ -1,7 +1,8 @@
 import * as rcasm from '@paul80nd/rcasm';
+import { pluralize } from './utils';
 
 export function assemble(code: string): AssemblerResult {
-  const { prg, errors /*, warnings, labels*/, debugInfo } = rcasm.assemble(code);
+  const { prg, errors/*, warnings, labels*/, debugInfo } = rcasm.assemble(code);
 
   // this.lastCompile = prg;
   // this.lastPcToLocs = debugInfo?.pcToLocs
@@ -24,12 +25,12 @@ export function assemble(code: string): AssemblerResult {
     //   this.output().setLabels(labelDict);
     //   this.emulator().load(this.lastCompile);
   } else {
-    dasm = `❌ Assembly failed (${errors.length} error${errors.length === 1 ? '' : 's'})`;
+    dasm = `❌ Assembly failed (${pluralize(errors.length, 'error', 'errors')})`;
   }
   // this.output().didAssemble(outcome);
   return {
     bytes: prg,
-    dasm: dasm
+    dasm: dasm,
   }
 }
 

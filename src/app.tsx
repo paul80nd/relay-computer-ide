@@ -53,7 +53,7 @@ export const App = (): JSXElement => {
   };
   const [prefState, setPrefState] = useState(initialPrefs);
   const [position, setPosition] = useState<monaco.IPosition | undefined>(undefined);
-  const [validation, setValidation] = useState<StatusBarValidation>({ isValid: true, warnings: 0, errors: 0 });
+  const [validation, setValidation] = useState<StatusBarValidation>({ warnings: 0, errors: 0 });
   const [assembly, setAssembly] = useState<AssemblerResult | undefined>(undefined);
 
   // Update localStorage whenever prefState changes
@@ -112,7 +112,7 @@ export const App = (): JSXElement => {
     editorRef.current?.getAction(command)?.run();
   };
   const onEditorValidated = (markers: monaco.editor.IMarker[]) => {
-    const v: StatusBarValidation = { isValid: true, errors: 0, warnings: 0 };
+    const v: StatusBarValidation = { errors: 0, warnings: 0 };
     markers.forEach(m => {
       switch (m.severity) {
         case monaco.MarkerSeverity.Error:
@@ -123,7 +123,6 @@ export const App = (): JSXElement => {
           break;
       }
     });
-    v.isValid = v.errors === 0 && v.warnings === 0;
     setValidation(v);
   };
 
@@ -180,7 +179,7 @@ export const App = (): JSXElement => {
             )}
           </PanelGroup>
         </div>
-        <StatusBar position={position} validation={validation} onCommand={onCommand} />
+        <StatusBar position={position} validation={validation} assembly={assembly} onCommand={onCommand} />
       </div>
     </Router>
   );
