@@ -1,7 +1,6 @@
 import type { JSXElement } from '@fluentui/react-components';
 import {
   bundleIcon,
-  DiagramFilled,
   DiagramRegular,
   FolderLightningFilled,
   FolderLightningRegular,
@@ -27,7 +26,6 @@ import { useNavigate } from 'react-router-dom';
 
 const BookInformation = bundleIcon(QuestionCircleFilled, QuestionCircleRegular);
 const Emulator = bundleIcon(DeveloperBoardLightningFilled, DeveloperBoardLightningRegular);
-const Output = bundleIcon(DiagramFilled, DiagramRegular);
 const Examples = bundleIcon(FolderLightningFilled, FolderLightningRegular);
 const Export = bundleIcon(ShareFilled, ShareRegular);
 
@@ -101,7 +99,7 @@ export const AppSideToolbar = (props: Partial<ToolbarProps>): JSXElement => {
         <Tooltip content='Toggle Assembler Output' relationship='description' positioning='after' withArrow>
           <ToolbarToggleButton
             className={styles.toggle}
-            icon={<Output className={styles.icon} />}
+            icon={<DiagramRegular className={styles.icon} />}
             name='panels'
             appearance='transparent'
             value={Prefs.Panels.SEC_SIDEBAR}

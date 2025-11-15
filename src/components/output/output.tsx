@@ -13,7 +13,7 @@ function Output({ assembly }: OutputProps) {
 
     if (!editorRef.current) {
       editorRef.current = monaco.editor.create(containerRef.current, {
-        value: '',
+        value: assembly?.dasm ?? '',
         theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light',
         language: 'rcdsm',
         lineNumbers: 'off',
@@ -34,7 +34,7 @@ function Output({ assembly }: OutputProps) {
       editorRef.current?.dispose();
       editorRef.current = null;
     };
-  }, []);
+  }, [assembly]);
 
   useUpdate(
     () => {

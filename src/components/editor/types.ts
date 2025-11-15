@@ -18,8 +18,6 @@ export type EditorProps = {
   /**
    * Signature: function(editor: monaco.editor.IStandaloneCodeEditor) => void
    * An event is emitted when the editor is mounted
-   * It gets the editor instance as a first argument
-   * Defaults to "noop"
  */
   onMount?: OnMount;
 
