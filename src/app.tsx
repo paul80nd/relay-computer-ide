@@ -45,7 +45,7 @@ export const App = (): JSXElement => {
   // Read the initial prefs from localStorage
   const initialPrefs = () => {
     const savedState = localStorage.getItem('prefs');
-    return savedState ? JSON.parse(savedState) : { panels: [Prefs.Panels.SEC_SIDEBAR, Prefs.Panels.STATUS] };
+    return savedState ? JSON.parse(savedState) : { panels: [Prefs.Panels.SEC_SIDEBAR] };
   };
   const [prefState, setPrefState] = useState(initialPrefs);
 
@@ -57,7 +57,6 @@ export const App = (): JSXElement => {
   const isLeftPanelVisible = prefState.panels.includes(Prefs.Panels.PRI_SIDEBAR);
   const isRightPanelVisible = prefState.panels.includes(Prefs.Panels.SEC_SIDEBAR);
   const isBottomPanelVisible = prefState.panels.includes(Prefs.Panels.PANEL);
-  const isStatusPanelVisible = prefState.panels.includes(Prefs.Panels.STATUS);
 
   const onChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
     setPrefState((s: Record<string, string[]>) => {
@@ -140,18 +139,14 @@ export const App = (): JSXElement => {
             )}
           </PanelGroup>
         </div>
-        {isStatusPanelVisible && (
-          <>
-            <div
-              style={{
-                backgroundColor: tokens.colorNeutralBackground3,
-                padding: '0.25rem .75rem 0.25rem',
-              }}
-            >
-              <Caption1> Status Bar</Caption1>
-            </div>
-          </>
-        )}
+        <div
+          style={{
+            backgroundColor: tokens.colorNeutralBackground3,
+            padding: '0.25rem .75rem 0.25rem',
+          }}
+        >
+          <Caption1> Status Bar</Caption1>
+        </div>
       </div>
     </Router>
   );

@@ -202,9 +202,6 @@ export const AppToolbar = (props: Partial<ToolbarProps>): JSXElement => {
                     <MenuItemCheckbox name='panels' value={Prefs.Panels.SEC_SIDEBAR} secondaryContent='Ctrl+Alt+B'>
                       Secondary Side Bar
                     </MenuItemCheckbox>
-                    <MenuItemCheckbox name='panels' value={Prefs.Panels.STATUS}>
-                      Status Bar
-                    </MenuItemCheckbox>
                     <MenuItemCheckbox name='panels' value={Prefs.Panels.PANEL} secondaryContent='Ctrl+J' disabled>
                       Panel
                     </MenuItemCheckbox>
