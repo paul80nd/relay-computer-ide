@@ -2,10 +2,11 @@ import { useRef, useEffect, useState } from 'react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { EditorProps } from './types';
 
-function Editor({ onChange, onValidate }: EditorProps) {
+function Editor({ onChange, onPositionChange, onValidate }: EditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const subscriptionRef = useRef<monaco.IDisposable | undefined>(undefined);
+  const onDidChangeModelContentRef = useRef<monaco.IDisposable | undefined>(undefined);
+  const onDidChangeCursorPositionRef = useRef<monaco.IDisposable | undefined>(undefined);
 
   const [isEditorReady, setIsEditorReady] = useState(false);
 
@@ -43,16 +44,28 @@ function Editor({ onChange, onValidate }: EditorProps) {
     setIsEditorReady(true);
 
     return () => {
+      onDidChangeModelContentRef?.current?.dispose();
+      onDidChangeCursorPositionRef?.current?.dispose();
       editorRef.current?.dispose();
       editorRef.current = null;
     };
   }, []);
 
+  // onPositionChange
+  useEffect(() => {
+    if (isEditorReady && onPositionChange) {
+      onDidChangeCursorPositionRef.current?.dispose();
+      onDidChangeCursorPositionRef.current = editorRef.current?.onDidChangeCursorPosition(event => {
+        onPositionChange(event);
+      });
+    }
+  }, [isEditorReady, onPositionChange]);
+
   // onChange
   useEffect(() => {
     if (isEditorReady && onChange) {
-      subscriptionRef.current?.dispose();
-      subscriptionRef.current = editorRef.current?.onDidChangeModelContent(event => {
+      onDidChangeModelContentRef.current?.dispose();
+      onDidChangeModelContentRef.current = editorRef.current?.onDidChangeModelContent(event => {
         onChange(editorRef.current!.getValue(), event);
       });
     }

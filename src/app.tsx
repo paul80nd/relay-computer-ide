@@ -1,5 +1,5 @@
 import type { JSXElement, ToolbarProps } from '@fluentui/react-components';
-import { Caption1, makeStyles, tokens } from '@fluentui/react-components';
+import { makeStyles, tokens } from '@fluentui/react-components';
 import { AppToolbar } from './components/toolbar';
 import { AppSideToolbar } from './components/side-toolbar';
 import Editor from './components/editor/editor';
@@ -13,6 +13,7 @@ import { AppEmulator } from './components/emulator';
 import { AppExport } from './components/export';
 import { AppExamples } from './components/examples';
 import useDebounce from './hooks/useDebounce';
+import StatusBar from './components/status-bar/status-bar';
 
 const useStyles = makeStyles({
   container: {
@@ -48,6 +49,7 @@ export const App = (): JSXElement => {
     return savedState ? JSON.parse(savedState) : { panels: [Prefs.Panels.SEC_SIDEBAR] };
   };
   const [prefState, setPrefState] = useState(initialPrefs);
+  const [position, setPosition] = useState<monaco.IPosition | undefined>(undefined)
 
   // Update localStorage whenever prefState changes
   useEffect(() => {
@@ -93,6 +95,8 @@ export const App = (): JSXElement => {
 
   const onEditorValidated = (markers: monaco.editor.IMarker[]) => console.log(markers);
 
+  const onEditorPositionChanged = (e: monaco.editor.ICursorPositionChangedEvent) => setPosition(e.position);
+
   const styles = useStyles();
 
   return (
@@ -119,7 +123,7 @@ export const App = (): JSXElement => {
             <Panel order={2} id='middle'>
               <PanelGroup direction='vertical' autoSaveId='persistence'>
                 <Panel id='editor' minSize={33} order={1}>
-                  <Editor onChange={onEditorChanged} onValidate={onEditorValidated} />
+                  <Editor onChange={onEditorChanged} onValidate={onEditorValidated} onPositionChange={onEditorPositionChanged} />
                 </Panel>
                 {isBottomPanelVisible && (
                   <>
@@ -139,14 +143,7 @@ export const App = (): JSXElement => {
             )}
           </PanelGroup>
         </div>
-        <div
-          style={{
-            backgroundColor: tokens.colorNeutralBackground3,
-            padding: '0.25rem .75rem 0.25rem',
-          }}
-        >
-          <Caption1> Status Bar</Caption1>
-        </div>
+        <StatusBar position={position}/>
       </div>
     </Router>
   );

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, output } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MonacoEditorComponent } from '../ngx-monaco-editor';
 import * as rcasm from '@paul80nd/rcasm';
@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './editor.component.html',
   imports: [MonacoEditorComponent, FormsModule]
 })
-export class EditorComponent implements OnInit {
+export class EditorComponent {
   private http = inject(HttpClient);
 
   readonly codeChanged = output<string>();
@@ -24,11 +24,6 @@ export class EditorComponent implements OnInit {
 
   editorOptions = {
   } as monaco.editor.IStandaloneEditorConstructionOptions;
-
-  ngOnInit(): void {
-    const code = localStorage.getItem("code") || this.getDefaultCode();
-    this.code = code;
-  }
 
   onInit(editor: monaco.editor.IStandaloneCodeEditor) {
     this.editor = editor;
@@ -51,20 +46,6 @@ export class EditorComponent implements OnInit {
     });
 
     this.codeChanged.emit(this.code);
-  }
-
-  private changeTimeoutId?: number;
-  onCodeChange() {
-    // Debounce change by up to 500ms
-    clearTimeout(this.changeTimeoutId);
-    this.changeTimeoutId = setTimeout(() => {
-      localStorage.setItem("code", this.code);
-      this.codeChanged.emit(this.code);
-    }, 500);
-  }
-
-  getDefaultCode(): string {
-    return '';
   }
 
   loadExample(example: string) {
