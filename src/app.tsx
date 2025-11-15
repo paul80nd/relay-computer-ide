@@ -4,7 +4,7 @@ import { AppToolbar } from './components/toolbar';
 import { AppSideToolbar } from './components/side-toolbar';
 import Editor from './components/editor/editor';
 import { AppOutput } from './components/output';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { Prefs } from './prefs';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -49,7 +49,7 @@ export const App = (): JSXElement => {
     return savedState ? JSON.parse(savedState) : { panels: [Prefs.Panels.SEC_SIDEBAR] };
   };
   const [prefState, setPrefState] = useState(initialPrefs);
-  const [position, setPosition] = useState<monaco.IPosition | undefined>(undefined)
+  const [position, setPosition] = useState<monaco.IPosition | undefined>(undefined);
 
   // Update localStorage whenever prefState changes
   useEffect(() => {
@@ -93,6 +93,14 @@ export const App = (): JSXElement => {
     }
   }, [debouncedCode]);
 
+  // Capture reference to editor for passing commands
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | undefined>(undefined);
+  const onEditorMounted = (editor: monaco.editor.IStandaloneCodeEditor) => editorRef.current = editor;
+  const onCommand = (command: string) => {
+    console.log('Handling command', command);
+    editorRef.current?.focus();
+    editorRef.current?.getAction(command)?.run();
+  };
   const onEditorValidated = (markers: monaco.editor.IMarker[]) => console.log(markers);
 
   const onEditorPositionChanged = (e: monaco.editor.ICursorPositionChangedEvent) => setPosition(e.position);
@@ -123,7 +131,12 @@ export const App = (): JSXElement => {
             <Panel order={2} id='middle'>
               <PanelGroup direction='vertical' autoSaveId='persistence'>
                 <Panel id='editor' minSize={33} order={1}>
-                  <Editor onChange={onEditorChanged} onValidate={onEditorValidated} onPositionChange={onEditorPositionChanged} />
+                  <Editor
+                    onChange={onEditorChanged}
+                    onMount={onEditorMounted}
+                    onValidate={onEditorValidated}
+                    onPositionChange={onEditorPositionChanged}
+                  />
                 </Panel>
                 {isBottomPanelVisible && (
                   <>
@@ -143,7 +156,7 @@ export const App = (): JSXElement => {
             )}
           </PanelGroup>
         </div>
-        <StatusBar position={position}/>
+        <StatusBar position={position} onCommand={onCommand} />
       </div>
     </Router>
   );

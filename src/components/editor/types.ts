@@ -1,10 +1,12 @@
-import { type editor } from 'monaco-editor';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
-export type OnChange = (value: string | undefined, ev: editor.IModelContentChangedEvent) => void;
+export type OnChange = (value: string | undefined, ev: monaco.editor.IModelContentChangedEvent) => void;
 
-export type OnPositionChange = (e: editor.ICursorPositionChangedEvent) => void;
+export type OnMount = (editor: monaco.editor.IStandaloneCodeEditor) => void;
 
-export type OnValidate = (markers: editor.IMarker[]) => void;
+export type OnPositionChange = (e: monaco.editor.ICursorPositionChangedEvent) => void;
+
+export type OnValidate = (markers: monaco.editor.IMarker[]) => void;
 
 export type EditorProps = {
   /**
@@ -12,6 +14,14 @@ export type EditorProps = {
    * An event is emitted when the content of the current model is changed
    */
   onChange?: OnChange;
+
+  /**
+   * Signature: function(editor: monaco.editor.IStandaloneCodeEditor) => void
+   * An event is emitted when the editor is mounted
+   * It gets the editor instance as a first argument
+   * Defaults to "noop"
+ */
+  onMount?: OnMount;
 
   /**
    * Signature:

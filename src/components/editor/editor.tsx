@@ -2,9 +2,10 @@ import { useRef, useEffect, useState } from 'react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { EditorProps } from './types';
 
-function Editor({ onChange, onPositionChange, onValidate }: EditorProps) {
+function Editor({ onChange, onMount, onPositionChange, onValidate }: EditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const onMountRef = useRef(onMount);
   const onDidChangeModelContentRef = useRef<monaco.IDisposable | undefined>(undefined);
   const onDidChangeCursorPositionRef = useRef<monaco.IDisposable | undefined>(undefined);
 
@@ -50,6 +51,12 @@ function Editor({ onChange, onPositionChange, onValidate }: EditorProps) {
       editorRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (isEditorReady && onMountRef && onMountRef.current) {
+      onMountRef.current(editorRef.current!);
+    }
+  }, [isEditorReady]);
 
   // onPositionChange
   useEffect(() => {

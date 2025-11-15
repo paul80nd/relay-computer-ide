@@ -8,6 +8,7 @@ import {
   Tooltip,
 } from '@fluentui/react-components';
 import type { StatusBarProps } from './types';
+import { Commands } from '../../commands';
 
 const useStyles = makeStyles({
   bar: {
@@ -22,15 +23,23 @@ const useStyles = makeStyles({
   },
 });
 
-function StatusBar({ position }: StatusBarProps) {
+function StatusBar({ position, onCommand }: StatusBarProps) {
   const styles = useStyles();
   return (
     <Toolbar className={styles.bar} size='small'>
       <ToolbarGroup role='presentation'>
         {position && (
           <Tooltip content='Goto Line/Column' relationship='description' positioning='above' withArrow>
-            <ToolbarButton className={styles.item} name='panels' appearance='transparent' value='customize'>
-              <Caption1>Ln {position.lineNumber}, Col {position.column} </Caption1>
+            <ToolbarButton
+              className={styles.item}
+              name='panels'
+              appearance='transparent'
+              value='customize'
+              onClick={() => onCommand && onCommand(Commands.EDITOR_GOTOLINE)}
+            >
+              <Caption1>
+                Ln {position.lineNumber}, Col {position.column}{' '}
+              </Caption1>
             </ToolbarButton>
           </Tooltip>
         )}
