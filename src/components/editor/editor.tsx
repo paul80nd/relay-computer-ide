@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { EditorProps } from './types';
 
-function Editor({ onChange, onMount, onPositionChange, onValidate }: EditorProps) {
+function Editor({ onCodeChange, onMount, onPositionChange, onValidate }: EditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const onMountRef = useRef(onMount);
@@ -40,6 +40,10 @@ function Editor({ onChange, onMount, onPositionChange, onValidate }: EditorProps
         automaticLayout: true,
         scrollBeyondLastLine: true,
       });
+
+      if (onCodeChange) {
+        onCodeChange(code);
+      }
     }
 
     setIsEditorReady(true);
@@ -70,13 +74,13 @@ function Editor({ onChange, onMount, onPositionChange, onValidate }: EditorProps
 
   // onChange
   useEffect(() => {
-    if (isEditorReady && onChange) {
+    if (isEditorReady && onCodeChange) {
       onDidChangeModelContentRef.current?.dispose();
-      onDidChangeModelContentRef.current = editorRef.current?.onDidChangeModelContent(event => {
-        onChange(editorRef.current!.getValue(), event);
-      });
+      onDidChangeModelContentRef.current = editorRef.current?.onDidChangeModelContent(() =>
+        onCodeChange(editorRef.current!.getValue())
+      );
     }
-  }, [isEditorReady, onChange]);
+  }, [isEditorReady, onCodeChange]);
 
   // onValidate
   useEffect(() => {

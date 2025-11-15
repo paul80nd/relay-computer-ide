@@ -91,7 +91,7 @@ export const App = (): JSXElement => {
   // Current code (updated immediately) plus debounced code (updated no less than 300ms since last update)
   const [code, setCode] = useState('');
   const debouncedCode = useDebounce(code, 300);
-  const onEditorChanged = (value?: string) => setCode(value ?? '');
+  const onCodeChanged = (code?: string) => setCode(code ?? '');
   useEffect(() => {
     if (debouncedCode) {
       // Store code
@@ -105,7 +105,7 @@ export const App = (): JSXElement => {
 
   // Capture reference to editor for passing commands
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | undefined>(undefined);
-  const onEditorMounted = (editor: monaco.editor.IStandaloneCodeEditor) => (editorRef.current = editor);
+  const onEditorMounted = (editor: monaco.editor.IStandaloneCodeEditor) => {(editorRef.current = editor)};
   const onCommand = (command: string) => {
     console.log('Handling command', command);
     editorRef.current?.focus();
@@ -155,7 +155,7 @@ export const App = (): JSXElement => {
               <PanelGroup direction='vertical' autoSaveId='persistence'>
                 <Panel id='editor' minSize={33} order={1}>
                   <Editor
-                    onChange={onEditorChanged}
+                    onCodeChange={onCodeChanged}
                     onMount={onEditorMounted}
                     onValidate={onEditorValidated}
                     onPositionChange={onEditorPositionChanged}
