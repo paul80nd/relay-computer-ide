@@ -1,6 +1,6 @@
 import type { JSXElement, ToolbarProps } from '@fluentui/react-components';
 import { makeStyles, tokens } from '@fluentui/react-components';
-import { AppToolbar } from './components/toolbar';
+import AppToolbar from './components/toolbar/toolbar';
 import { AppSideToolbar } from './components/side-toolbar';
 import Editor from './components/editor/editor';
 import { AppOutput } from './components/output';
@@ -14,6 +14,7 @@ import { AppExport } from './components/export';
 import { AppExamples } from './components/examples';
 import useDebounce from './hooks/useDebounce';
 import StatusBar from './components/status-bar/status-bar';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
 const useStyles = makeStyles({
   container: {
@@ -110,7 +111,7 @@ export const App = (): JSXElement => {
   return (
     <Router>
       <div className={styles.container}>
-        <AppToolbar checkedValues={prefState} onCheckedValueChange={onChange} />
+        <AppToolbar checkedValues={prefState} onCheckedValueChange={onChange} onCommand={onCommand} />
         <div className={styles.main}>
           <AppSideToolbar checkedValues={prefState} onCheckedValueChange={onChange} />
           <PanelGroup direction='horizontal' autoSaveId='persistence'>
