@@ -28,10 +28,6 @@ export class EditorComponent {
   onInit(editor: monaco.editor.IStandaloneCodeEditor) {
     this.editor = editor;
 
-    editor.onDidChangeCursorPosition(e => {
-      this.stateText = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
-    });
-
     editor.addAction(<monaco.editor.IActionDescriptor>{
       id: "rcasm-jump-to-source",
       label: "Go to Assembled",

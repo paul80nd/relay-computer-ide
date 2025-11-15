@@ -15,6 +15,7 @@ import { AppExamples } from './components/examples';
 import useDebounce from './hooks/useDebounce';
 import StatusBar from './components/status-bar/status-bar';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import type { StatusBarValidation } from './components/status-bar';
 
 const useStyles = makeStyles({
   container: {
@@ -51,6 +52,7 @@ export const App = (): JSXElement => {
   };
   const [prefState, setPrefState] = useState(initialPrefs);
   const [position, setPosition] = useState<monaco.IPosition | undefined>(undefined);
+  const [validation, setValidation] = useState<StatusBarValidation>({ isValid: true, warnings: 0, errors: 0 });
 
   // Update localStorage whenever prefState changes
   useEffect(() => {
@@ -96,13 +98,27 @@ export const App = (): JSXElement => {
 
   // Capture reference to editor for passing commands
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | undefined>(undefined);
-  const onEditorMounted = (editor: monaco.editor.IStandaloneCodeEditor) => editorRef.current = editor;
+  const onEditorMounted = (editor: monaco.editor.IStandaloneCodeEditor) => (editorRef.current = editor);
   const onCommand = (command: string) => {
     console.log('Handling command', command);
     editorRef.current?.focus();
     editorRef.current?.getAction(command)?.run();
   };
-  const onEditorValidated = (markers: monaco.editor.IMarker[]) => console.log(markers);
+  const onEditorValidated = (markers: monaco.editor.IMarker[]) => {
+    const v: StatusBarValidation = { isValid: true, errors: 0, warnings: 0 };
+    markers.forEach(m => {
+      switch (m.severity) {
+        case monaco.MarkerSeverity.Error:
+          v.errors++;
+          break;
+        case monaco.MarkerSeverity.Warning:
+          v.warnings++;
+          break;
+      }
+    });
+    v.isValid = v.errors === 0 && v.warnings === 0;
+    setValidation(v);
+  };
 
   const onEditorPositionChanged = (e: monaco.editor.ICursorPositionChangedEvent) => setPosition(e.position);
 
@@ -157,7 +173,7 @@ export const App = (): JSXElement => {
             )}
           </PanelGroup>
         </div>
-        <StatusBar position={position} onCommand={onCommand} />
+        <StatusBar position={position} validation={validation} onCommand={onCommand} />
       </div>
     </Router>
   );

@@ -174,13 +174,13 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
                     Full Screen
                   </MenuItem>
                   <MenuDivider />
-                  <MenuItemCheckbox name='panels' value={Prefs.Panels.PRI_SIDEBAR} secondaryContent='Ctrl+B' disabled>
+                  <MenuItemCheckbox name='panels' value={Prefs.Panels.PRI_SIDEBAR} disabled>
                     Primary Side Bar
                   </MenuItemCheckbox>
-                  <MenuItemCheckbox name='panels' value={Prefs.Panels.SEC_SIDEBAR} secondaryContent='Ctrl+Alt+B'>
+                  <MenuItemCheckbox name='panels' value={Prefs.Panels.SEC_SIDEBAR}>
                     Secondary Side Bar
                   </MenuItemCheckbox>
-                  <MenuItemCheckbox name='panels' value={Prefs.Panels.PANEL} secondaryContent='Ctrl+J' disabled>
+                  <MenuItemCheckbox name='panels' value={Prefs.Panels.PANEL} disabled>
                     Panel
                   </MenuItemCheckbox>
                   <MenuDivider />
@@ -189,16 +189,6 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
                   <MenuItemCheckbox disabled name='view' value='mini-map'>
                     Minimap
                   </MenuItemCheckbox>
-                  <MenuDivider />
-                  <MenuItem disabled secondaryContent='Ctrl+='>
-                    Zoom In
-                  </MenuItem>
-                  <MenuItem disabled secondaryContent='Ctrl+-'>
-                    Zoom Out
-                  </MenuItem>
-                  <MenuItem disabled secondaryContent='Ctrl+NumPad0'>
-                    Reset Zoom
-                  </MenuItem>
                 </MenuList>
               </MenuPopover>
             </Menu>
