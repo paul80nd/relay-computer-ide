@@ -7,10 +7,7 @@ import {
   ToolbarGroup,
   Tooltip,
 } from '@fluentui/react-components';
-import {
-  Warning16Regular,
-  ErrorCircle16Regular,
-} from '@fluentui/react-icons';
+import { Warning16Regular, ErrorCircle16Regular } from '@fluentui/react-icons';
 import type { StatusBarProps } from './types';
 import { Commands } from '../../commands';
 import { pluralize } from '../../utils';
@@ -30,6 +27,10 @@ const useStyles = makeStyles({
 
 function StatusBar({ position, validation, assembly, onCommand }: StatusBarProps) {
   const styles = useStyles();
+
+  const bytes = Math.max((assembly?.bytes?.length ?? 0) - 2, 0);
+
+  const doCommand = (command: string): void => onCommand && onCommand(command);
 
   return (
     <Toolbar className={styles.bar} size='small'>
@@ -59,7 +60,7 @@ function StatusBar({ position, validation, assembly, onCommand }: StatusBarProps
             <ToolbarButton
               className={styles.item}
               appearance='transparent'
-              onClick={() => onCommand && onCommand(Commands.EDITOR_GOTOLINE)}
+              onClick={() => doCommand(Commands.EDITOR_GOTOLINE)}
             >
               <Caption1>
                 Ln {position.lineNumber}, Col {position.column}{' '}
@@ -70,9 +71,20 @@ function StatusBar({ position, validation, assembly, onCommand }: StatusBarProps
       </ToolbarGroup>
       <ToolbarGroup role='presentation'>
         {assembly && assembly.bytes && (
-          <ToolbarButton className={styles.item} appearance='transparent'>
-            <Caption1>Bytes: {Math.max((assembly?.bytes?.length ?? 0) - 2, 0)}</Caption1>
-          </ToolbarButton>
+          <Tooltip
+            content={`Assembler outputted ${pluralize(bytes, 'byte', 'bytes')}`}
+            relationship='description'
+            positioning='above-start'
+            withArrow
+          >
+            <ToolbarButton
+              className={styles.item}
+              appearance='transparent'
+              onClick={() => doCommand(Commands.PANEL_OUTPUT_SHOW)}
+            >
+              <Caption1>Bytes: {bytes}</Caption1>
+            </ToolbarButton>
+          </Tooltip>
         )}
       </ToolbarGroup>
     </Toolbar>

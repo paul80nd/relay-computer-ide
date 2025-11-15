@@ -17,6 +17,7 @@ import StatusBar from './components/status-bar/status-bar';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { StatusBarValidation } from './components/status-bar';
 import { assemble, type AssemblerResult } from './assembler';
+import { Commands, CommandTarget } from './commands';
 
 const useStyles = makeStyles({
   container: {
@@ -65,7 +66,7 @@ export const App = (): JSXElement => {
   const isRightPanelVisible = prefState.panels.includes(Prefs.Panels.SEC_SIDEBAR);
   const isBottomPanelVisible = prefState.panels.includes(Prefs.Panels.PANEL);
 
-  const onChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+  const applyPrefState = (name: string, checkedItems: string[]) => {
     setPrefState((s: Record<string, string[]>) => {
       if (name === 'panels' && !checkedItems.includes(Prefs.Panels.PRI_SIDEBAR)) {
         // If primary sidebar closing clear section
@@ -88,6 +89,9 @@ export const App = (): JSXElement => {
     });
   };
 
+  const onChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) =>
+    applyPrefState(name, checkedItems);
+
   // Current code (updated immediately) plus debounced code (updated no less than 300ms since last update)
   const [code, setCode] = useState('');
   const debouncedCode = useDebounce(code, 300);
@@ -105,11 +109,25 @@ export const App = (): JSXElement => {
 
   // Capture reference to editor for passing commands
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | undefined>(undefined);
-  const onEditorMounted = (editor: monaco.editor.IStandaloneCodeEditor) => {(editorRef.current = editor)};
+  const onEditorMounted = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    editorRef.current = editor;
+  };
   const onCommand = (command: string) => {
     console.log('Handling command', command);
-    editorRef.current?.focus();
-    editorRef.current?.getAction(command)?.run();
+    if (command.startsWith(CommandTarget.EDITOR)) {
+      editorRef.current?.focus();
+      editorRef.current?.getAction(command)?.run();
+    } else if (command.startsWith(CommandTarget.PANEL)) {
+      const p = prefState.panels as string[];
+      switch (command) {
+        case Commands.PANEL_OUTPUT_SHOW:
+          if (!p.includes(Prefs.Panels.SEC_SIDEBAR)) {
+            p.push(Prefs.Panels.SEC_SIDEBAR);
+             applyPrefState('panels', p);
+          }
+          break;
+      }
+    }
   };
   const onEditorValidated = (markers: monaco.editor.IMarker[]) => {
     const v: StatusBarValidation = { errors: 0, warnings: 0 };
