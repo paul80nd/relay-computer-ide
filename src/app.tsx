@@ -6,7 +6,7 @@ import Editor from './components/editor/editor';
 import Output from './components/output';
 import { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { Prefs } from './prefs';
+import { Prefs, usePreferences } from './hooks/usePreferences';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AppWelcome } from './components/welcome';
 import { AppEmulator } from './components/emulator';
@@ -47,20 +47,12 @@ const useStyles = makeStyles({
 });
 
 export const App = (): JSXElement => {
-  // Read the initial prefs from localStorage
-  const initialPrefs = () => {
-    const savedState = localStorage.getItem('prefs');
-    return savedState ? JSON.parse(savedState) : { panels: [Prefs.Panels.SEC_SIDEBAR] };
-  };
-  const [prefState, setPrefState] = useState(initialPrefs);
+
   const [position, setPosition] = useState<monaco.IPosition | undefined>(undefined);
   const [validation, setValidation] = useState<StatusBarValidation>({ warnings: 0, errors: 0 });
   const [assembly, setAssembly] = useState<AssemblerResult | undefined>(undefined);
 
-  // Update localStorage whenever prefState changes
-  useEffect(() => {
-    localStorage.setItem('prefs', JSON.stringify(prefState));
-  }, [prefState]);
+  const [prefState, setPrefState] = usePreferences();
 
   const isLeftPanelVisible = prefState.panels.includes(Prefs.Panels.PRI_SIDEBAR);
   const isRightPanelVisible = prefState.panels.includes(Prefs.Panels.SEC_SIDEBAR);

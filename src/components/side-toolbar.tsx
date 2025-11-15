@@ -21,7 +21,7 @@ import {
   ToolbarRadioButton,
 } from '@fluentui/react-components';
 import type { ToolbarProps } from '@fluentui/react-components';
-import { Prefs } from '../prefs';
+import { Prefs } from '../hooks/usePreferences';
 import { useNavigate } from 'react-router-dom';
 
 const BookInformation = bundleIcon(QuestionCircleFilled, QuestionCircleRegular);

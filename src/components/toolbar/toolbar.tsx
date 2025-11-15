@@ -20,7 +20,7 @@ import {
   makeStyles,
   Text,
 } from '@fluentui/react-components';
-import { Prefs } from '../../prefs';
+import { Prefs } from '../../hooks/usePreferences';
 import type { AppToolbarProps } from './types';
 import AppToolbarMenu from './toolbar-menu';
 

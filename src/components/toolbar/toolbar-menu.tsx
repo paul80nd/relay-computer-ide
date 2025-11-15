@@ -21,7 +21,7 @@ import {
   MenuItemRadio,
 } from '@fluentui/react-components';
 import { useEffect, useState } from 'react';
-import { Prefs } from '../../prefs';
+import { Prefs } from '../../hooks/usePreferences';
 import { useNavigate } from 'react-router-dom';
 import type { AppToolbarProps } from './types';
 import { Commands } from '../../commands';
