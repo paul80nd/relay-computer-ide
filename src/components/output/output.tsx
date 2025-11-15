@@ -1,20 +1,20 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import type { OutputProps } from './types';
+import useUpdate from '../../hooks/useUpdate';
 
-export const AppOutput = () => {
+function Output({ assembly }: OutputProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const [isEditorReady, setIsEditorReady] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     if (!editorRef.current) {
       editorRef.current = monaco.editor.create(containerRef.current, {
-        value: ['function x() {', '\tconsole.log("Hello world!");', '}'].join('\n'),
-        theme:
-          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-            ? 'vs-dark'
-            : 'vs-light',
+        value: '',
+        theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light',
         language: 'rcdsm',
         lineNumbers: 'off',
         renderLineHighlight: 'none',
@@ -24,9 +24,11 @@ export const AppOutput = () => {
         minimap: { enabled: false },
         glyphMargin: false,
         automaticLayout: true,
-        scrollBeyondLastLine: false
+        scrollBeyondLastLine: false,
       });
     }
+
+    setIsEditorReady(true);
 
     return () => {
       editorRef.current?.dispose();
@@ -34,5 +36,16 @@ export const AppOutput = () => {
     };
   }, []);
 
+  useUpdate(
+    () => {
+      if (!editorRef.current || assembly?.dasm === undefined) return;
+      editorRef.current.setValue(assembly?.dasm);
+    },
+    [assembly],
+    isEditorReady
+  );
+
   return <div style={{ height: '100%' }} ref={containerRef}></div>;
-};
+}
+
+export default Output;

@@ -3,7 +3,7 @@ import { makeStyles, tokens } from '@fluentui/react-components';
 import AppToolbar from './components/toolbar/toolbar';
 import { AppSideToolbar } from './components/side-toolbar';
 import Editor from './components/editor/editor';
-import { AppOutput } from './components/output';
+import Output from './components/output';
 import { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { Prefs } from './prefs';
@@ -16,6 +16,7 @@ import useDebounce from './hooks/useDebounce';
 import StatusBar from './components/status-bar/status-bar';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { StatusBarValidation } from './components/status-bar';
+import { assemble, type AssemblerResult } from './assembler';
 
 const useStyles = makeStyles({
   container: {
@@ -53,6 +54,7 @@ export const App = (): JSXElement => {
   const [prefState, setPrefState] = useState(initialPrefs);
   const [position, setPosition] = useState<monaco.IPosition | undefined>(undefined);
   const [validation, setValidation] = useState<StatusBarValidation>({ isValid: true, warnings: 0, errors: 0 });
+  const [assembly, setAssembly] = useState<AssemblerResult | undefined>(undefined);
 
   // Update localStorage whenever prefState changes
   useEffect(() => {
@@ -92,7 +94,12 @@ export const App = (): JSXElement => {
   const onEditorChanged = (value?: string) => setCode(value ?? '');
   useEffect(() => {
     if (debouncedCode) {
+      // Store code
       localStorage.setItem('code', debouncedCode);
+
+      // Assemble
+      const result = assemble(debouncedCode);
+      setAssembly(result);
     }
   }, [debouncedCode]);
 
@@ -167,7 +174,7 @@ export const App = (): JSXElement => {
               <>
                 <PanelResizeHandle className={styles.resizeHandle} />
                 <Panel id='right' defaultSize={20} minSize={20} className={styles.panel} order={3}>
-                  <AppOutput />
+                  <Output assembly={assembly} />
                 </Panel>
               </>
             )}
