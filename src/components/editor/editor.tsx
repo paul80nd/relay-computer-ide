@@ -16,11 +16,9 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
     if (!containerRef.current) return;
 
     if (!editorRef.current) {
-      const code = initialCode;
-
       editorRef.current = monaco.editor.create(containerRef.current, {
         theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light',
-        value: code,
+        value: initialCode,
         language: 'rcasm',
         lineNumbers: 'on',
         renderLineHighlight: 'none',
@@ -28,10 +26,6 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
         automaticLayout: true,
         scrollBeyondLastLine: true,
       });
-
-      if (onCodeChange) {
-        onCodeChange(code);
-      }
     }
 
     setIsEditorReady(true);
@@ -42,7 +36,8 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
       editorRef.current?.dispose();
       editorRef.current = null;
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // <- important: run once
 
   useEffect(() => {
     if (isEditorReady && onMountRef && onMountRef.current) {
