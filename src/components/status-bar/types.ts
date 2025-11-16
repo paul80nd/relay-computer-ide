@@ -1,6 +1,5 @@
 import type { AssemblerResult } from "../../assembler";
-
-export type OnCommand = (command: string) => void;
+import type { AppCommand } from "../../commands";
 
 export type StatusBarProps = {
 
@@ -10,11 +9,8 @@ export type StatusBarProps = {
 
   assembly?: AssemblerResult;
 
-  /**
-   * Signature: function(command: string) => void
-   * An event is emitted when a command was initated
-   */
-  onCommand?: OnCommand;
+  /** Emitted when a command was initated */
+  onCommand?: (command: AppCommand) => void;
 }
 
 export type StatusBarValidation = {

@@ -135,13 +135,27 @@ export const App = (): JSXElement => {
   const debouncedCode = useDebounce(code, 300);
   const onCodeChanged = (code?: string) => setCode(code ?? '');
   useEffect(() => {
-    if (debouncedCode) {
-      // Store code
-      localStorage.setItem('code', debouncedCode);
+    // We want to handle empty string explicitly as "clear"
+    if (debouncedCode === undefined) {
+      return;
+    }
 
-      // Assemble
+    // Persist the current code even if it's empty
+    localStorage.setItem('code', debouncedCode);
+
+    // Treat empty code as "no assembly"
+    if (debouncedCode.trim().length === 0) {
+      setAssembly(undefined);
+      return;
+    }
+
+    try {
       const result = assemble(debouncedCode);
       setAssembly(result);
+    } catch (err) {
+      console.error('Error assembling code', err);
+      // In case of failure, clear current assembly to avoid stale output
+      setAssembly(undefined);
     }
   }, [debouncedCode]);
 

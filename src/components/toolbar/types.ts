@@ -1,11 +1,9 @@
 import { type ToolbarProps } from '@fluentui/react-components'
+import type { AppCommand } from '../../commands';
 
 export type AppToolbarProps = ToolbarProps & {
 
-  /**
-   * Signature: function(command: string) => void
-   * An event is emitted when a command was initated
-   */
-  onCommand?: (command: string) => void;
+  /** Emitted when a command was initated */
+  onCommand?: (command: AppCommand) => void;
 
 }
