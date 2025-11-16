@@ -1,3 +1,8 @@
+export const Commands = {
+  EDITOR_GOTO_LINE: 'editor.action.gotoLine',
+  PANEL_OUTPUT_SHOW: 'panel.output.show'
+} as const;
+
 export type AppCommand = typeof Commands[keyof typeof Commands];
 
 export type EditorCommand = Extract<AppCommand, `editor.${string}`>;
@@ -16,7 +21,3 @@ export function isPanelCommand(command: AppCommand): command is PanelCommand {
   return command.startsWith(CommandTarget.PANEL);
 }
 
-export const Commands = {
-  EDITOR_GOTO_LINE: 'editor.action.gotoLine',
-  PANEL_OUTPUT_SHOW: 'panel.output.show'
-}

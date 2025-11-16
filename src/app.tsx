@@ -6,8 +6,8 @@ import Editor from './components/editor/editor';
 import Output from './components/output';
 import { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { Prefs, usePreferences } from './hooks/usePreferences';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { type IPrefState, Prefs, usePreferences } from './hooks/usePreferences';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { AppWelcome } from './components/welcome';
 import { AppEmulator } from './components/emulator';
 import { AppExport } from './components/export';
@@ -54,30 +54,76 @@ export const App = (): JSXElement => {
 
   const [prefState, setPrefState] = usePreferences();
 
-  const isLeftPanelVisible = prefState.panels.includes(Prefs.Panels.PRI_SIDEBAR);
-  const isRightPanelVisible = prefState.panels.includes(Prefs.Panels.SEC_SIDEBAR);
-  const isBottomPanelVisible = prefState.panels.includes(Prefs.Panels.PANEL);
+  // Map typed prefs -> Fluent UI checkedValues
+  const checkedValues = {
+    panels: [
+      prefState.panels.primary ? Prefs.Panels.PRI_SIDEBAR : null,
+      prefState.panels.secondary ? Prefs.Panels.SEC_SIDEBAR : null,
+      prefState.panels.bottom ? Prefs.Panels.PANEL : null,
+    ].filter(Boolean) as string[],
+    section: prefState.section ? [prefState.section] : [],
+  };
 
   const applyPrefState = (name: string, checkedItems: string[]) => {
-    setPrefState((s: Record<string, string[]>) => {
-      if (name === 'panels' && !checkedItems.includes(Prefs.Panels.PRI_SIDEBAR)) {
-        // If primary sidebar closing clear section
-        s = { ...s, section: [] };
+    setPrefState((prev: IPrefState): IPrefState => {
+      let next = { ...prev };
+
+      if (name === 'panels') {
+        // Map checkedItems -> boolean flags
+        const primaryChecked = checkedItems.includes(Prefs.Panels.PRI_SIDEBAR);
+        const secondaryChecked = checkedItems.includes(Prefs.Panels.SEC_SIDEBAR);
+        const bottomChecked = checkedItems.includes(Prefs.Panels.PANEL);
+
+        // If primary sidebar is being turned off, clear the section
+        const section = primaryChecked ? next.section : undefined;
+
+        next = {
+          ...next,
+          panels: {
+            primary: primaryChecked,
+            secondary: secondaryChecked,
+            bottom: bottomChecked,
+          },
+          section,
+        };
+
+        return next;
       }
+
       if (name === 'section') {
-        // Clear section if clicked the same radio
-        if (s.section[0] == checkedItems[0]) {
-          checkedItems = [];
-          if (s.panels.includes(Prefs.Panels.PRI_SIDEBAR)) {
-            // Close the sidebar if already open
-            s = { ...s, panels: s.panels.filter(v => v !== Prefs.Panels.PRI_SIDEBAR) };
-          }
-        } else if (!s.panels.includes(Prefs.Panels.PRI_SIDEBAR)) {
-          // Open the sidebar if not already open
-          s.panels.push(Prefs.Panels.PRI_SIDEBAR);
+        const [newSection] = checkedItems;
+        const currentSection = next.section;
+
+        // Clicking the same radio again -> clear section and close primary sidebar if open
+        if (currentSection && newSection === currentSection) {
+          return {
+            ...next,
+            section: undefined,
+            panels: {
+              ...next.panels,
+              primary: false,
+            },
+          };
         }
+
+        // Selecting a new section -> set it and ensure primary sidebar is open
+        if (newSection) {
+          return {
+            ...next,
+            section: newSection,
+            panels: {
+              ...next.panels,
+              primary: true,
+            },
+          };
+        }
+
+        // No section provided, just leave as is
+        return next;
       }
-      return { ...s, [name]: checkedItems };
+
+      // Any other groups can be handled here later if needed
+      return next;
     });
   };
 
@@ -111,12 +157,16 @@ export const App = (): JSXElement => {
     }
 
     if (isPanelCommand(command)) {
-      const p = prefState.panels as string[];
       switch (command) {
         case Commands.PANEL_OUTPUT_SHOW:
-          if (!p.includes(Prefs.Panels.SEC_SIDEBAR)) {
-            const np = [...p, Prefs.Panels.SEC_SIDEBAR];
-            applyPrefState('panels', np);
+          if (!prefState.panels.secondary) {
+            setPrefState(lps => ({
+              ...lps,
+              panels: {
+                ...lps.panels,
+                secondary: true,
+              },
+            }));
           }
           break;
         default:
@@ -147,11 +197,11 @@ export const App = (): JSXElement => {
   return (
     <Router>
       <div className={styles.container}>
-        <AppToolbar checkedValues={prefState} onCheckedValueChange={onChange} onCommand={onCommand} />
+        <AppToolbar checkedValues={checkedValues} onCheckedValueChange={onChange} onCommand={onCommand} />
         <div className={styles.main}>
-          <AppSideToolbar checkedValues={prefState} onCheckedValueChange={onChange} />
+          <AppSideToolbar checkedValues={checkedValues} onCheckedValueChange={onChange} />
           <PanelGroup direction='horizontal' autoSaveId='persistence'>
-            {isLeftPanelVisible && (
+            {prefState.panels.primary && (
               <>
                 <Panel id='left' defaultSize={20} minSize={20} className={styles.panel} order={1}>
                   <Routes>
@@ -175,7 +225,7 @@ export const App = (): JSXElement => {
                     onPositionChange={onEditorPositionChanged}
                   />
                 </Panel>
-                {isBottomPanelVisible && (
+                {prefState.panels.bottom && (
                   <>
                     <PanelResizeHandle className={styles.resizeHandle} />
                     <Panel id='bottom' order={2} defaultSize={25} minSize={25} className={styles.panel}></Panel>
@@ -183,7 +233,7 @@ export const App = (): JSXElement => {
                 )}
               </PanelGroup>
             </Panel>
-            {isRightPanelVisible && (
+            {prefState.panels.secondary && (
               <>
                 <PanelResizeHandle className={styles.resizeHandle} />
                 <Panel id='right' defaultSize={20} minSize={20} className={styles.panel} order={3}>
