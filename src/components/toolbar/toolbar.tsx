@@ -20,7 +20,7 @@ import {
   makeStyles,
   Text,
 } from '@fluentui/react-components';
-import { Prefs } from '../../hooks/usePreferences';
+import { type IPrefState, mapPrefsToCheckedValues, Prefs } from '../../hooks/usePreferences';
 import type { AppToolbarProps } from './types';
 import AppToolbarMenu from './toolbar-menu';
 
@@ -48,21 +48,90 @@ const useStyles = makeStyles({
 
 function AppToolbar(props: AppToolbarProps): JSXElement {
   const styles = useStyles();
+  const { prefState, onPrefStateChange } = props;
 
-  const onChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) =>
-    props.onCheckedValueChange?.(name, checkedItems);
+  // Map prefs -> Fluent UI checkedValues
+  const checkedValues = mapPrefsToCheckedValues(prefState, Prefs.Panels);
+
+  // Handle toolbar/menus changing panels/section
+  const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+    onPrefStateChange((prev: IPrefState): IPrefState => {
+      let next = { ...prev };
+
+      if (name === 'panels') {
+        const primaryChecked = checkedItems.includes(Prefs.Panels.PRI_SIDEBAR);
+        const secondaryChecked = checkedItems.includes(Prefs.Panels.SEC_SIDEBAR);
+        const bottomChecked = checkedItems.includes(Prefs.Panels.PANEL);
+
+        const section = primaryChecked ? next.section : undefined;
+
+        next = {
+          ...next,
+          panels: {
+            primary: primaryChecked,
+            secondary: secondaryChecked,
+            bottom: bottomChecked,
+          },
+          section,
+        };
+
+        return next;
+      }
+
+      if (name === 'section') {
+        const [newSection] = checkedItems;
+        const currentSection = next.section;
+
+        // Clicking the same radio again -> clear section and close primary sidebar
+        if (currentSection && newSection === currentSection) {
+          return {
+            ...next,
+            section: undefined,
+            panels: {
+              ...next.panels,
+              primary: false,
+            },
+          };
+        }
+
+        // Selecting a new section -> set it and ensure primary sidebar is open
+        if (newSection) {
+          return {
+            ...next,
+            section: newSection,
+            panels: {
+              ...next.panels,
+              primary: true,
+            },
+          };
+        }
+
+        return next;
+      }
+
+      // Unknown group: no-op
+      return next;
+    });
+  };
 
   return (
     <Toolbar
-      checkedValues={props.checkedValues}
-      onCheckedValueChange={onChange}
+      checkedValues={checkedValues}
+      onCheckedValueChange={handleCheckedChange}
       aria-label='Default'
       className={styles.toolbar}
       size='small'
     >
       <ToolbarGroup role='presentation'>
         <Code20Color />
-        <AppToolbarMenu {...props} />
+        <AppToolbarMenu
+          checkedValues={checkedValues}
+          onCheckedValueChange={handleCheckedChange}
+          autoSave={props.autoSave}
+          dirty={props.dirty}
+          onToggleAutoSave={props.onToggleAutoSave}
+          onCommand={props.onCommand}
+        />
       </ToolbarGroup>
       <ToolbarGroup role='presentation'>
         {!props.autoSave && props.dirty && (

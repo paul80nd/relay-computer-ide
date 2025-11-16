@@ -20,7 +20,7 @@ import {
   ToolbarGroup,
   ToolbarRadioButton,
 } from '@fluentui/react-components';
-import { Prefs } from '../../hooks/usePreferences';
+import { type IPrefState, mapPrefsToCheckedValues, Prefs } from '../../hooks/usePreferences';
 import { useNavigate } from 'react-router-dom';
 import type { SideToolbarProps } from './types.ts';
 
@@ -43,22 +43,79 @@ const useStyles = makeStyles({
 });
 
 function SideToolbar(props: SideToolbarProps): JSXElement {
+  const { prefState, onPrefStateChange } = props;
+
+  // Derive checkedValues from prefs
+  const checkedValues = mapPrefsToCheckedValues(prefState, Prefs.Panels);
+
+  // Apply changes from side toolbar to prefs
+  const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+    onPrefStateChange((prev: IPrefState): IPrefState => {
+      let next = { ...prev };
+
+      if (name === 'panels') {
+        const primaryChecked = checkedItems.includes(Prefs.Panels.PRI_SIDEBAR);
+        const secondaryChecked = checkedItems.includes(Prefs.Panels.SEC_SIDEBAR);
+        const bottomChecked = checkedItems.includes(Prefs.Panels.PANEL);
+
+        const section = primaryChecked ? next.section : undefined;
+
+        next = {
+          ...next,
+          panels: {
+            primary: primaryChecked,
+            secondary: secondaryChecked,
+            bottom: bottomChecked,
+          },
+          section,
+        };
+
+        return next;
+      }
+
+      if (name === 'section') {
+        const [newSection] = checkedItems;
+        const currentSection = next.section;
+
+        if (currentSection && newSection === currentSection) {
+          return {
+            ...next,
+            section: undefined,
+            panels: {
+              ...next.panels,
+              primary: false,
+            },
+          };
+        }
+
+        if (newSection) {
+          return {
+            ...next,
+            section: newSection,
+            panels: {
+              ...next.panels,
+              primary: true,
+            },
+          };
+        }
+
+        return next;
+      }
+
+      return next;
+    });
+  };
+
   const styles = useStyles();
   const navigate = useNavigate();
-
-  const onChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
-    if (props.onCheckedValueChange) {
-      props.onCheckedValueChange(name, checkedItems);
-    }
-  };
 
   return (
     <Toolbar
       aria-label='Default'
       className={styles.toolbar}
       vertical
-      onCheckedValueChange={onChange}
-      checkedValues={props.checkedValues}
+      onCheckedValueChange={handleCheckedChange}
+      checkedValues={checkedValues}
     >
       <ToolbarGroup>
         <Tooltip content='Code Examples' relationship='description' positioning='after' withArrow>

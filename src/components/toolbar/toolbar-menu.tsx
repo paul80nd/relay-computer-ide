@@ -30,7 +30,15 @@ const useStyles = makeStyles({
   },
 });
 
-function AppToolbarMenu(props: AppToolbarProps): JSXElement {
+// Note: We reuse AppToolbarProps but only rely on:
+// - checkedValues, onCheckedValueChange (injected by AppToolbar)
+// - autoSave, dirty, onToggleAutoSave, onCommand
+function AppToolbarMenu(
+  props: AppToolbarProps & {
+    checkedValues: Record<string, string[]>;
+    onCheckedValueChange: ToolbarProps['onCheckedValueChange'];
+  }
+): JSXElement {
   const styles = useStyles();
   const navigate = useNavigate();
 
@@ -40,40 +48,42 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
     []
   );
 
-  const [checkedValues, setCheckedValues] = useState<Record<string, string[]>>({
+  // Local state for File menu (save group) only
+  const [fileMenuCheckedValues, setFileMenuCheckedValues] = useState<Record<string, string[]>>({
     save: ['auto'],
-    view: ['word-wrap', 'secondary-side-bar', 'status'],
   });
 
-  // Keep the internal 'save' group in sync with autoSave prop
+  // Sync File menu 'save' group from autoSave prop
   useEffect(() => {
-    setCheckedValues(s => ({
-      ...s,
+    setFileMenuCheckedValues(prev => ({
+      ...prev,
       save: props.autoSave ? ['auto'] : [],
     }));
   }, [props.autoSave]);
 
-  const onChange: MenuProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
-    setCheckedValues(s => {
-      return s ? { ...s, [name]: checkedItems } : { [name]: checkedItems };
-    });
+  const handleFileMenuCheckedChange: MenuProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+    setFileMenuCheckedValues(prev => ({
+      ...prev,
+      [name]: checkedItems,
+    }));
+
     if (name === 'save') {
       const autoEnabled = checkedItems.includes('auto');
-      if (props.onToggleAutoSave) props.onToggleAutoSave(autoEnabled);
+      props.onToggleAutoSave?.(autoEnabled);
     }
   };
 
-  const onChange2: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
-    if (props.onCheckedValueChange) {
-      props.onCheckedValueChange(name, checkedItems);
-    }
+  const handleViewCheckedChange: ToolbarProps['onCheckedValueChange'] = (e, data) => {
+    props.onCheckedValueChange(e, data);
   };
 
-  const doCommand = (command: AppCommand): void => props.onCommand && props.onCommand(command);
+  const doCommand = (command: AppCommand): void => {
+    props.onCommand?.(command);
+  };
 
   return (
     <>
-      <Menu hasCheckmarks checkedValues={checkedValues} onCheckedValueChange={onChange}>
+      <Menu hasCheckmarks checkedValues={fileMenuCheckedValues} onCheckedValueChange={handleFileMenuCheckedChange}>
         <MenuTrigger>
           <ToolbarButton className={styles.menuTrigger} appearance='transparent'>
             File
@@ -170,7 +180,7 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
           </MenuList>
         </MenuPopover>
       </Menu>
-      <Menu hasCheckmarks checkedValues={props.checkedValues} onCheckedValueChange={onChange2}>
+      <Menu hasCheckmarks checkedValues={props.checkedValues} onCheckedValueChange={handleViewCheckedChange}>
         <MenuTrigger>
           <ToolbarButton className={styles.menuTrigger} appearance='transparent'>
             View
@@ -182,7 +192,7 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
               Command Palette…
             </MenuItem>
             <MenuDivider />
-            <Menu hasCheckmarks checkedValues={props.checkedValues} onCheckedValueChange={onChange2}>
+            <Menu hasCheckmarks checkedValues={props.checkedValues} onCheckedValueChange={handleViewCheckedChange}>
               <MenuTrigger disableButtonEnhancement>
                 <MenuItem>Appearance</MenuItem>
               </MenuTrigger>

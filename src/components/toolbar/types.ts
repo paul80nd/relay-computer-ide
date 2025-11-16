@@ -1,9 +1,16 @@
 import type { AppCommand } from '../../commands';
+import type { IPrefState } from "../../hooks/usePreferences.ts";
 
 export type AppToolbarProps = {
 
-  onCheckedValueChange?: (name: string, checkedItems: string[]) => void;
-  checkedValues?: Record<string, string[]>;
+  /** Current preference state (panels, section, autoSave, etc.) */
+  prefState: IPrefState;
+
+  /**
+   * Update preferences.
+   * Use the functional form so consumers can safely update based on the previous state.
+   */
+  onPrefStateChange: (updater: (prev: IPrefState) => IPrefState) => void;
 
   /** Emitted when a command was initiated */
   onCommand?: (command: AppCommand) => void;

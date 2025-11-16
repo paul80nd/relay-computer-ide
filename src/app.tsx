@@ -6,7 +6,7 @@ import Editor from './components/editor';
 import Output from './components/output';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { type IPrefState, mapPrefsToCheckedValues, Prefs, usePreferences } from './hooks/usePreferences';
+import { usePreferences } from './hooks/usePreferences';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { AppWelcome } from './components/welcome';
 import { AppEmulator } from './components/emulator';
@@ -84,80 +84,6 @@ export const App = (): JSXElement => {
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [autoSave, dirty]);
-
-  // Map typed prefs -> Fluent UI checkedValues
-  const checkedValues = mapPrefsToCheckedValues(prefState, Prefs.Panels);
-
-  const applyPrefState = useCallback(
-    (name: string, checkedItems: string[]) => {
-      setPrefState((prev: IPrefState): IPrefState => {
-        let next = { ...prev };
-
-        if (name === 'panels') {
-          // Map checkedItems -> boolean flags
-          const primaryChecked = checkedItems.includes(Prefs.Panels.PRI_SIDEBAR);
-          const secondaryChecked = checkedItems.includes(Prefs.Panels.SEC_SIDEBAR);
-          const bottomChecked = checkedItems.includes(Prefs.Panels.PANEL);
-
-          // If the primary sidebar is being turned off, clear the section
-          const section = primaryChecked ? next.section : undefined;
-
-          next = {
-            ...next,
-            panels: {
-              primary: primaryChecked,
-              secondary: secondaryChecked,
-              bottom: bottomChecked,
-            },
-            section,
-          };
-
-          return next;
-        }
-
-        if (name === 'section') {
-          const [newSection] = checkedItems;
-          const currentSection = next.section;
-
-          // Clicking the same radio again -> clear the section and close the primary sidebar if open
-          if (currentSection && newSection === currentSection) {
-            return {
-              ...next,
-              section: undefined,
-              panels: {
-                ...next.panels,
-                primary: false,
-              },
-            };
-          }
-
-          // Selecting a new section -> set it and ensure the primary sidebar is open
-          if (newSection) {
-            return {
-              ...next,
-              section: newSection,
-              panels: {
-                ...next.panels,
-                primary: true,
-              },
-            };
-          }
-
-          // No section provided, just leave as is
-          return next;
-        }
-
-        // Any other groups can be handled here later if needed
-        return next;
-      });
-    },
-    [setPrefState]
-  );
-
-  const onChange = useCallback(
-    (name: string, checkedItems: string[]) => applyPrefState(name, checkedItems),
-    [applyPrefState]
-  );
 
   const setAutoSave = (enabled: boolean) => setPrefState(prev => ({ ...prev, autoSave: enabled }));
 
@@ -241,15 +167,15 @@ export const App = (): JSXElement => {
     <Router>
       <div className={styles.container}>
         <AppToolbar
-          checkedValues={checkedValues}
-          onCheckedValueChange={onChange}
+          prefState={prefState}
+          onPrefStateChange={setPrefState}
           onCommand={onCommand}
           autoSave={autoSave}
           dirty={dirty}
           onToggleAutoSave={setAutoSave}
         />
         <div className={styles.main}>
-          <SideToolbar checkedValues={checkedValues} onCheckedValueChange={onChange} />
+          <SideToolbar prefState={prefState} onPrefStateChange={setPrefState} />
           <PanelGroup direction='horizontal' autoSaveId='layout-horizontal'>
             {prefState.panels.primary && (
               <>
