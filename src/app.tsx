@@ -6,7 +6,7 @@ import Editor from './components/editor';
 import Output from './components/output';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { type IPrefState, Prefs, usePreferences } from './hooks/usePreferences';
+import { type IPrefState, mapPrefsToCheckedValues, Prefs, usePreferences } from './hooks/usePreferences';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { AppWelcome } from './components/welcome';
 import { AppEmulator } from './components/emulator';
@@ -86,14 +86,7 @@ export const App = (): JSXElement => {
   }, [autoSave, dirty]);
 
   // Map typed prefs -> Fluent UI checkedValues
-  const checkedValues = {
-    panels: [
-      prefState.panels.primary ? Prefs.Panels.PRI_SIDEBAR : null,
-      prefState.panels.secondary ? Prefs.Panels.SEC_SIDEBAR : null,
-      prefState.panels.bottom ? Prefs.Panels.PANEL : null,
-    ].filter(Boolean) as string[],
-    section: prefState.section ? [prefState.section] : [],
-  };
+  const checkedValues = mapPrefsToCheckedValues(prefState, Prefs.Panels);
 
   const applyPrefState = useCallback(
     (name: string, checkedItems: string[]) => {

@@ -65,3 +65,20 @@ export function usePreferences(): [IPrefState, Dispatch<SetStateAction<IPrefStat
 
   return [prefState, setPrefState];
 }
+
+export type CheckedValues = {
+  panels: string[];
+  section: string[];
+};
+
+// Map typed prefs -> Fluent UI checkedValues
+export function mapPrefsToCheckedValues(prefState: IPrefState, Panels: typeof Prefs.Panels): CheckedValues {
+  return {
+    panels: [
+      prefState.panels.primary ? Panels.PRI_SIDEBAR : null,
+      prefState.panels.secondary ? Panels.SEC_SIDEBAR : null,
+      prefState.panels.bottom ? Panels.PANEL : null,
+    ].filter(Boolean) as string[],
+    section: prefState.section ? [prefState.section] : [],
+  };
+}

@@ -1,6 +1,6 @@
 // Inspired by: https://github.com/microsoft/monaco-languages/blob/master/src/mips/mips.ts
 
-export const conf = <monaco.languages.LanguageConfiguration> {
+export const conf = {
   comments: {
     lineComment: ';'
   },
@@ -21,9 +21,9 @@ export const conf = <monaco.languages.LanguageConfiguration> {
   wordPattern: /(-?\d*\.\d\w*)|([a-zA-Z_][\w]*)/,
   //    "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)"
 
-};
+} as monaco.languages.LanguageConfiguration;
 
-export const language = <monaco.languages.IMonarchLanguage>{
+export const language = {
   defaultToken: '',
   ignoreCase: true,
   tokenPostfix: '.rcasm',
@@ -64,14 +64,14 @@ export const language = <monaco.languages.IMonarchLanguage>{
   operators: ['=', '+', '-', '*', '/', '%'],
 
   // we include these common regular expressions
-  symbols: /[=><!~?:&|+\-*\/\^%]+/,
+  symbols: /[=><!~?:&|+\-*/^%]+/,
 
   // The main tokenizer for our languages
   tokenizer: {
     root: [
       // identifiers and keywords
       [/[a-z_]*:/, 'type.identifier'],
-      [/\![a-z]+/, 'keyword.directive'],
+      [/![a-z]+/, 'keyword.directive'],
       [
         /[a-z]\w*/,
         {
@@ -108,4 +108,4 @@ export const language = <monaco.languages.IMonarchLanguage>{
       [/"/, { token: 'string.quote', bracket: '@close', next: '@pop' }]
     ]
   }
-};
+} as monaco.languages.IMonarchLanguage;

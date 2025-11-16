@@ -1,6 +1,6 @@
-export const conf = <monaco.languages.LanguageConfiguration>{};
+export const conf = {} as monaco.languages.LanguageConfiguration;
 
-export const language = <monaco.languages.IMonarchLanguage>{
+export const language = {
   defaultToken: '',
   ignoreCase: false,
   tokenPostfix: '.rcdsm',
@@ -24,4 +24,4 @@ export const language = <monaco.languages.IMonarchLanguage>{
       [/.*/, 'comment']
     ]
   }
-};
+} as monaco.languages.IMonarchLanguage;
