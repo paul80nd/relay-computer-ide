@@ -1,9 +1,5 @@
 import type { JSXElement, MenuProps } from '@fluentui/react-components';
-import {
-  CutRegular,
-  ClipboardPasteRegular,
-  CopyRegular,
-} from '@fluentui/react-icons';
+import { CutRegular, ClipboardPasteRegular, CopyRegular } from '@fluentui/react-icons';
 import {
   tokens,
   makeStyles,
@@ -24,7 +20,7 @@ import { useEffect, useState } from 'react';
 import { Prefs } from '../../hooks/usePreferences';
 import { useNavigate } from 'react-router-dom';
 import type { AppToolbarProps } from './types';
-import { Commands } from '../../commands';
+import { type AppCommand, Commands } from '../../commands';
 
 const useStyles = makeStyles({
   menuTrigger: {
@@ -55,7 +51,7 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
     });
   };
 
-  const doCommand = (command: string): void => props.onCommand && props.onCommand(command);
+  const doCommand = (command: AppCommand): void => props.onCommand && props.onCommand(command);
 
   return (
     <>
@@ -266,7 +262,7 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
               Go to References
             </MenuItem>
             <MenuDivider />
-            <MenuItem secondaryContent={isMac ? '^G' : 'Ctrl+G'} onClick={() => doCommand(Commands.EDITOR_GOTOLINE)}>
+            <MenuItem secondaryContent={isMac ? '^G' : 'Ctrl+G'} onClick={() => doCommand(Commands.EDITOR_GOTO_LINE)}>
               Go to Line/Column…
             </MenuItem>
             <MenuItem disabled secondaryContent='Ctrl+Shift+\'>

@@ -9,7 +9,7 @@ import {
 } from '@fluentui/react-components';
 import { Warning16Regular, ErrorCircle16Regular } from '@fluentui/react-icons';
 import type { StatusBarProps } from './types';
-import { Commands } from '../../commands';
+import { type AppCommand, Commands } from '../../commands';
 import { pluralize } from '../../utils';
 
 const useStyles = makeStyles({
@@ -30,7 +30,7 @@ function StatusBar({ position, validation, assembly, onCommand }: StatusBarProps
 
   const bytes = Math.max((assembly?.bytes?.length ?? 0) - 2, 0);
 
-  const doCommand = (command: string): void => onCommand && onCommand(command);
+  const doCommand = (command: AppCommand): void => onCommand && onCommand(command);
 
   return (
     <Toolbar className={styles.bar} size='small'>
@@ -60,7 +60,7 @@ function StatusBar({ position, validation, assembly, onCommand }: StatusBarProps
             <ToolbarButton
               className={styles.item}
               appearance='transparent'
-              onClick={() => doCommand(Commands.EDITOR_GOTOLINE)}
+              onClick={() => doCommand(Commands.EDITOR_GOTO_LINE)}
             >
               <Caption1>
                 Ln {position.lineNumber}, Col {position.column}{' '}

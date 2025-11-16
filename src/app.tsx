@@ -17,7 +17,7 @@ import StatusBar from './components/status-bar/status-bar';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { StatusBarValidation } from './components/status-bar';
 import { assemble, type AssemblerResult } from './assembler';
-import { Commands, CommandTarget } from './commands';
+import { type AppCommand, Commands, isEditorCommand, isPanelCommand } from './commands';
 import type { IEditorApi } from './components/editor';
 
 const useStyles = makeStyles({
@@ -102,18 +102,25 @@ export const App = (): JSXElement => {
   // Capture reference to the editor for passing commands
   const editorRef = useRef<IEditorApi | undefined>(undefined);
   const onEditorMounted = (api: IEditorApi) => (editorRef.current = api);
-  const onCommand = (command: string) => {
+  const onCommand = (command: AppCommand) => {
     console.log('Handling command', command);
-    if (command.startsWith(CommandTarget.EDITOR)) {
+
+    if (isEditorCommand(command)) {
       editorRef.current?.runCommand(command);
-    } else if (command.startsWith(CommandTarget.PANEL)) {
+      return;
+    }
+
+    if (isPanelCommand(command)) {
       const p = prefState.panels as string[];
       switch (command) {
         case Commands.PANEL_OUTPUT_SHOW:
           if (!p.includes(Prefs.Panels.SEC_SIDEBAR)) {
-            p.push(Prefs.Panels.SEC_SIDEBAR);
-            applyPrefState('panels', p);
+            const np = [...p, Prefs.Panels.SEC_SIDEBAR];
+            applyPrefState('panels', np);
           }
+          break;
+        default:
+          console.warn('Unhandled panel command', command);
           break;
       }
     }
