@@ -1,10 +1,10 @@
 import type { JSXElement } from '@fluentui/react-components';
 import { makeStyles, tokens } from '@fluentui/react-components';
-import AppToolbar from './components/toolbar/toolbar';
+import AppToolbar from './components/toolbar';
 import SideToolbar from './components/side-toolbar';
-import Editor from './components/editor/editor';
+import Editor from './components/editor';
 import Output from './components/output';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { type IPrefState, Prefs, usePreferences } from './hooks/usePreferences';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
@@ -12,7 +12,7 @@ import { AppWelcome } from './components/welcome';
 import { AppEmulator } from './components/emulator';
 import { AppExport } from './components/export';
 import { AppExamples } from './components/examples';
-import StatusBar from './components/status-bar/status-bar';
+import StatusBar from './components/status-bar';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { StatusBarValidation } from './components/status-bar';
 import { type AppCommand, Commands, isEditorCommand, isPanelCommand } from './commands';
@@ -74,19 +74,18 @@ export const App = (): JSXElement => {
   const { assembly } = useAssembler({ code, debounceMs: 300 });
 
   // Warn if navigating away with unsaved changes when autoSave is off
-  // useEffect(() => {
-  //   if (autoSave || !dirty) {
-  //     return;
-  //   }
+  useEffect(() => {
+    if (autoSave || !dirty) return;
 
-  //   const handler = (event: BeforeUnloadEvent) => {
-  //     event.preventDefault();
-  //     event.returnValue = '';
-  //   };
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      // Some browsers still require setting returnValue for the dialog to appear:
+      (event as any).returnValue = '';
+    };
 
-  //   window.addEventListener('beforeunload', handler);
-  //   return () => window.removeEventListener('beforeunload', handler);
-  // }, [autoSave, dirty]);
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [autoSave, dirty]);
 
   // Map typed prefs -> Fluent UI checkedValues
   const checkedValues = {
@@ -108,7 +107,7 @@ export const App = (): JSXElement => {
         const secondaryChecked = checkedItems.includes(Prefs.Panels.SEC_SIDEBAR);
         const bottomChecked = checkedItems.includes(Prefs.Panels.PANEL);
 
-        // If primary sidebar is being turned off, clear the section
+        // If the primary sidebar is being turned off, clear the section
         const section = primaryChecked ? next.section : undefined;
 
         next = {
@@ -128,7 +127,7 @@ export const App = (): JSXElement => {
         const [newSection] = checkedItems;
         const currentSection = next.section;
 
-        // Clicking the same radio again -> clear section and close primary sidebar if open
+        // Clicking the same radio again -> clear the section and close the primary sidebar if open
         if (currentSection && newSection === currentSection) {
           return {
             ...next,
@@ -140,7 +139,7 @@ export const App = (): JSXElement => {
           };
         }
 
-        // Selecting a new section -> set it and ensure primary sidebar is open
+        // Selecting a new section -> set it and ensure the primary sidebar is open
         if (newSection) {
           return {
             ...next,
