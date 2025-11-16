@@ -18,6 +18,7 @@ import type { StatusBarValidation } from './components/status-bar';
 import { type AppCommand, Commands, isEditorCommand, isPanelCommand } from './commands';
 import type { IEditorApi } from './components/editor';
 import { useAssembler } from './hooks/useAssembler.ts';
+import { useCodeStorage } from './hooks/useCodeStorage.ts';
 
 const useStyles = makeStyles({
   container: {
@@ -51,7 +52,25 @@ export const App = (): JSXElement => {
   const [validation, setValidation] = useState<StatusBarValidation>({ warnings: 0, errors: 0 });
 
   const [prefState, setPrefState] = usePreferences();
-  const { assembly, onCodeChange } = useAssembler({ debounceMs: 300 });
+
+  // Source code + persistence
+  const { code, onCodeChange } = useCodeStorage({
+    storageKey: 'code',
+    autoSave: true, // later you can toggle this from preferences / menu
+    defaultCode: [
+      '; *****************************************************',
+      ';  Welcome to Relay Computer Assembly (RCASM)',
+      ';',
+      ';  Start typing your program below or open an example',
+      ';  from the examples folder top left',
+      '; *****************************************************',
+      '',
+      '',
+    ].join('\n'),
+  });
+
+  // Debounced assembly from the current code
+  const { assembly } = useAssembler({ code, debounceMs: 300 });
 
   // Map typed prefs -> Fluent UI checkedValues
   const checkedValues = {
@@ -204,6 +223,7 @@ export const App = (): JSXElement => {
               <PanelGroup direction='vertical' autoSaveId='persistence'>
                 <Panel id='editor' minSize={33} order={1}>
                   <Editor
+                    initialCode={code}
                     onCodeChange={onCodeChange}
                     onMount={onEditorMounted}
                     onValidate={onEditorValidated}

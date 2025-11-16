@@ -5,6 +5,9 @@ export type OnPositionChange = (e: monaco.editor.ICursorPositionChangedEvent) =>
 export type OnValidate = (markers: monaco.editor.IMarker[]) => void;
 
 export type EditorProps = {
+
+  initialCode: string;
+
   /** Emitted when the code is changed */
   onCodeChange?: (code: string) => void
 

@@ -1,9 +1,9 @@
 import { useRef, useEffect, useState } from 'react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { EditorProps } from './types';
-import {EditorApi} from "./api.ts";
+import { EditorApi } from './api.ts';
 
-function Editor({ onCodeChange, onMount, onPositionChange, onValidate }: EditorProps) {
+function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValidate }: EditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const onMountRef = useRef(onMount);
@@ -12,24 +12,11 @@ function Editor({ onCodeChange, onMount, onPositionChange, onValidate }: EditorP
 
   const [isEditorReady, setIsEditorReady] = useState(false);
 
-  const getDefaultCode = (): string => {
-    return [
-      '; *****************************************************',
-      ';  Welcome to Relay Computer Assembly (RCASM)',
-      ';',
-      ';  Start typing your program below or open an example',
-      ';  from the examples folder top left',
-      '; *****************************************************',
-      '',
-      '',
-    ].join('\n');
-  };
-
   useEffect(() => {
     if (!containerRef.current) return;
 
     if (!editorRef.current) {
-      const code = localStorage.getItem('code') || getDefaultCode();
+      const code = initialCode;
 
       editorRef.current = monaco.editor.create(containerRef.current, {
         theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light',
