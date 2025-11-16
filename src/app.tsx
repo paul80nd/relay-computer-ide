@@ -18,6 +18,7 @@ import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { StatusBarValidation } from './components/status-bar';
 import { assemble, type AssemblerResult } from './assembler';
 import { Commands, CommandTarget } from './commands';
+import type { IEditorApi } from './components/editor';
 
 const useStyles = makeStyles({
   container: {
@@ -47,7 +48,6 @@ const useStyles = makeStyles({
 });
 
 export const App = (): JSXElement => {
-
   const [position, setPosition] = useState<monaco.IPosition | undefined>(undefined);
   const [validation, setValidation] = useState<StatusBarValidation>({ warnings: 0, errors: 0 });
   const [assembly, setAssembly] = useState<AssemblerResult | undefined>(undefined);
@@ -65,15 +65,15 @@ export const App = (): JSXElement => {
         s = { ...s, section: [] };
       }
       if (name === 'section') {
-        // Clear section if clicked same radio
+        // Clear section if clicked the same radio
         if (s.section[0] == checkedItems[0]) {
           checkedItems = [];
           if (s.panels.includes(Prefs.Panels.PRI_SIDEBAR)) {
-            // Close sidebar if already open
+            // Close the sidebar if already open
             s = { ...s, panels: s.panels.filter(v => v !== Prefs.Panels.PRI_SIDEBAR) };
           }
         } else if (!s.panels.includes(Prefs.Panels.PRI_SIDEBAR)) {
-          // Open sidebar if not already open
+          // Open the sidebar if not already open
           s.panels.push(Prefs.Panels.PRI_SIDEBAR);
         }
       }
@@ -84,7 +84,7 @@ export const App = (): JSXElement => {
   const onChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) =>
     applyPrefState(name, checkedItems);
 
-  // Current code (updated immediately) plus debounced code (updated no less than 300ms since last update)
+  // Current code (updated immediately) plus debounced code (updated no less than 300ms since the last update)
   const [code, setCode] = useState('');
   const debouncedCode = useDebounce(code, 300);
   const onCodeChanged = (code?: string) => setCode(code ?? '');
@@ -99,23 +99,20 @@ export const App = (): JSXElement => {
     }
   }, [debouncedCode]);
 
-  // Capture reference to editor for passing commands
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | undefined>(undefined);
-  const onEditorMounted = (editor: monaco.editor.IStandaloneCodeEditor) => {
-    editorRef.current = editor;
-  };
+  // Capture reference to the editor for passing commands
+  const editorRef = useRef<IEditorApi | undefined>(undefined);
+  const onEditorMounted = (api: IEditorApi) => (editorRef.current = api);
   const onCommand = (command: string) => {
     console.log('Handling command', command);
     if (command.startsWith(CommandTarget.EDITOR)) {
-      editorRef.current?.focus();
-      editorRef.current?.getAction(command)?.run();
+      editorRef.current?.runCommand(command);
     } else if (command.startsWith(CommandTarget.PANEL)) {
       const p = prefState.panels as string[];
       switch (command) {
         case Commands.PANEL_OUTPUT_SHOW:
           if (!p.includes(Prefs.Panels.SEC_SIDEBAR)) {
             p.push(Prefs.Panels.SEC_SIDEBAR);
-             applyPrefState('panels', p);
+            applyPrefState('panels', p);
           }
           break;
       }

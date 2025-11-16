@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { EditorProps } from './types';
+import {EditorApi} from "./api.ts";
 
 function Editor({ onCodeChange, onMount, onPositionChange, onValidate }: EditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -58,7 +59,7 @@ function Editor({ onCodeChange, onMount, onPositionChange, onValidate }: EditorP
 
   useEffect(() => {
     if (isEditorReady && onMountRef && onMountRef.current) {
-      onMountRef.current(editorRef.current!);
+      onMountRef.current(new EditorApi(editorRef.current!));
     }
   }, [isEditorReady]);
 
