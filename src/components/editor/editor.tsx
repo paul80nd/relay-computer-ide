@@ -25,7 +25,7 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
         padding: { top: 15 },
         automaticLayout: true,
         scrollBeyondLastLine: true,
-        tabFocusMode: false
+        tabFocusMode: false,
       });
     }
 
@@ -37,7 +37,7 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
       editorRef.current?.dispose();
       editorRef.current = null;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // <- important: run once
 
   useEffect(() => {

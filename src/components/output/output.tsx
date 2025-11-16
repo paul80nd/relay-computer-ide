@@ -40,7 +40,7 @@ function Output({ assembly }: OutputProps) {
   useUpdate(
     () => {
       if (!editorRef.current || assembly?.dasm === undefined) return;
-      editorRef.current.setValue(assembly?.dasm);
+      editorRef.current.setValue(assembly.dasm);
     },
     [assembly],
     isEditorReady

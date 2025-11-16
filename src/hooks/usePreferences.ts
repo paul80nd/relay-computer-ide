@@ -82,3 +82,69 @@ export function mapPrefsToCheckedValues(prefs: IPreferences, Panels: typeof Pref
     section: prefs.section ? [prefs.section] : [],
   };
 }
+
+
+/**
+ * Applies a Fluent UI checkedValues change (for 'panels' or 'section')
+ * to the preference state consistently.
+ */
+export function updatePrefsFromCheckedValues(
+  prev: IPreferences,
+  name: string,
+  checkedItems: string[],
+  panelsEnum: typeof Prefs.Panels
+): IPreferences {
+  const next = { ...prev };
+
+  if (name === 'panels') {
+    const primaryChecked = checkedItems.includes(panelsEnum.PRI_SIDEBAR);
+    const secondaryChecked = checkedItems.includes(panelsEnum.SEC_SIDEBAR);
+    const bottomChecked = checkedItems.includes(panelsEnum.PANEL);
+
+    const section = primaryChecked ? next.section : undefined;
+
+    return {
+      ...next,
+      panels: {
+        primary: primaryChecked,
+        secondary: secondaryChecked,
+        bottom: bottomChecked,
+      },
+      section,
+    };
+  }
+
+  if (name === 'section') {
+    const [newSection] = checkedItems;
+    const currentSection = next.section;
+
+    // Clicking the same radio again -> clear section and close the primary sidebar
+    if (currentSection && newSection === currentSection) {
+      return {
+        ...next,
+        section: undefined,
+        panels: {
+          ...next.panels,
+          primary: false,
+        },
+      };
+    }
+
+    // Selecting a new section -> set it and ensure the primary sidebar is open
+    if (newSection) {
+      return {
+        ...next,
+        section: newSection,
+        panels: {
+          ...next.panels,
+          primary: true,
+        },
+      };
+    }
+
+    return next;
+  }
+
+  // Unknown group: no-op
+  return next;
+}

@@ -20,7 +20,12 @@ import {
   makeStyles,
   Text,
 } from '@fluentui/react-components';
-import { type IPreferences, mapPrefsToCheckedValues, Prefs } from '../../hooks/usePreferences';
+import {
+  type IPreferences,
+  mapPrefsToCheckedValues,
+  Prefs,
+  updatePrefsFromCheckedValues,
+} from '../../hooks/usePreferences';
 import type { AppToolbarProps } from './types';
 import AppToolbarMenu from './toolbar-menu';
 
@@ -56,63 +61,9 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
 
   // Handle toolbar/menus changing panels/section
   const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
-    onPrefsChange((prev: IPreferences): IPreferences => {
-      let next = { ...prev };
-
-      if (name === 'panels') {
-        const primaryChecked = checkedItems.includes(Prefs.Panels.PRI_SIDEBAR);
-        const secondaryChecked = checkedItems.includes(Prefs.Panels.SEC_SIDEBAR);
-        const bottomChecked = checkedItems.includes(Prefs.Panels.PANEL);
-
-        const section = primaryChecked ? next.section : undefined;
-
-        next = {
-          ...next,
-          panels: {
-            primary: primaryChecked,
-            secondary: secondaryChecked,
-            bottom: bottomChecked,
-          },
-          section,
-        };
-
-        return next;
-      }
-
-      if (name === 'section') {
-        const [newSection] = checkedItems;
-        const currentSection = next.section;
-
-        // Clicking the same radio again -> clear section and close the primary sidebar
-        if (currentSection && newSection === currentSection) {
-          return {
-            ...next,
-            section: undefined,
-            panels: {
-              ...next.panels,
-              primary: false,
-            },
-          };
-        }
-
-        // Selecting a new section -> set it and ensure the primary sidebar is open
-        if (newSection) {
-          return {
-            ...next,
-            section: newSection,
-            panels: {
-              ...next.panels,
-              primary: true,
-            },
-          };
-        }
-
-        return next;
-      }
-
-      // Unknown group: no-op
-      return next;
-    });
+    onPrefsChange(
+      (prev: IPreferences): IPreferences => updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels)
+    );
   };
 
   return (

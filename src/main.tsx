@@ -9,12 +9,14 @@ import './workers.ts';
 const AppRoot = () => {
   const [theme, setTheme] = useState(webDarkTheme);
 
-  const handleThemeChange = (e: MediaQueryListEvent) => {
-    setTheme(e.matches ? webDarkTheme : webLightTheme);
-  };
-
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? webDarkTheme : webLightTheme);
+    };
+
+    // Initial theme
     setTheme(mediaQuery.matches ? webDarkTheme : webLightTheme);
 
     mediaQuery.addEventListener('change', handleThemeChange);

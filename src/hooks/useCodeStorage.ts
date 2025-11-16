@@ -37,7 +37,7 @@ export function useCodeStorage(options: UseCodeStorageOptions = {}): UseCodeStor
   const [dirty, setDirty] = useState<boolean>(false);
 
   const onCodeChange = (value: string) => {
-    setCode(value ?? '');
+    setCode(value);
     setDirty(true);
   };
 

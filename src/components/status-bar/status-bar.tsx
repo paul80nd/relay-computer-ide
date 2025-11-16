@@ -23,9 +23,6 @@ const useStyles = makeStyles({
   item: { color: tokens.colorNeutralForeground3, padding: '0 .4rem', minWidth: '2rem' },
   error: { color: tokens.colorStatusDangerForeground1 },
   warning: { color: tokens.colorStatusWarningForeground1 },
-  saveStatusDirty: {
-    color: tokens.colorStatusWarningForeground1,
-  },
 });
 
 function StatusBar({ position, validation, assembly, autoSave, dirty, onCommand }: StatusBarProps) {
