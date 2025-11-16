@@ -4,7 +4,7 @@ import AppToolbar from './components/toolbar';
 import SideToolbar from './components/side-toolbar';
 import Editor from './components/editor';
 import Output from './components/output';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { type IPrefState, Prefs, usePreferences } from './hooks/usePreferences';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
@@ -79,8 +79,6 @@ export const App = (): JSXElement => {
 
     const handler = (event: BeforeUnloadEvent) => {
       event.preventDefault();
-      // Some browsers still require setting returnValue for the dialog to appear:
-      (event as any).returnValue = '';
     };
 
     window.addEventListener('beforeunload', handler);
@@ -97,112 +95,121 @@ export const App = (): JSXElement => {
     section: prefState.section ? [prefState.section] : [],
   };
 
-  const applyPrefState = (name: string, checkedItems: string[]) => {
-    setPrefState((prev: IPrefState): IPrefState => {
-      let next = { ...prev };
+  const applyPrefState = useCallback(
+    (name: string, checkedItems: string[]) => {
+      setPrefState((prev: IPrefState): IPrefState => {
+        let next = { ...prev };
 
-      if (name === 'panels') {
-        // Map checkedItems -> boolean flags
-        const primaryChecked = checkedItems.includes(Prefs.Panels.PRI_SIDEBAR);
-        const secondaryChecked = checkedItems.includes(Prefs.Panels.SEC_SIDEBAR);
-        const bottomChecked = checkedItems.includes(Prefs.Panels.PANEL);
+        if (name === 'panels') {
+          // Map checkedItems -> boolean flags
+          const primaryChecked = checkedItems.includes(Prefs.Panels.PRI_SIDEBAR);
+          const secondaryChecked = checkedItems.includes(Prefs.Panels.SEC_SIDEBAR);
+          const bottomChecked = checkedItems.includes(Prefs.Panels.PANEL);
 
-        // If the primary sidebar is being turned off, clear the section
-        const section = primaryChecked ? next.section : undefined;
+          // If the primary sidebar is being turned off, clear the section
+          const section = primaryChecked ? next.section : undefined;
 
-        next = {
-          ...next,
-          panels: {
-            primary: primaryChecked,
-            secondary: secondaryChecked,
-            bottom: bottomChecked,
-          },
-          section,
-        };
-
-        return next;
-      }
-
-      if (name === 'section') {
-        const [newSection] = checkedItems;
-        const currentSection = next.section;
-
-        // Clicking the same radio again -> clear the section and close the primary sidebar if open
-        if (currentSection && newSection === currentSection) {
-          return {
+          next = {
             ...next,
-            section: undefined,
             panels: {
-              ...next.panels,
-              primary: false,
+              primary: primaryChecked,
+              secondary: secondaryChecked,
+              bottom: bottomChecked,
             },
+            section,
           };
+
+          return next;
         }
 
-        // Selecting a new section -> set it and ensure the primary sidebar is open
-        if (newSection) {
-          return {
-            ...next,
-            section: newSection,
-            panels: {
-              ...next.panels,
-              primary: true,
-            },
-          };
+        if (name === 'section') {
+          const [newSection] = checkedItems;
+          const currentSection = next.section;
+
+          // Clicking the same radio again -> clear the section and close the primary sidebar if open
+          if (currentSection && newSection === currentSection) {
+            return {
+              ...next,
+              section: undefined,
+              panels: {
+                ...next.panels,
+                primary: false,
+              },
+            };
+          }
+
+          // Selecting a new section -> set it and ensure the primary sidebar is open
+          if (newSection) {
+            return {
+              ...next,
+              section: newSection,
+              panels: {
+                ...next.panels,
+                primary: true,
+              },
+            };
+          }
+
+          // No section provided, just leave as is
+          return next;
         }
 
-        // No section provided, just leave as is
+        // Any other groups can be handled here later if needed
         return next;
-      }
+      });
+    },
+    [setPrefState]
+  );
 
-      // Any other groups can be handled here later if needed
-      return next;
-    });
-  };
-
-  const onChange = (name: string, checkedItems: string[]) => applyPrefState(name, checkedItems);
+  const onChange = useCallback(
+    (name: string, checkedItems: string[]) => applyPrefState(name, checkedItems),
+    [applyPrefState]
+  );
 
   const setAutoSave = (enabled: boolean) => setPrefState(prev => ({ ...prev, autoSave: enabled }));
 
   // Capture reference to the editor for passing commands
   const editorRef = useRef<IEditorApi | undefined>(undefined);
   const onEditorMounted = (api: IEditorApi) => (editorRef.current = api);
-  const onCommand = (command: AppCommand) => {
-    console.log('Handling command', command);
+  const onCommand = useCallback(
+    (command: AppCommand) => {
+      console.log('Handling command', command);
 
-    if (isEditorCommand(command)) {
-      editorRef.current?.runCommand(command);
-      return;
-    }
+      if (isEditorCommand(command)) {
+        editorRef.current?.runCommand(command);
+        return;
+      }
 
-    if (isPanelCommand(command)) {
+      if (isPanelCommand(command)) {
+        switch (command) {
+          case Commands.PANEL_OUTPUT_SHOW:
+            if (!prefState.panels.secondary) {
+              setPrefState(lps => ({
+                ...lps,
+                panels: {
+                  ...lps.panels,
+                  secondary: true,
+                },
+              }));
+            }
+            break;
+          default:
+            console.warn('Unhandled panel command', command);
+            break;
+        }
+      }
+
       switch (command) {
-        case Commands.PANEL_OUTPUT_SHOW:
-          if (!prefState.panels.secondary) {
-            setPrefState(lps => ({
-              ...lps,
-              panels: {
-                ...lps.panels,
-                secondary: true,
-              },
-            }));
-          }
+        case Commands.APP_SAVE:
+          save();
           break;
         default:
-          console.warn('Unhandled panel command', command);
+          console.warn('Unhandled app command', command);
           break;
       }
-    }
-
-    switch (command) {
-      case Commands.APP_SAVE:
-        save();
-        break;
-      default:
-        console.warn('Unhandled app command', command);
-        break;
-    }
-  };
+    },
+    [prefState.panels.secondary, save, setPrefState]
+  );
 
   const onEditorValidated = (markers: monaco.editor.IMarker[]) => {
     const v: StatusBarValidation = { errors: 0, warnings: 0 };
@@ -250,7 +257,7 @@ export const App = (): JSXElement => {
         />
         <div className={styles.main}>
           <SideToolbar checkedValues={checkedValues} onCheckedValueChange={onChange} />
-          <PanelGroup direction='horizontal' autoSaveId='persistence'>
+          <PanelGroup direction='horizontal' autoSaveId='layout-horizontal'>
             {prefState.panels.primary && (
               <>
                 <Panel id='left' defaultSize={20} minSize={20} className={styles.panel} order={1}>
@@ -266,7 +273,7 @@ export const App = (): JSXElement => {
               </>
             )}
             <Panel order={2} id='middle'>
-              <PanelGroup direction='vertical' autoSaveId='persistence'>
+              <PanelGroup direction='vertical' autoSaveId='layout-vertical'>
                 <Panel id='editor' minSize={33} order={1}>
                   <Editor
                     initialCode={code}

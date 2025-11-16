@@ -25,6 +25,7 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
         padding: { top: 15 },
         automaticLayout: true,
         scrollBeyondLastLine: true,
+        tabFocusMode: false
       });
     }
 

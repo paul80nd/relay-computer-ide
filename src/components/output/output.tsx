@@ -34,7 +34,8 @@ function Output({ assembly }: OutputProps) {
       editorRef.current?.dispose();
       editorRef.current = null;
     };
-  }, [assembly]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // only run once on mount
 
   useUpdate(
     () => {

@@ -49,11 +49,8 @@ const useStyles = makeStyles({
 function AppToolbar(props: AppToolbarProps): JSXElement {
   const styles = useStyles();
 
-  const onChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
-    if (props.onCheckedValueChange) {
-      props.onCheckedValueChange(name, checkedItems);
-    }
-  };
+  const onChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) =>
+    props.onCheckedValueChange?.(name, checkedItems);
 
   return (
     <Toolbar

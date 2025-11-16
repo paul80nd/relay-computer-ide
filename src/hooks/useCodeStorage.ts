@@ -12,7 +12,7 @@ export interface UseCodeStorageOptions {
 export interface UseCodeStorageResult {
   code: string;
   /** Call when the editor code changes */
-  onCodeChange: (value?: string) => void;
+  onCodeChange: (value: string) => void;
   /** Explicitly persist the current code when autoSave is false */
   save: () => void;
   /** True when there are unsaved changes (only meaningful if autoSave is false) */
@@ -36,7 +36,7 @@ export function useCodeStorage(options: UseCodeStorageOptions = {}): UseCodeStor
   });
   const [dirty, setDirty] = useState<boolean>(false);
 
-  const onCodeChange = (value?: string) => {
+  const onCodeChange = (value: string) => {
     setCode(value ?? '');
     setDirty(true);
   };
