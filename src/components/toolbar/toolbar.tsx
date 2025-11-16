@@ -20,7 +20,7 @@ import {
   makeStyles,
   Text,
 } from '@fluentui/react-components';
-import { type IPrefState, mapPrefsToCheckedValues, Prefs } from '../../hooks/usePreferences';
+import { type IPreferences, mapPrefsToCheckedValues, Prefs } from '../../hooks/usePreferences';
 import type { AppToolbarProps } from './types';
 import AppToolbarMenu from './toolbar-menu';
 
@@ -48,14 +48,15 @@ const useStyles = makeStyles({
 
 function AppToolbar(props: AppToolbarProps): JSXElement {
   const styles = useStyles();
-  const { prefState, onPrefStateChange } = props;
+  const { prefs, onPrefsChange } = props;
 
   // Map prefs -> Fluent UI checkedValues
-  const checkedValues = mapPrefsToCheckedValues(prefState, Prefs.Panels);
+  const checkedValues = mapPrefsToCheckedValues(prefs, Prefs.Panels);
+  const autoSaveOn = prefs.autoSave ?? true;
 
   // Handle toolbar/menus changing panels/section
   const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
-    onPrefStateChange((prev: IPrefState): IPrefState => {
+    onPrefsChange((prev: IPreferences): IPreferences => {
       let next = { ...prev };
 
       if (name === 'panels') {
@@ -82,7 +83,7 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
         const [newSection] = checkedItems;
         const currentSection = next.section;
 
-        // Clicking the same radio again -> clear section and close primary sidebar
+        // Clicking the same radio again -> clear section and close the primary sidebar
         if (currentSection && newSection === currentSection) {
           return {
             ...next,
@@ -94,7 +95,7 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
           };
         }
 
-        // Selecting a new section -> set it and ensure primary sidebar is open
+        // Selecting a new section -> set it and ensure the primary sidebar is open
         if (newSection) {
           return {
             ...next,
@@ -125,16 +126,16 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
       <ToolbarGroup role='presentation'>
         <Code20Color />
         <AppToolbarMenu
+          prefs={prefs}
+          onPrefsChange={onPrefsChange}
           checkedValues={checkedValues}
           onCheckedValueChange={handleCheckedChange}
-          autoSave={props.autoSave}
           dirty={props.dirty}
-          onToggleAutoSave={props.onToggleAutoSave}
           onCommand={props.onCommand}
         />
       </ToolbarGroup>
       <ToolbarGroup role='presentation'>
-        {!props.autoSave && props.dirty && (
+        {!autoSaveOn && props.dirty && (
           <Text size={200} className={styles.dirtyIndicator}>
             ● Unsaved
           </Text>

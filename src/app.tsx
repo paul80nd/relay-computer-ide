@@ -51,8 +51,8 @@ export const App = (): JSXElement => {
   const [position, setPosition] = useState<monaco.IPosition | undefined>(undefined);
   const [validation, setValidation] = useState<StatusBarValidation>({ warnings: 0, errors: 0 });
 
-  const [prefState, setPrefState] = usePreferences();
-  const autoSave = prefState.autoSave ?? true;
+  const [prefs, setPrefs] = usePreferences();
+  const autoSave = prefs.autoSave ?? true;
 
   // Source code + persistence
   const { code, onCodeChange, save, dirty } = useCodeStorage({
@@ -85,8 +85,6 @@ export const App = (): JSXElement => {
     return () => window.removeEventListener('beforeunload', handler);
   }, [autoSave, dirty]);
 
-  const setAutoSave = (enabled: boolean) => setPrefState(prev => ({ ...prev, autoSave: enabled }));
-
   // Capture reference to the editor for passing commands
   const editorRef = useRef<IEditorApi | undefined>(undefined);
   const onEditorMounted = (api: IEditorApi) => (editorRef.current = api);
@@ -102,8 +100,8 @@ export const App = (): JSXElement => {
       if (isPanelCommand(command)) {
         switch (command) {
           case Commands.PANEL_OUTPUT_SHOW:
-            if (!prefState.panels.secondary) {
-              setPrefState(lps => ({
+            if (!prefs.panels.secondary) {
+              setPrefs(lps => ({
                 ...lps,
                 panels: {
                   ...lps.panels,
@@ -127,7 +125,7 @@ export const App = (): JSXElement => {
           break;
       }
     },
-    [prefState.panels.secondary, save, setPrefState]
+    [prefs.panels.secondary, save, setPrefs]
   );
 
   const onEditorValidated = (markers: monaco.editor.IMarker[]) => {
@@ -166,18 +164,11 @@ export const App = (): JSXElement => {
   return (
     <Router>
       <div className={styles.container}>
-        <AppToolbar
-          prefState={prefState}
-          onPrefStateChange={setPrefState}
-          onCommand={onCommand}
-          autoSave={autoSave}
-          dirty={dirty}
-          onToggleAutoSave={setAutoSave}
-        />
+        <AppToolbar prefs={prefs} onPrefsChange={setPrefs} onCommand={onCommand} dirty={dirty} />
         <div className={styles.main}>
-          <SideToolbar prefState={prefState} onPrefStateChange={setPrefState} />
+          <SideToolbar prefs={prefs} onPrefsChange={setPrefs} />
           <PanelGroup direction='horizontal' autoSaveId='layout-horizontal'>
-            {prefState.panels.primary && (
+            {prefs.panels.primary && (
               <>
                 <Panel id='left' defaultSize={20} minSize={20} className={styles.panel} order={1}>
                   <Routes>
@@ -202,7 +193,7 @@ export const App = (): JSXElement => {
                     onPositionChange={onEditorPositionChanged}
                   />
                 </Panel>
-                {prefState.panels.bottom && (
+                {prefs.panels.bottom && (
                   <>
                     <PanelResizeHandle className={styles.resizeHandle} />
                     <Panel id='bottom' order={2} defaultSize={25} minSize={25} className={styles.panel}></Panel>
@@ -210,7 +201,7 @@ export const App = (): JSXElement => {
                 )}
               </PanelGroup>
             </Panel>
-            {prefState.panels.secondary && (
+            {prefs.panels.secondary && (
               <>
                 <PanelResizeHandle className={styles.resizeHandle} />
                 <Panel id='right' defaultSize={20} minSize={20} className={styles.panel} order={3}>

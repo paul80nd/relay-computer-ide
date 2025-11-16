@@ -20,7 +20,7 @@ import {
   ToolbarGroup,
   ToolbarRadioButton,
 } from '@fluentui/react-components';
-import { type IPrefState, mapPrefsToCheckedValues, Prefs } from '../../hooks/usePreferences';
+import { type IPreferences, mapPrefsToCheckedValues, Prefs } from '../../hooks/usePreferences';
 import { useNavigate } from 'react-router-dom';
 import type { SideToolbarProps } from './types.ts';
 
@@ -43,14 +43,14 @@ const useStyles = makeStyles({
 });
 
 function SideToolbar(props: SideToolbarProps): JSXElement {
-  const { prefState, onPrefStateChange } = props;
+  const { prefs, onPrefsChange } = props;
 
   // Derive checkedValues from prefs
-  const checkedValues = mapPrefsToCheckedValues(prefState, Prefs.Panels);
+  const checkedValues = mapPrefsToCheckedValues(prefs, Prefs.Panels);
 
   // Apply changes from side toolbar to prefs
   const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
-    onPrefStateChange((prev: IPrefState): IPrefState => {
+    onPrefsChange((prev: IPreferences): IPreferences => {
       let next = { ...prev };
 
       if (name === 'panels') {

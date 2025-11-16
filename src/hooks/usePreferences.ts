@@ -1,6 +1,6 @@
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 
-export interface IPrefState {
+export interface IPreferences {
   panels: {
     primary: boolean;
     secondary: boolean;
@@ -23,14 +23,14 @@ export const Prefs = {
 /**
  * Handles management of user preferences stored in local browser storage
  */
-export function usePreferences(): [IPrefState, Dispatch<SetStateAction<IPrefState>>] {
+export function usePreferences(): [IPreferences, Dispatch<SetStateAction<IPreferences>>] {
 
   // Read the initial prefs from localStorage
-  const initialPrefs = (): IPrefState => {
+  const initialPrefs = (): IPreferences => {
     const savedState = localStorage.getItem('prefs');
     if (savedState) {
       try {
-        const parsed = JSON.parse(savedState) as Partial<IPrefState>;
+        const parsed = JSON.parse(savedState) as Partial<IPreferences>;
         return {
           panels: {
             primary: parsed.panels?.primary ?? false,
@@ -56,14 +56,14 @@ export function usePreferences(): [IPrefState, Dispatch<SetStateAction<IPrefStat
     };
   };
 
-  const [prefState, setPrefState] = useState<IPrefState>(initialPrefs);
+  const [prefs, setPrefs] = useState<IPreferences>(initialPrefs);
 
   // Update localStorage whenever prefState changes
   useEffect(() => {
-    localStorage.setItem('prefs', JSON.stringify(prefState));
-  }, [prefState]);
+    localStorage.setItem('prefs', JSON.stringify(prefs));
+  }, [prefs]);
 
-  return [prefState, setPrefState];
+  return [prefs, setPrefs];
 }
 
 export type CheckedValues = {
@@ -72,13 +72,13 @@ export type CheckedValues = {
 };
 
 // Map typed prefs -> Fluent UI checkedValues
-export function mapPrefsToCheckedValues(prefState: IPrefState, Panels: typeof Prefs.Panels): CheckedValues {
+export function mapPrefsToCheckedValues(prefs: IPreferences, Panels: typeof Prefs.Panels): CheckedValues {
   return {
     panels: [
-      prefState.panels.primary ? Panels.PRI_SIDEBAR : null,
-      prefState.panels.secondary ? Panels.SEC_SIDEBAR : null,
-      prefState.panels.bottom ? Panels.PANEL : null,
+      prefs.panels.primary ? Panels.PRI_SIDEBAR : null,
+      prefs.panels.secondary ? Panels.SEC_SIDEBAR : null,
+      prefs.panels.bottom ? Panels.PANEL : null,
     ].filter(Boolean) as string[],
-    section: prefState.section ? [prefState.section] : [],
+    section: prefs.section ? [prefs.section] : [],
   };
 }

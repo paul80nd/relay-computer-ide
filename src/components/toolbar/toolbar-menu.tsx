@@ -48,18 +48,20 @@ function AppToolbarMenu(
     []
   );
 
-  // Local state for File menu (save group) only
+  const autoSaveOn = props.prefs.autoSave ?? true;
+
+  // Local state for File menu (save group)
   const [fileMenuCheckedValues, setFileMenuCheckedValues] = useState<Record<string, string[]>>({
-    save: ['auto'],
+    save: autoSaveOn ? ['auto'] : [],
   });
 
-  // Sync File menu 'save' group from autoSave prop
+  // Sync File menu 'save' group from prefState.autoSave
   useEffect(() => {
     setFileMenuCheckedValues(prev => ({
       ...prev,
-      save: props.autoSave ? ['auto'] : [],
+      save: autoSaveOn ? ['auto'] : [],
     }));
-  }, [props.autoSave]);
+  }, [autoSaveOn]);
 
   const handleFileMenuCheckedChange: MenuProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
     setFileMenuCheckedValues(prev => ({
@@ -69,12 +71,15 @@ function AppToolbarMenu(
 
     if (name === 'save') {
       const autoEnabled = checkedItems.includes('auto');
-      props.onToggleAutoSave?.(autoEnabled);
+      props.onPrefsChange(prev => ({
+        ...prev,
+        autoSave: autoEnabled,
+      }));
     }
   };
 
   const handleViewCheckedChange: ToolbarProps['onCheckedValueChange'] = (e, data) => {
-    props.onCheckedValueChange(e, data);
+    props.onCheckedValueChange?.(e, data);
   };
 
   const doCommand = (command: AppCommand): void => {
@@ -102,7 +107,7 @@ function AppToolbarMenu(
             <MenuDivider />
             <MenuItem
               secondaryContent={isMac ? '⌘ S' : 'Ctrl+S'}
-              disabled={props.autoSave || !props.dirty}
+              disabled={autoSaveOn || !props.dirty}
               onClick={() => doCommand(Commands.APP_SAVE)}
             >
               Save
