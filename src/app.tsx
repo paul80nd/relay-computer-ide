@@ -4,7 +4,7 @@ import AppToolbar from './components/toolbar/toolbar';
 import { AppSideToolbar } from './components/side-toolbar';
 import Editor from './components/editor/editor';
 import Output from './components/output';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { type IPrefState, Prefs, usePreferences } from './hooks/usePreferences';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
@@ -12,13 +12,12 @@ import { AppWelcome } from './components/welcome';
 import { AppEmulator } from './components/emulator';
 import { AppExport } from './components/export';
 import { AppExamples } from './components/examples';
-import useDebounce from './hooks/useDebounce';
 import StatusBar from './components/status-bar/status-bar';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { StatusBarValidation } from './components/status-bar';
-import { assemble, type AssemblerResult } from './assembler';
 import { type AppCommand, Commands, isEditorCommand, isPanelCommand } from './commands';
 import type { IEditorApi } from './components/editor';
+import { useAssembler } from './hooks/useAssembler.ts';
 
 const useStyles = makeStyles({
   container: {
@@ -50,9 +49,9 @@ const useStyles = makeStyles({
 export const App = (): JSXElement => {
   const [position, setPosition] = useState<monaco.IPosition | undefined>(undefined);
   const [validation, setValidation] = useState<StatusBarValidation>({ warnings: 0, errors: 0 });
-  const [assembly, setAssembly] = useState<AssemblerResult | undefined>(undefined);
 
   const [prefState, setPrefState] = usePreferences();
+  const { assembly, onCodeChange } = useAssembler({ debounceMs: 300 });
 
   // Map typed prefs -> Fluent UI checkedValues
   const checkedValues = {
@@ -130,35 +129,6 @@ export const App = (): JSXElement => {
   const onChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) =>
     applyPrefState(name, checkedItems);
 
-  // Current code (updated immediately) plus debounced code (updated no less than 300ms since the last update)
-  const [code, setCode] = useState('');
-  const debouncedCode = useDebounce(code, 300);
-  const onCodeChanged = (code?: string) => setCode(code ?? '');
-  useEffect(() => {
-    // We want to handle empty string explicitly as "clear"
-    if (debouncedCode === undefined) {
-      return;
-    }
-
-    // Persist the current code even if it's empty
-    localStorage.setItem('code', debouncedCode);
-
-    // Treat empty code as "no assembly"
-    if (debouncedCode.trim().length === 0) {
-      setAssembly(undefined);
-      return;
-    }
-
-    try {
-      const result = assemble(debouncedCode);
-      setAssembly(result);
-    } catch (err) {
-      console.error('Error assembling code', err);
-      // In case of failure, clear current assembly to avoid stale output
-      setAssembly(undefined);
-    }
-  }, [debouncedCode]);
-
   // Capture reference to the editor for passing commands
   const editorRef = useRef<IEditorApi | undefined>(undefined);
   const onEditorMounted = (api: IEditorApi) => (editorRef.current = api);
@@ -189,6 +159,7 @@ export const App = (): JSXElement => {
       }
     }
   };
+
   const onEditorValidated = (markers: monaco.editor.IMarker[]) => {
     const v: StatusBarValidation = { errors: 0, warnings: 0 };
     markers.forEach(m => {
@@ -233,7 +204,7 @@ export const App = (): JSXElement => {
               <PanelGroup direction='vertical' autoSaveId='persistence'>
                 <Panel id='editor' minSize={33} order={1}>
                   <Editor
-                    onCodeChange={onCodeChanged}
+                    onCodeChange={onCodeChange}
                     onMount={onEditorMounted}
                     onValidate={onEditorValidated}
                     onPositionChange={onEditorPositionChanged}
