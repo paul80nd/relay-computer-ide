@@ -219,22 +219,19 @@ export const App = (): JSXElement => {
     setValidation(v);
   };
 
-  // useEffect(() => {
-  //   const handler = (event: KeyboardEvent) => {
-  //     const isMac = navigator.platform.toLowerCase().includes('mac');
-  //     const isSaveKey =
-  //       (isMac && event.metaKey && event.key.toLowerCase() === 's') ||
-  //       (!isMac && event.ctrlKey && event.key.toLowerCase() === 's');
-  //
-  //     if (!isSaveKey) return;
-  //
-  //     event.preventDefault();
-  //     onCommand(Commands.APP_SAVE);
-  //   };
-  //
-  //   window.addEventListener('keydown', handler);
-  //   return () => window.removeEventListener('keydown', handler);
-  // }, [onCommand]);
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      const isSaveKey = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's';
+
+      if (!isSaveKey) return;
+
+      event.preventDefault();
+      onCommand(Commands.APP_SAVE);
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onCommand]);
 
   const onEditorPositionChanged = (e: monaco.editor.ICursorPositionChangedEvent) => setPosition(e.position);
 

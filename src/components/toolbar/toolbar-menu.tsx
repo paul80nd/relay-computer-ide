@@ -91,7 +91,7 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
             <MenuItem disabled>Open from Examples…</MenuItem>
             <MenuDivider />
             <MenuItem
-              secondaryContent='Ctrl+S'
+              secondaryContent={isMac ? '⌘ S' : 'Ctrl+S'}
               disabled={props.autoSave || !props.dirty}
               onClick={() => doCommand(Commands.APP_SAVE)}
             >
@@ -284,7 +284,7 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
               Go to References
             </MenuItem>
             <MenuDivider />
-            <MenuItem secondaryContent={isMac ? '^G' : 'Ctrl+G'} onClick={() => doCommand(Commands.EDITOR_GOTO_LINE)}>
+            <MenuItem secondaryContent={isMac ? '⌃ G' : 'Ctrl+G'} onClick={() => doCommand(Commands.EDITOR_GOTO_LINE)}>
               Go to Line/Column…
             </MenuItem>
             <MenuItem disabled secondaryContent='Ctrl+Shift+\'>
