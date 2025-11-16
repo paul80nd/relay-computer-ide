@@ -185,6 +185,7 @@ function AppToolbarMenu(
           </MenuList>
         </MenuPopover>
       </Menu>
+
       <Menu hasCheckmarks checkedValues={props.checkedValues} onCheckedValueChange={handleViewCheckedChange}>
         <MenuTrigger>
           <ToolbarButton className={styles.menuTrigger} appearance='transparent'>
@@ -207,7 +208,7 @@ function AppToolbarMenu(
                     Full Screen
                   </MenuItem>
                   <MenuDivider />
-                  <MenuItemCheckbox name='panels' value={Prefs.Panels.PRI_SIDEBAR} disabled>
+                  <MenuItemCheckbox name='panels' value={Prefs.Panels.PRI_SIDEBAR}>
                     Primary Side Bar
                   </MenuItemCheckbox>
                   <MenuItemCheckbox name='panels' value={Prefs.Panels.SEC_SIDEBAR}>

@@ -11,7 +11,7 @@ import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-d
 import { AppWelcome } from './components/welcome';
 import { AppEmulator } from './components/emulator';
 import { AppExport } from './components/export';
-import { AppExamples } from './components/examples';
+import Examples from './components/examples';
 import StatusBar from './components/status-bar';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { StatusBarValidation } from './components/status-bar';
@@ -33,6 +33,7 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'row',
     flexGrow: '1',
+    minHeight: 0,
     gap: '2px',
   },
   editor: {
@@ -41,6 +42,10 @@ const useStyles = makeStyles({
   },
   panel: {
     backgroundColor: tokens.colorNeutralBackground3,
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: 0,
+    overflow: 'hidden',
   },
   resizeHandle: {
     flexBasis: '2px',
@@ -161,6 +166,29 @@ export const App = (): JSXElement => {
 
   const styles = useStyles();
 
+  function onExampleRequested(name: string): void {
+    // Normalize to `<id>.rcasm` if the caller passed just an ID
+    const fileName = name.endsWith('.rcasm') ? name : `${name}.rcasm`;
+
+    // Adjust this path if your examples live somewhere else (e.g. `/assets/examples/`)
+    const url = `/examples/${fileName}`;
+
+    fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to load example: ${fileName}`);
+        }
+        return response.text();
+      })
+      .then(text => {
+        editorRef.current?.loadCode(text);
+      })
+      .catch(err => {
+        console.error(err);
+        // TODO: surface this via a toast / message bar if you like
+      });
+  }
+
   return (
     <Router>
       <div className={styles.container}>
@@ -170,9 +198,9 @@ export const App = (): JSXElement => {
           <PanelGroup direction='horizontal' autoSaveId='layout-horizontal'>
             {prefs.panels.primary && (
               <>
-                <Panel id='left' defaultSize={20} minSize={20} className={styles.panel} order={1}>
+                <Panel id='left' defaultSize={25} minSize={25} className={styles.panel} order={1}>
                   <Routes>
-                    <Route path='/examples' element={<AppExamples />} />
+                    <Route path='/examples' element={<Examples onExampleRequested={onExampleRequested} />} />
                     <Route path='/export' element={<AppExport />} />
                     <Route path='/emulator' element={<AppEmulator />} />
                     <Route path='/welcome' element={<AppWelcome />} />

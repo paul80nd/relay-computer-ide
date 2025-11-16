@@ -1,5 +1,5 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
-import type {IEditorApi} from "./types.ts";
+import type { IEditorApi } from "./types.ts";
 
 export class EditorApi implements IEditorApi {
 
@@ -11,6 +11,12 @@ export class EditorApi implements IEditorApi {
 
   focus(): void {
     this.editor.focus();
+  }
+
+  loadCode(code: string): void {
+    this.editor.setValue(code);
+    this.editor.focus();
+    this.editor.revealLineInCenter(0);
   }
 
   gotoPosition(lineNumber: number, column: number): void {

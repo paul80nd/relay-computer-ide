@@ -106,7 +106,6 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
         </Tooltip>
         <Tooltip content='Toggle Primary Side Bar' relationship='description' positioning='below-end' withArrow>
           <ToolbarToggleButton
-            disabled
             className={styles.toggle}
             icon={<PanelLeft />}
             name='panels'

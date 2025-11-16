@@ -28,6 +28,9 @@ export interface IEditorApi {
   /** Run a command */
   runCommand(commandId: string): void;
 
+  /** Load code into the editor */
+  loadCode(code: string): void;
+
   /** Navigate to a specific position */
   gotoPosition(lineNumber: number, column: number): void;
 }

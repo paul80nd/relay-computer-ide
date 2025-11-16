@@ -168,8 +168,4 @@ export class AppComponent implements OnInit {
       }
     }
   }
-
-  onExampleRequested(example: string) {
-    this.editor().loadExample(example);
-  }
 }
