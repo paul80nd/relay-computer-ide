@@ -1,4 +1,4 @@
-import type { JSXElement, MenuProps } from '@fluentui/react-components';
+import type { JSXElement, MenuProps, ToolbarProps } from '@fluentui/react-components';
 import { CutRegular, ClipboardPasteRegular, CopyRegular } from '@fluentui/react-icons';
 import {
   tokens,
@@ -45,10 +45,28 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
     view: ['word-wrap', 'secondary-side-bar', 'status'],
   });
 
+  // Keep the internal 'save' group in sync with autoSave prop
+  useEffect(() => {
+    setCheckedValues(s => ({
+      ...s,
+      save: props.autoSave ? ['auto'] : [],
+    }));
+  }, [props.autoSave]);
+
   const onChange: MenuProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
     setCheckedValues(s => {
       return s ? { ...s, [name]: checkedItems } : { [name]: checkedItems };
     });
+    if (name === 'save') {
+      const autoEnabled = checkedItems.includes('auto');
+      if (props.onToggleAutoSave) props.onToggleAutoSave(autoEnabled);
+    }
+  };
+
+  const onChange2: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+    if (props.onCheckedValueChange) {
+      props.onCheckedValueChange(name, checkedItems);
+    }
   };
 
   const doCommand = (command: AppCommand): void => props.onCommand && props.onCommand(command);
@@ -57,7 +75,7 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
     <>
       <Menu hasCheckmarks checkedValues={checkedValues} onCheckedValueChange={onChange}>
         <MenuTrigger>
-          <ToolbarButton className={styles.menuTrigger} appearance='transparent' disabled>
+          <ToolbarButton className={styles.menuTrigger} appearance='transparent'>
             File
           </ToolbarButton>
         </MenuTrigger>
@@ -72,7 +90,11 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
             </MenuItem>
             <MenuItem disabled>Open from Examples…</MenuItem>
             <MenuDivider />
-            <MenuItem disabled secondaryContent='Ctrl+S'>
+            <MenuItem
+              secondaryContent='Ctrl+S'
+              disabled={props.autoSave || !props.dirty}
+              onClick={() => doCommand(Commands.APP_SAVE)}
+            >
               Save
             </MenuItem>
             <MenuItem disabled secondaryContent='Ctrl+Shift+S'>
@@ -82,7 +104,7 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
               Export…
             </MenuItem>
             <MenuDivider />
-            <MenuItemCheckbox disabled name='save' value='auto'>
+            <MenuItemCheckbox name='save' value='auto'>
               Auto Save
             </MenuItemCheckbox>
           </MenuList>
@@ -148,7 +170,7 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
           </MenuList>
         </MenuPopover>
       </Menu>
-      <Menu hasCheckmarks {...props}>
+      <Menu hasCheckmarks checkedValues={props.checkedValues} onCheckedValueChange={onChange2}>
         <MenuTrigger>
           <ToolbarButton className={styles.menuTrigger} appearance='transparent'>
             View
@@ -160,7 +182,7 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
               Command Palette…
             </MenuItem>
             <MenuDivider />
-            <Menu hasCheckmarks {...props}>
+            <Menu hasCheckmarks checkedValues={props.checkedValues} onCheckedValueChange={onChange2}>
               <MenuTrigger disableButtonEnhancement>
                 <MenuItem>Appearance</MenuItem>
               </MenuTrigger>

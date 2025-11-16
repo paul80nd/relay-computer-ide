@@ -1,9 +1,18 @@
-import { type ToolbarProps } from '@fluentui/react-components'
 import type { AppCommand } from '../../commands';
 
-export type AppToolbarProps = ToolbarProps & {
+export type AppToolbarProps = {
 
-  /** Emitted when a command was initated */
+  onCheckedValueChange?: (name: string, checkedItems: string[]) => void;
+  checkedValues?: Record<string, string[]>;
+
+  /** Emitted when a command was initiated */
   onCommand?: (command: AppCommand) => void;
 
+  /** Whether auto-save is enabled */
+  autoSave: boolean;
+
+  /** Whether there are unsaved changes */
+  dirty: boolean;
+
+  onToggleAutoSave?: (autoSave: boolean) => void;
 }

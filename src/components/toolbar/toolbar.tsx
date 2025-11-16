@@ -1,4 +1,4 @@
-import type { JSXElement } from '@fluentui/react-components';
+import type { JSXElement, ToolbarProps } from '@fluentui/react-components';
 import {
   PanelLeftFilled,
   PanelRightFilled,
@@ -40,18 +40,39 @@ const useStyles = makeStyles({
     backgroundColor: tokens.colorNeutralBackground3,
     color: tokens.colorNeutralForeground4,
   },
+  dirtyIndicator: {
+    color: tokens.colorStatusWarningForeground1,
+    marginRight: '0.75rem',
+  },
 });
 
 function AppToolbar(props: AppToolbarProps): JSXElement {
   const styles = useStyles();
 
+  const onChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+    if (props.onCheckedValueChange) {
+      props.onCheckedValueChange(name, checkedItems);
+    }
+  };
+
   return (
-    <Toolbar {...props} aria-label='Default' className={styles.toolbar} size='small'>
+    <Toolbar
+      checkedValues={props.checkedValues}
+      onCheckedValueChange={onChange}
+      aria-label='Default'
+      className={styles.toolbar}
+      size='small'
+    >
       <ToolbarGroup role='presentation'>
         <Code20Color />
         <AppToolbarMenu {...props} />
       </ToolbarGroup>
       <ToolbarGroup role='presentation'>
+        {!props.autoSave && props.dirty && (
+          <Text size={200} className={styles.dirtyIndicator}>
+            ● Unsaved
+          </Text>
+        )}
         <Text weight='semibold' style={{ marginRight: '1rem' }}>
           Relay Computer IDE
         </Text>

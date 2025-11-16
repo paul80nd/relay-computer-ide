@@ -23,14 +23,27 @@ const useStyles = makeStyles({
   item: { color: tokens.colorNeutralForeground3, padding: '0 .4rem', minWidth: '2rem' },
   error: { color: tokens.colorStatusDangerForeground1 },
   warning: { color: tokens.colorStatusWarningForeground1 },
+  saveStatusDirty: {
+    color: tokens.colorStatusWarningForeground1,
+  },
 });
 
-function StatusBar({ position, validation, assembly, onCommand }: StatusBarProps) {
+function StatusBar({ position, validation, assembly, autoSave, dirty, onCommand }: StatusBarProps) {
   const styles = useStyles();
 
   const bytes = Math.max((assembly?.bytes?.length ?? 0) - 2, 0);
 
   const doCommand = (command: AppCommand): void => onCommand && onCommand(command);
+
+  const renderSaveLabel = () => {
+    if (autoSave) {
+      return <>Auto Save: On</>;
+    } else if (dirty) {
+      return <span className={styles.warning}>Unsaved changes</span>;
+    } else {
+      return <>All changes saved</>;
+    }
+  };
 
   return (
     <Toolbar className={styles.bar} size='small'>
@@ -55,6 +68,7 @@ function StatusBar({ position, validation, assembly, onCommand }: StatusBarProps
             </Caption1>
           </ToolbarButton>
         </Tooltip>
+        <Caption1 className={styles.item}>{renderSaveLabel()}</Caption1>
         {position && (
           <Tooltip content='Goto Line/Column' relationship='description' positioning='above' withArrow>
             <ToolbarButton

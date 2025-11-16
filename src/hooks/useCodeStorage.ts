@@ -15,6 +15,8 @@ export interface UseCodeStorageResult {
   onCodeChange: (value?: string) => void;
   /** Explicitly persist the current code when autoSave is false */
   save: () => void;
+  /** True when there are unsaved changes (only meaningful if autoSave is false) */
+  dirty: boolean;
 }
 
 
@@ -32,20 +34,24 @@ export function useCodeStorage(options: UseCodeStorageOptions = {}): UseCodeStor
     const stored = localStorage.getItem(storageKey);
     return stored ?? defaultCode;
   });
+  const [dirty, setDirty] = useState<boolean>(false);
 
-  const onCodeChange = useCallback((value?: string) => {
+  const onCodeChange = (value?: string) => {
     setCode(value ?? '');
-  }, []);
+    setDirty(true);
+  };
 
   // Auto-save behavior
   useEffect(() => {
     if (!autoSave) return;
     localStorage.setItem(storageKey, code);
+    setDirty(false);
   }, [autoSave, code, storageKey]);
 
   const save = useCallback(() => {
     localStorage.setItem(storageKey, code);
+    setDirty(false);
   }, [code, storageKey]);
 
-  return { code, onCodeChange, save };
+  return { code, onCodeChange, save, dirty };
 }

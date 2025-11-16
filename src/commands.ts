@@ -1,4 +1,5 @@
 export const Commands = {
+  APP_SAVE: 'app.save',
   EDITOR_GOTO_LINE: 'editor.action.gotoLine',
   PANEL_OUTPUT_SHOW: 'panel.output.show'
 } as const;
@@ -11,13 +12,14 @@ export type PanelCommand = Extract<AppCommand, `panel.${string}`>;
 export const CommandTarget = {
   EDITOR: 'editor',
   PANEL: 'panel',
+  APP: 'app'
 } as const;
 
-export function isEditorCommand(command: AppCommand): command is EditorCommand {
-  return command.startsWith(CommandTarget.EDITOR);
-}
+export const isEditorCommand =
+  (command: AppCommand): command is EditorCommand =>
+    command.startsWith(CommandTarget.EDITOR);
 
-export function isPanelCommand(command: AppCommand): command is PanelCommand {
-  return command.startsWith(CommandTarget.PANEL);
-}
+export const isPanelCommand =
+  (command: AppCommand): command is PanelCommand =>
+    command.startsWith(CommandTarget.PANEL);
 

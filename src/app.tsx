@@ -1,7 +1,7 @@
-import type { JSXElement, ToolbarProps } from '@fluentui/react-components';
+import type { JSXElement } from '@fluentui/react-components';
 import { makeStyles, tokens } from '@fluentui/react-components';
 import AppToolbar from './components/toolbar/toolbar';
-import { AppSideToolbar } from './components/side-toolbar';
+import SideToolbar from './components/side-toolbar';
 import Editor from './components/editor/editor';
 import Output from './components/output';
 import { useRef, useState } from 'react';
@@ -52,11 +52,12 @@ export const App = (): JSXElement => {
   const [validation, setValidation] = useState<StatusBarValidation>({ warnings: 0, errors: 0 });
 
   const [prefState, setPrefState] = usePreferences();
+  const autoSave = prefState.autoSave ?? true;
 
   // Source code + persistence
-  const { code, onCodeChange } = useCodeStorage({
+  const { code, onCodeChange, save, dirty } = useCodeStorage({
     storageKey: 'code',
-    autoSave: true, // later you can toggle this from preferences / menu
+    autoSave,
     defaultCode: [
       '; *****************************************************',
       ';  Welcome to Relay Computer Assembly (RCASM)',
@@ -71,6 +72,21 @@ export const App = (): JSXElement => {
 
   // Debounced assembly from the current code
   const { assembly } = useAssembler({ code, debounceMs: 300 });
+
+  // Warn if navigating away with unsaved changes when autoSave is off
+  // useEffect(() => {
+  //   if (autoSave || !dirty) {
+  //     return;
+  //   }
+
+  //   const handler = (event: BeforeUnloadEvent) => {
+  //     event.preventDefault();
+  //     event.returnValue = '';
+  //   };
+
+  //   window.addEventListener('beforeunload', handler);
+  //   return () => window.removeEventListener('beforeunload', handler);
+  // }, [autoSave, dirty]);
 
   // Map typed prefs -> Fluent UI checkedValues
   const checkedValues = {
@@ -145,8 +161,9 @@ export const App = (): JSXElement => {
     });
   };
 
-  const onChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) =>
-    applyPrefState(name, checkedItems);
+  const onChange = (name: string, checkedItems: string[]) => applyPrefState(name, checkedItems);
+
+  const setAutoSave = (enabled: boolean) => setPrefState(prev => ({ ...prev, autoSave: enabled }));
 
   // Capture reference to the editor for passing commands
   const editorRef = useRef<IEditorApi | undefined>(undefined);
@@ -177,6 +194,15 @@ export const App = (): JSXElement => {
           break;
       }
     }
+
+    switch (command) {
+      case Commands.APP_SAVE:
+        save();
+        break;
+      default:
+        console.warn('Unhandled app command', command);
+        break;
+    }
   };
 
   const onEditorValidated = (markers: monaco.editor.IMarker[]) => {
@@ -194,6 +220,23 @@ export const App = (): JSXElement => {
     setValidation(v);
   };
 
+  // useEffect(() => {
+  //   const handler = (event: KeyboardEvent) => {
+  //     const isMac = navigator.platform.toLowerCase().includes('mac');
+  //     const isSaveKey =
+  //       (isMac && event.metaKey && event.key.toLowerCase() === 's') ||
+  //       (!isMac && event.ctrlKey && event.key.toLowerCase() === 's');
+  //
+  //     if (!isSaveKey) return;
+  //
+  //     event.preventDefault();
+  //     onCommand(Commands.APP_SAVE);
+  //   };
+  //
+  //   window.addEventListener('keydown', handler);
+  //   return () => window.removeEventListener('keydown', handler);
+  // }, [onCommand]);
+
   const onEditorPositionChanged = (e: monaco.editor.ICursorPositionChangedEvent) => setPosition(e.position);
 
   const styles = useStyles();
@@ -201,9 +244,16 @@ export const App = (): JSXElement => {
   return (
     <Router>
       <div className={styles.container}>
-        <AppToolbar checkedValues={checkedValues} onCheckedValueChange={onChange} onCommand={onCommand} />
+        <AppToolbar
+          checkedValues={checkedValues}
+          onCheckedValueChange={onChange}
+          onCommand={onCommand}
+          autoSave={autoSave}
+          dirty={dirty}
+          onToggleAutoSave={setAutoSave}
+        />
         <div className={styles.main}>
-          <AppSideToolbar checkedValues={checkedValues} onCheckedValueChange={onChange} />
+          <SideToolbar checkedValues={checkedValues} onCheckedValueChange={onChange} />
           <PanelGroup direction='horizontal' autoSaveId='persistence'>
             {prefState.panels.primary && (
               <>
@@ -248,7 +298,14 @@ export const App = (): JSXElement => {
             )}
           </PanelGroup>
         </div>
-        <StatusBar position={position} validation={validation} assembly={assembly} onCommand={onCommand} />
+        <StatusBar
+          position={position}
+          validation={validation}
+          assembly={assembly}
+          onCommand={onCommand}
+          autoSave={autoSave}
+          dirty={dirty}
+        />
       </div>
     </Router>
   );

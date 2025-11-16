@@ -1,24 +1,24 @@
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 
+export interface IPrefState {
+  panels: {
+    primary: boolean;
+    secondary: boolean;
+    bottom: boolean;
+  };
+  /** Currently selected primary sidebar section */
+  section?: string;
+  autoSave?: boolean;
+}
+
 export const Prefs = {
   Panels: {
     PRI_SIDEBAR: 'sidebar-p',
     SEC_SIDEBAR: 'sidebar-s',
     PANEL: 'panel',
   }
-}
+} as const;
 
-export interface IPanelPrefs {
-  primary: boolean;
-  secondary: boolean;
-  bottom: boolean;
-}
-
-export interface IPrefState {
-  panels: IPanelPrefs;
-  /** Currently selected primary sidebar section */
-  section?: string;
-}
 
 /**
  * Handles management of user preferences stored in local browser storage
@@ -37,7 +37,8 @@ export function usePreferences(): [IPrefState, Dispatch<SetStateAction<IPrefStat
             secondary: parsed.panels?.secondary ?? true,
             bottom: parsed.panels?.bottom ?? false
           },
-          section: parsed.section
+          section: parsed.section,
+          autoSave: parsed.autoSave ?? true,
         };
       } catch {
         // fall through to default
@@ -50,7 +51,8 @@ export function usePreferences(): [IPrefState, Dispatch<SetStateAction<IPrefStat
         primary: false,
         secondary: true,
         bottom: false,
-      }
+      },
+      autoSave: true,
     };
   };
 

@@ -1,4 +1,4 @@
-import type { JSXElement } from '@fluentui/react-components';
+import type { JSXElement, ToolbarProps } from '@fluentui/react-components';
 import {
   bundleIcon,
   DiagramRegular,
@@ -20,9 +20,9 @@ import {
   ToolbarGroup,
   ToolbarRadioButton,
 } from '@fluentui/react-components';
-import type { ToolbarProps } from '@fluentui/react-components';
-import { Prefs } from '../hooks/usePreferences';
+import { Prefs } from '../../hooks/usePreferences';
 import { useNavigate } from 'react-router-dom';
+import type { SideToolbarProps } from './types.ts';
 
 const BookInformation = bundleIcon(QuestionCircleFilled, QuestionCircleRegular);
 const Emulator = bundleIcon(DeveloperBoardLightningFilled, DeveloperBoardLightningRegular);
@@ -42,11 +42,24 @@ const useStyles = makeStyles({
   icon: { minWidth: '2rem', minHeight: '2rem' },
 });
 
-export const AppSideToolbar = (props: Partial<ToolbarProps>): JSXElement => {
+function SideToolbar(props: SideToolbarProps): JSXElement {
   const styles = useStyles();
   const navigate = useNavigate();
+
+  const onChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+    if (props.onCheckedValueChange) {
+      props.onCheckedValueChange(name, checkedItems);
+    }
+  };
+
   return (
-    <Toolbar aria-label='Default' className={styles.toolbar} vertical {...props}>
+    <Toolbar
+      aria-label='Default'
+      className={styles.toolbar}
+      vertical
+      onCheckedValueChange={onChange}
+      checkedValues={props.checkedValues}
+    >
       <ToolbarGroup>
         <Tooltip content='Code Examples' relationship='description' positioning='after' withArrow>
           <ToolbarRadioButton
@@ -108,4 +121,6 @@ export const AppSideToolbar = (props: Partial<ToolbarProps>): JSXElement => {
       </ToolbarGroup>
     </Toolbar>
   );
-};
+}
+
+export default SideToolbar;
