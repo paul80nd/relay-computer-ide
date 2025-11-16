@@ -16,7 +16,7 @@ import {
   MenuItemLink,
   MenuItemRadio,
 } from '@fluentui/react-components';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Prefs } from '../../hooks/usePreferences';
 import { useNavigate } from 'react-router-dom';
 import type { AppToolbarProps } from './types';
@@ -34,11 +34,11 @@ function AppToolbarMenu(props: AppToolbarProps): JSXElement {
   const styles = useStyles();
   const navigate = useNavigate();
 
-  const [isMac, setIsMac] = useState(false);
-  useEffect(() => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    setIsMac(userAgent.includes('mac'));
-  }, []);
+  // Platform detection – derived once
+  const isMac = useMemo(
+    () => typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().includes('mac'),
+    []
+  );
 
   const [checkedValues, setCheckedValues] = useState<Record<string, string[]>>({
     save: ['auto'],
