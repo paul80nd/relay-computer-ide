@@ -30,6 +30,7 @@ const useStyles = makeStyles({
     width: '100vw',
     overflow: 'hidden',
     gap: '2px',
+    backgroundColor: tokens.colorNeutralBackground3,
   },
   main: {
     display: 'flex',
@@ -43,7 +44,7 @@ const useStyles = makeStyles({
     minWidth: 0,
   },
   panel: {
-    backgroundColor: tokens.colorNeutralBackground3,
+    backgroundColor: tokens.colorNeutralBackground2,
     display: 'flex',
     flexDirection: 'column',
     minHeight: 0,

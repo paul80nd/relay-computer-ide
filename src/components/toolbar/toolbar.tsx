@@ -38,16 +38,15 @@ const useStyles = makeStyles({
   toolbar: {
     justifyContent: 'space-between',
     color: tokens.colorNeutralForeground2,
-    backgroundColor: tokens.colorNeutralBackground3,
-    padding: '0 .5rem 0 .75rem',
+    backgroundColor: tokens.colorNeutralBackground1,
+    padding: '0 .5rem 0 1.2rem',
   },
   toggle: {
-    backgroundColor: tokens.colorNeutralBackground3,
+    backgroundColor: tokens.colorNeutralBackground1,
     color: tokens.colorNeutralForeground4,
   },
   dirtyIndicator: {
     color: tokens.colorStatusWarningForeground1,
-    marginRight: '0.75rem',
   },
 });
 
@@ -75,7 +74,7 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
       size='small'
     >
       <ToolbarGroup role='presentation'>
-        <Code20Color />
+        <Code20Color style={{ marginRight: '.5rem' }} />
         <AppToolbarMenu
           prefs={prefs}
           onPrefsChange={onPrefsChange}
@@ -87,10 +86,12 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
       <ToolbarGroup role='presentation'>
         {!autoSaveOn && props.dirty && (
           <Text size={200} className={styles.dirtyIndicator}>
-            ● Unsaved
+            ◀ Unsaved changes ▶
           </Text>
         )}
-        <Text weight='semibold' style={{ marginRight: '1rem' }}>
+      </ToolbarGroup>
+      <ToolbarGroup role='presentation'>
+        <Text weight='semibold' size={200} style={{ marginRight: '1rem', color: tokens.colorBrandForeground2 }}>
           Relay Computer IDE
         </Text>
         <Tooltip content='Customize Layout…' relationship='description' positioning='below-end' withArrow>

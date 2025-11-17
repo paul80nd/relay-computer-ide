@@ -3,6 +3,7 @@ import {
   AccordionHeader,
   AccordionItem,
   AccordionPanel,
+  Body1,
   Button,
   Caption1,
   Card,
@@ -23,7 +24,7 @@ const useStyles = makeStyles({
   header: {
     textTransform: 'uppercase',
     color: tokens.colorNeutralForeground3,
-    padding: '.25rem .75rem',
+    padding: '.8rem .75rem 0',
   },
   content: {
     minHeight: 0,
@@ -31,12 +32,13 @@ const useStyles = makeStyles({
     overflowY: 'auto',
   },
   contentHeader: {
-    padding: '.25rem .75rem',
+    padding: '.5rem .75rem',
+    lineHeight: '.8rem',
     color: tokens.colorNeutralForeground2,
   },
   footer: {
     color: tokens.colorStatusWarningForeground1,
-    padding: '.25rem .75rem',
+    padding: '.3rem .75rem .6rem',
     lineHeight: '.8rem',
   },
   accordionHeader: {
@@ -60,7 +62,7 @@ function Examples({ onExampleRequested }: ExamplesProps) {
   const loadExample = (example: string) => onExampleRequested?.(example);
 
   const renderSectionHeader = (description: string) => (
-    <Card className={styles.card} size='small' appearance='filled-alternative' role='listitem'>
+    <Card className={styles.card} size='small' appearance='subtle' role='listitem'>
       <CardHeader description={<Caption1 className={styles.caption}>{description}</Caption1>} />
     </Card>
   );
@@ -82,11 +84,11 @@ function Examples({ onExampleRequested }: ExamplesProps) {
   return (
     <div className={styles.root}>
       <header className={styles.header}>
-        <Caption1>Example Programs</Caption1>
+        <Body1>Example Programs</Body1>
       </header>
       <div className={styles.content}>
         <div className={styles.contentHeader}>
-          <Text as='p'>This is a curated set of example programs that can be loaded into the IDE.</Text>
+          <Caption1>This is a curated set of example programs that can be loaded into the IDE.</Caption1>
         </div>
 
         <Accordion collapsible multiple>

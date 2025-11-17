@@ -17,8 +17,8 @@ const useStyles = makeStyles({
   bar: {
     justifyContent: 'space-between',
     color: tokens.colorNeutralForeground3,
-    backgroundColor: tokens.colorNeutralBackground3,
-    padding: '0 .5rem 0 3rem',
+    backgroundColor: tokens.colorNeutralBackground2,
+    padding: '0 .5rem 0 3.75rem',
     minHeight: '1.5rem',
   },
   item: { color: tokens.colorNeutralForeground3, padding: '0 .4rem', minWidth: '2rem' },

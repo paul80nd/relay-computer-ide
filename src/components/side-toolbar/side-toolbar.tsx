@@ -37,14 +37,15 @@ const Export = bundleIcon(ShareFilled, ShareRegular);
 const useStyles = makeStyles({
   toolbar: {
     justifyContent: 'space-between',
-    backgroundColor: tokens.colorNeutralBackground3,
+    backgroundColor: tokens.colorNeutralBackground2,
+    padding: '0.3rem .7rem',
   },
   toggle: {
-    backgroundColor: tokens.colorNeutralBackground3,
+    backgroundColor: tokens.colorNeutralBackground2,
     color: tokens.colorNeutralForeground4,
-    padding: '.65rem 1.1rem',
+    padding: '.7rem .8rem',
   },
-  icon: { minWidth: '2rem', minHeight: '2rem' },
+  icon: { minWidth: '1.9rem', minHeight: '1.9rem' },
 });
 
 function SideToolbar(props: SideToolbarProps): JSXElement {
