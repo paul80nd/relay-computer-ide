@@ -1,12 +1,11 @@
 import { Component, Input, output } from '@angular/core';
 import { MonacoEditorComponent } from '../ngx-monaco-editor';
-import { FormsModule } from '@angular/forms';
 import { ClrIconModule } from '@clr/angular';
 
 @Component({
   selector: 'app-ride-output',
   templateUrl: './output.component.html',
-  imports: [MonacoEditorComponent, FormsModule, ClrIconModule]
+  imports: [MonacoEditorComponent, ClrIconModule]
 })
 export class OutputComponent {
   status: { type: string, text: string } = { type: 'info', text: 'ready' }
@@ -24,7 +23,7 @@ export class OutputComponent {
 
   editor: monaco.editor.IStandaloneCodeEditor | null = null;
 
-  editorOptions = <monaco.editor.IStandaloneEditorConstructionOptions>{
+  editorOptions = {
     language: 'rcdsm',
     lineNumbers: 'off',
     renderLineHighlight: 'none',
@@ -35,78 +34,8 @@ export class OutputComponent {
     minimap: { enabled: false }
   };
 
-  labels?: {
-    [k: string]: {
-      name: string;
-    };
-  }
-
   onInit(editor: monaco.editor.IStandaloneCodeEditor) {
     this.editor = editor;
-
-    // Add goto source action
-    editor.addAction(<monaco.editor.IActionDescriptor>{
-      id: "rcasm-jump-to-source",
-      label: "Go to Source",
-      contextMenuGroupId: "navigation",
-      contextMenuOrder: 1.5,
-      run: (ed: monaco.editor.IStandaloneCodeEditor) => {
-        const pos = ed.getPosition();
-        const addrText = pos ? ed.getModel()?.getLineContent(pos.lineNumber).substring(0, 4) : '';
-        if (!addrText) { return; }
-        const addr = parseInt(addrText, 16);
-        this.gotoSource.emit(addr);
-      }
-    });
-
-    // Add goto source command
-    var commandId = editor.addCommand(
-      0,
-      (_, addrText: string) => {
-        if (addrText) {
-          const addr = parseInt(addrText, 16);
-          this.gotoSource.emit(addr);
-        }
-      },
-      ""
-    );
-
-    // Add labels code lens
-    (window as any).monaco.languages.registerCodeLensProvider("rcdsm", <monaco.languages.CodeLensProvider>{
-      provideCodeLenses: (model: monaco.editor.ITextModel, token: monaco.CancellationToken) => {
-        if (!this.labels) {
-          return { lenses: [], dispose: () => { } };
-        }
-
-        // Review line-by-line looking for label matches by address
-        var labelLenses: monaco.languages.CodeLens[] = [];
-        model.getLinesContent().forEach((v, idx) => {
-          const addr = v.substring(0, 4)
-          const label = this.labels![addr];
-          if (label) {
-            labelLenses.push({
-              range: {
-                startLineNumber: idx + 1,
-                startColumn: 1,
-                endLineNumber: idx + 1,
-                endColumn: 1,
-              },
-              id: `${addr}:${label.name}`,
-              command: {
-                id: commandId!,
-                title: label.name,
-                arguments: [addr]
-              },
-            });
-          }
-        });
-
-        return { lenses: labelLenses, dispose: () => { }, };
-      },
-      resolveCodeLens: function (model: monaco.editor.ITextModel, codeLens: monaco.languages.CodeLens, token: monaco.CancellationToken) {
-        return codeLens;
-      },
-    });
   }
 
   setStateInformation(message: string) {
@@ -134,29 +63,8 @@ export class OutputComponent {
     return `Assembly failed with ${errorText}${warningText}`;
   };
 
-  gotoLine(hexAddr: string) {
-    const model = this.editor?.getModel();
-    if (!model || !this.editor) { return; }
-    const matches = model.findMatches(hexAddr + ":", false, false, false, null, false);
-    if (matches.length > 0) {
-      const match = matches[0];
-      const lineNo = match.range.startLineNumber;
-      this.editor.revealLineInCenter(lineNo);
-      this.editor.setPosition({ lineNumber: lineNo, column: 1 });
-      this.editor.focus();
-    }
-  }
-
   onNavigateDiagnostic(diag: IAssemblyDiagnostic) {
     this.gotoSourcePosition.emit(diag);
-  }
-
-  clearLabels() {
-    this.labels = undefined;
-  }
-
-  setLabels(labels: { [k: string]: { name: string; }; }) {
-    this.labels = labels;
   }
 
 }

@@ -4,7 +4,7 @@ import AppToolbar from './components/toolbar';
 import SideToolbar from './components/side-toolbar';
 import Editor from './components/editor';
 import Output from './components/output';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { usePreferences } from './hooks/usePreferences';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
@@ -15,10 +15,12 @@ import Examples from './components/examples';
 import StatusBar from './components/status-bar';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { StatusBarValidation } from './components/status-bar';
-import { type AppCommand, Commands, isEditorCommand, isPanelCommand } from './commands';
+import { appCommands, editorCommands, outputCommands } from './commands';
 import type { IEditorApi } from './components/editor';
 import { useAssembler } from './hooks/useAssembler.ts';
 import { useCodeStorage } from './hooks/useCodeStorage.ts';
+import { CommandBusProvider, useCreateCommandBus } from './hooks/useCommandBus.ts';
+import { exchangeAddressForSourceLine, exchangeSourceLineNumberForAddress } from './assembler.ts';
 
 const useStyles = makeStyles({
   container: {
@@ -59,6 +61,8 @@ export const App = (): JSXElement => {
   const [prefs, setPrefs] = usePreferences();
   const autoSave = prefs.autoSave ?? true;
 
+  const bus = useCreateCommandBus();
+
   // Source code + persistence
   const { code, onCodeChange, save, dirty } = useCodeStorage({
     storageKey: 'code',
@@ -93,45 +97,51 @@ export const App = (): JSXElement => {
   // Capture reference to the editor for passing commands
   const editorRef = useRef<IEditorApi | undefined>(undefined);
   const onEditorMounted = (api: IEditorApi) => (editorRef.current = api);
-  const onCommand = useCallback(
-    (command: AppCommand) => {
-      console.log('Handling command', command);
 
-      if (isEditorCommand(command)) {
-        editorRef.current?.runCommand(command);
-        return;
+  useEffect(() => {
+    return bus.subscribe('panel', command => {
+      if (command.type === 'panel.show' && command.panel === 'sidebar-s') {
+        setPrefs(prev => {
+          if (prev.panels.secondary) return prev;
+          return {
+            ...prev,
+            panels: { ...prev.panels, secondary: true },
+          };
+        });
       }
+      return;
+    });
+  }, [bus, setPrefs]);
 
-      if (isPanelCommand(command)) {
-        switch (command) {
-          case Commands.PANEL_OUTPUT_SHOW:
-            if (!prefs.panels.secondary) {
-              setPrefs(lps => ({
-                ...lps,
-                panels: {
-                  ...lps.panels,
-                  secondary: true,
-                },
-              }));
+  useEffect(() => {
+    return bus.subscribe('app', command => {
+      switch (command.type) {
+        case 'app.save': {
+          save();
+          return;
+        }
+        case 'app.jumpToSource': {
+          // Jump to the nearest source code line for the given assembled address
+          if (assembly) {
+            const lineNo = exchangeAddressForSourceLine(assembly, command.fromAddress);
+            if (lineNo) {
+              bus.execute(editorCommands.gotoLine(lineNo));
             }
-            break;
-          default:
-            console.warn('Unhandled panel command', command);
-            break;
+          }
+          return;
+        }
+        case 'app.jumpToAssembled': {
+          // Jump to the address for the given source code line number
+          if (assembly) {
+            const address = exchangeSourceLineNumberForAddress(assembly, command.fromSourceLineNumber);
+            if (address) {
+              bus.execute(outputCommands.gotoAddress(address));
+            }
+          }
         }
       }
-
-      switch (command) {
-        case Commands.APP_SAVE:
-          save();
-          break;
-        default:
-          console.warn('Unhandled app command', command);
-          break;
-      }
-    },
-    [prefs.panels.secondary, save, setPrefs]
-  );
+    });
+  }, [bus, assembly, save]);
 
   const onEditorValidated = (markers: monaco.editor.IMarker[]) => {
     const v: StatusBarValidation = { errors: 0, warnings: 0 };
@@ -151,23 +161,21 @@ export const App = (): JSXElement => {
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       const isSaveKey = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's';
-
       if (!isSaveKey) return;
-
       event.preventDefault();
-      onCommand(Commands.APP_SAVE);
+      bus.execute(appCommands.save());
     };
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [onCommand]);
+  }, [bus]);
 
   const onEditorPositionChanged = (e: monaco.editor.ICursorPositionChangedEvent) => setPosition(e.position);
 
   const styles = useStyles();
 
   function onExampleRequested(name: string): void {
-    // Normalize to `<id>.rcasm` if the caller passed just an ID
+    // Normalise to `<id>.rcasm` if the caller passed just an ID
     const fileName = name.endsWith('.rcasm') ? name : `${name}.rcasm`;
 
     // Adjust this path if your examples live somewhere else (e.g. `/assets/examples/`)
@@ -191,63 +199,64 @@ export const App = (): JSXElement => {
 
   return (
     <Router>
-      <div className={styles.container}>
-        <AppToolbar prefs={prefs} onPrefsChange={setPrefs} onCommand={onCommand} dirty={dirty} />
-        <div className={styles.main}>
-          <SideToolbar prefs={prefs} onPrefsChange={setPrefs} />
-          <PanelGroup direction='horizontal' autoSaveId='layout-horizontal'>
-            {prefs.panels.primary && (
-              <>
-                <Panel id='left' defaultSize={25} minSize={25} className={styles.panel} order={1}>
-                  <Routes>
-                    <Route path='/examples' element={<Examples onExampleRequested={onExampleRequested} />} />
-                    <Route path='/export' element={<AppExport />} />
-                    <Route path='/emulator' element={<AppEmulator />} />
-                    <Route path='/welcome' element={<AppWelcome />} />
-                    <Route path='/' element={<Navigate to='/welcome' replace />} />
-                  </Routes>
-                </Panel>
-                <PanelResizeHandle className={styles.resizeHandle} />
-              </>
-            )}
-            <Panel order={2} id='middle'>
-              <PanelGroup direction='vertical' autoSaveId='layout-vertical'>
-                <Panel id='editor' minSize={33} order={1}>
-                  <Editor
-                    initialCode={code}
-                    onCodeChange={onCodeChange}
-                    onMount={onEditorMounted}
-                    onValidate={onEditorValidated}
-                    onPositionChange={onEditorPositionChanged}
-                  />
-                </Panel>
-                {prefs.panels.bottom && (
-                  <>
-                    <PanelResizeHandle className={styles.resizeHandle} />
-                    <Panel id='bottom' order={2} defaultSize={25} minSize={25} className={styles.panel}></Panel>
-                  </>
-                )}
-              </PanelGroup>
-            </Panel>
-            {prefs.panels.secondary && (
-              <>
-                <PanelResizeHandle className={styles.resizeHandle} />
-                <Panel id='right' defaultSize={20} minSize={20} className={styles.panel} order={3}>
-                  <Output assembly={assembly} />
-                </Panel>
-              </>
-            )}
-          </PanelGroup>
+      <CommandBusProvider value={bus}>
+        <div className={styles.container}>
+          <AppToolbar prefs={prefs} onPrefsChange={setPrefs} dirty={dirty} />
+          <div className={styles.main}>
+            <SideToolbar prefs={prefs} onPrefsChange={setPrefs} />
+            <PanelGroup direction='horizontal' autoSaveId='layout-horizontal'>
+              {prefs.panels.primary && (
+                <>
+                  <Panel id='left' defaultSize={25} minSize={25} className={styles.panel} order={1}>
+                    <Routes>
+                      <Route path='/examples' element={<Examples onExampleRequested={onExampleRequested} />} />
+                      <Route path='/export' element={<AppExport />} />
+                      <Route path='/emulator' element={<AppEmulator />} />
+                      <Route path='/welcome' element={<AppWelcome />} />
+                      <Route path='/' element={<Navigate to='/welcome' replace />} />
+                    </Routes>
+                  </Panel>
+                  <PanelResizeHandle className={styles.resizeHandle} />
+                </>
+              )}
+              <Panel order={2} id='middle'>
+                <PanelGroup direction='vertical' autoSaveId='layout-vertical'>
+                  <Panel id='editor' minSize={33} order={1}>
+                    <Editor
+                      initialCode={code}
+                      onCodeChange={onCodeChange}
+                      onMount={onEditorMounted}
+                      onValidate={onEditorValidated}
+                      onPositionChange={onEditorPositionChanged}
+                    />
+                  </Panel>
+                  {prefs.panels.bottom && (
+                    <>
+                      <PanelResizeHandle className={styles.resizeHandle} />
+                      <Panel id='bottom' order={2} defaultSize={25} minSize={25} className={styles.panel}></Panel>
+                    </>
+                  )}
+                </PanelGroup>
+              </Panel>
+              {prefs.panels.secondary && (
+                <>
+                  <PanelResizeHandle className={styles.resizeHandle} />
+                  <Panel id='right' defaultSize={20} minSize={20} className={styles.panel} order={3}>
+                    <Output assembly={assembly} />
+                  </Panel>
+                </>
+              )}
+            </PanelGroup>
+          </div>
+          <StatusBar
+            position={position}
+            validation={validation}
+            assembly={assembly}
+            autoSave={autoSave}
+            dirty={dirty}
+          />
         </div>
-        <StatusBar
-          position={position}
-          validation={validation}
-          assembly={assembly}
-          onCommand={onCommand}
-          autoSave={autoSave}
-          dirty={dirty}
-        />
-      </div>
+      </CommandBusProvider>
     </Router>
   );
 };

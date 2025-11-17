@@ -2,13 +2,18 @@ import { useRef, useEffect, useState } from 'react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { EditorProps } from './types';
 import { EditorApi } from './api.ts';
+import { useCommandBus } from '../../hooks/useCommandBus.ts';
+import { appCommands } from '../../commands.ts';
 
 function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValidate }: EditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const editorRef = useRef<EditorApi | null>(null);
+
+  // Keep latest callbacks in refs to avoid re-subscribing when parent recreates them
   const onMountRef = useRef(onMount);
   const onDidChangeModelContentRef = useRef<monaco.IDisposable | undefined>(undefined);
   const onDidChangeCursorPositionRef = useRef<monaco.IDisposable | undefined>(undefined);
+  const bus = useCommandBus();
 
   const [isEditorReady, setIsEditorReady] = useState(false);
 
@@ -16,7 +21,7 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
     if (!containerRef.current) return;
 
     if (!editorRef.current) {
-      editorRef.current = monaco.editor.create(containerRef.current, {
+      const editor = monaco.editor.create(containerRef.current, {
         theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light',
         value: initialCode,
         language: 'rcasm',
@@ -27,6 +32,20 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
         scrollBeyondLastLine: true,
         tabFocusMode: false,
       });
+
+      // Register "Go to Assembled" action once
+      editor.addAction({
+        id: 'rcasm-jump-to-assembled',
+        label: 'Go to Assembled',
+        contextMenuGroupId: 'navigation',
+        contextMenuOrder: 1.5,
+        run: (ed: monaco.editor.ICodeEditor) => {
+          const pos = ed.getPosition();
+          if (pos) bus.execute(appCommands.jumpToAssembled(pos.lineNumber));
+        },
+      });
+
+      editorRef.current = new EditorApi(editor);
     }
 
     setIsEditorReady(true);
@@ -42,9 +61,32 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
 
   useEffect(() => {
     if (isEditorReady && onMountRef && onMountRef.current) {
-      onMountRef.current(new EditorApi(editorRef.current!));
+      onMountRef.current(editorRef.current!);
     }
   }, [isEditorReady]);
+
+  // Command Bus Subscription
+  useEffect(() => {
+    if (!isEditorReady || !editorRef.current) return;
+
+    return bus.subscribe('editor', cmd => {
+      const editor = editorRef.current;
+      if (!editor) return; // not ready yet; safely ignore
+
+      switch (cmd.type) {
+        case 'editor.gotoLine':
+          // if provided a line number then jump otherwise ask Monaco to show it's goto box
+          if (cmd.lineNumber) {
+            editor.gotoLine(cmd.lineNumber);
+          } else {
+            editor.runAction('editor.action.gotoLine');
+          }
+          break;
+        case 'editor.doMonacoAction':
+          editor.runAction(cmd.actionId);
+      }
+    });
+  }, [isEditorReady, bus]);
 
   // onPositionChange
   useEffect(() => {

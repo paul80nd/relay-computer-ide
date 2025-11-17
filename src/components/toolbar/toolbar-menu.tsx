@@ -1,4 +1,4 @@
-import type { JSXElement, MenuProps, ToolbarProps } from '@fluentui/react-components';
+import { type JSXElement, type MenuProps, type ToolbarProps } from '@fluentui/react-components';
 import { CutRegular, ClipboardPasteRegular, CopyRegular } from '@fluentui/react-icons';
 import {
   tokens,
@@ -20,7 +20,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Prefs } from '../../hooks/usePreferences';
 import { useNavigate } from 'react-router-dom';
 import type { AppToolbarProps } from './types';
-import { type AppCommand, Commands } from '../../commands';
+import { appCommands, editorCommands } from '../../commands';
+import { useCommandBus } from '../../hooks/useCommandBus.ts';
 
 const useStyles = makeStyles({
   menuTrigger: {
@@ -41,6 +42,7 @@ function AppToolbarMenu(
 ): JSXElement {
   const styles = useStyles();
   const navigate = useNavigate();
+  const { execute } = useCommandBus();
 
   // Platform detection – derived once
   const isMac = useMemo(
@@ -82,10 +84,6 @@ function AppToolbarMenu(
     props.onCheckedValueChange?.(e, data);
   };
 
-  const doCommand = (command: AppCommand): void => {
-    props.onCommand?.(command);
-  };
-
   return (
     <>
       <Menu hasCheckmarks checkedValues={fileMenuCheckedValues} onCheckedValueChange={handleFileMenuCheckedChange}>
@@ -108,7 +106,7 @@ function AppToolbarMenu(
             <MenuItem
               secondaryContent={isMac ? '⌘ S' : 'Ctrl+S'}
               disabled={autoSaveOn || !props.dirty}
-              onClick={() => doCommand(Commands.APP_SAVE)}
+              onClick={() => execute(appCommands.save())}
             >
               Save
             </MenuItem>
@@ -127,7 +125,7 @@ function AppToolbarMenu(
       </Menu>
       <Menu hasIcons>
         <MenuTrigger>
-          <ToolbarButton className={styles.menuTrigger} appearance='transparent' disabled>
+          <ToolbarButton className={styles.menuTrigger} appearance='transparent'>
             Edit
           </ToolbarButton>
         </MenuTrigger>
@@ -157,7 +155,10 @@ function AppToolbarMenu(
               Replace
             </MenuItem>
             <MenuDivider />
-            <MenuItem disabled secondaryContent='Ctrl+/'>
+            <MenuItem
+              secondaryContent={isMac ? '⌘ /' : 'Ctrl+/'}
+              onClick={() => execute(editorCommands.doMonacoAction('editor.action.commentLine'))}
+            >
               Toggle Line Comment
             </MenuItem>
           </MenuList>
@@ -165,7 +166,7 @@ function AppToolbarMenu(
       </Menu>
       <Menu hasIcons>
         <MenuTrigger>
-          <ToolbarButton className={styles.menuTrigger} appearance='transparent' disabled>
+          <ToolbarButton className={styles.menuTrigger} appearance='transparent'>
             Selection
           </ToolbarButton>
         </MenuTrigger>
@@ -174,14 +175,22 @@ function AppToolbarMenu(
             <MenuItem disabled secondaryContent='Ctrl+A'>
               Select All
             </MenuItem>
-            <MenuItem disabled secondaryContent='Shift+Alt+RightArrow'>
+            <MenuItem
+              secondaryContent={isMac ? '⇧ ⌃ ⌘ →' : 'Shift+Alt+RightArrow'}
+              onClick={() => execute(editorCommands.doMonacoAction('editor.action.smartSelect.expand'))}
+            >
               Expand Selection
             </MenuItem>
-            <MenuItem disabled secondaryContent='Shift+Alt+LeftArrow'>
+            <MenuItem
+              secondaryContent={isMac ? '⇧ ⌃ ⌘ ←' : 'Shift+Alt+LeftArrow'}
+              onClick={() => execute(editorCommands.doMonacoAction('editor.action.smartSelect.shrink'))}
+            >
               Shrink Selection
             </MenuItem>
             <MenuDivider />
-            <MenuItem disabled>Duplicate Selection </MenuItem>
+            <MenuItem onClick={() => execute(editorCommands.doMonacoAction('editor.action.duplicateSelection'))}>
+              Duplicate Selection{' '}
+            </MenuItem>
           </MenuList>
         </MenuPopover>
       </Menu>
@@ -194,7 +203,10 @@ function AppToolbarMenu(
         </MenuTrigger>
         <MenuPopover>
           <MenuList>
-            <MenuItem disabled secondaryContent='Ctrl+Shift+P'>
+            <MenuItem
+              secondaryContent='F1'
+              onClick={() => execute(editorCommands.doMonacoAction('editor.action.quickCommand'))}
+            >
               Command Palette…
             </MenuItem>
             <MenuDivider />
@@ -300,17 +312,20 @@ function AppToolbarMenu(
               Go to References
             </MenuItem>
             <MenuDivider />
-            <MenuItem secondaryContent={isMac ? '⌃ G' : 'Ctrl+G'} onClick={() => doCommand(Commands.EDITOR_GOTO_LINE)}>
+            <MenuItem secondaryContent={isMac ? '⌃ G' : 'Ctrl+G'} onClick={() => execute(editorCommands.gotoLine())}>
               Go to Line/Column…
             </MenuItem>
-            <MenuItem disabled secondaryContent='Ctrl+Shift+\'>
-              Go to Bracket
-            </MenuItem>
             <MenuDivider />
-            <MenuItem disabled secondaryContent='F8'>
+            <MenuItem
+              secondaryContent='F8'
+              onClick={() => execute(editorCommands.doMonacoAction('editor.action.marker.next'))}
+            >
               Next Problem
             </MenuItem>
-            <MenuItem disabled secondaryContent='Shift+F8'>
+            <MenuItem
+              secondaryContent={isMac ? '⇧ F8' : 'Shift+F8'}
+              onClick={() => execute(editorCommands.doMonacoAction('editor.action.marker.prev'))}
+            >
               Previous Problem
             </MenuItem>
           </MenuList>
@@ -356,17 +371,23 @@ function AppToolbarMenu(
       </Menu>
       <Menu hasCheckmarks>
         <MenuTrigger>
-          <ToolbarButton className={styles.menuTrigger} appearance='transparent' disabled>
+          <ToolbarButton className={styles.menuTrigger} appearance='transparent'>
             Help
           </ToolbarButton>
         </MenuTrigger>
         <MenuPopover>
           <MenuList>
-            <MenuItem disabled>Welcome</MenuItem>
-            <MenuItem disabled secondaryContent='Ctrl+Shift+P'>
-              Show All Commands
-            </MenuItem>
-            <MenuItem disabled>Documentation</MenuItem>
+            <MenuGroup>
+              <MenuGroupHeader>Getting Started</MenuGroupHeader>
+              <MenuItem disabled>Welcome</MenuItem>
+              <MenuItem
+                secondaryContent='F1'
+                onClick={() => execute(editorCommands.doMonacoAction('editor.action.quickCommand'))}
+              >
+                Show All Commands
+              </MenuItem>
+              <MenuItem disabled>Documentation</MenuItem>
+            </MenuGroup>
             <MenuDivider />
             <MenuGroup>
               <MenuGroupHeader>Related Sites</MenuGroupHeader>

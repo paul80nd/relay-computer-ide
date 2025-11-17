@@ -2,7 +2,6 @@ import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { IEditorApi } from "./types.ts";
 
 export class EditorApi implements IEditorApi {
-
   private editor: monaco.editor.IStandaloneCodeEditor;
 
   constructor(editor: monaco.editor.IStandaloneCodeEditor) {
@@ -16,17 +15,26 @@ export class EditorApi implements IEditorApi {
   loadCode(code: string): void {
     this.editor.setValue(code);
     this.editor.focus();
-    this.editor.revealLineInCenter(0);
+    this.editor.revealLineInCenter(1);
   }
 
-  gotoPosition(lineNumber: number, column: number): void {
-    this.editor.setPosition({ lineNumber, column });
-    this.editor.revealPositionInCenter({ lineNumber, column });
+  gotoLine(lineNumber: number) {
+    this.editor.revealLineInCenterIfOutsideViewport(lineNumber, monaco.editor.ScrollType.Smooth);
+    this.editor.setPosition({ lineNumber: lineNumber, column: 1 });
     this.editor.focus();
   }
 
-  runCommand(commandId: string): void {
+  runAction(type: string) {
     this.editor.focus();
-    this.editor.getAction(commandId)?.run();
+    this.editor.getAction(type)?.run();
   }
+
+  public get onDidChangeCursorPosition() { return this.editor.onDidChangeCursorPosition; }
+  public get onDidChangeModelContent() { return this.editor.onDidChangeModelContent; }
+
+  getValue() { return this.editor.getValue(); }
+  getModel() { return this.editor.getModel(); }
+
+  dispose(): void { this.editor.dispose() };
 }
+

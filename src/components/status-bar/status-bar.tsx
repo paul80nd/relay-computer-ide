@@ -9,8 +9,9 @@ import {
 } from '@fluentui/react-components';
 import { Warning16Regular, ErrorCircle16Regular } from '@fluentui/react-icons';
 import type { StatusBarProps } from './types';
-import { type AppCommand, Commands } from '../../commands';
+import { editorCommands, panelCommands } from '../../commands';
 import { pluralize } from '../../utils';
+import { useCommandBus } from '../../hooks/useCommandBus.ts';
 
 const useStyles = makeStyles({
   bar: {
@@ -25,12 +26,11 @@ const useStyles = makeStyles({
   warning: { color: tokens.colorStatusWarningForeground1 },
 });
 
-function StatusBar({ position, validation, assembly, autoSave, dirty, onCommand }: StatusBarProps) {
+function StatusBar({ position, validation, assembly, autoSave, dirty }: StatusBarProps) {
   const styles = useStyles();
+  const { execute } = useCommandBus();
 
   const bytes = Math.max((assembly?.bytes?.length ?? 0) - 2, 0);
-
-  const doCommand = (command: AppCommand): void => onCommand && onCommand(command);
 
   const renderSaveLabel = () => {
     if (autoSave) {
@@ -71,7 +71,7 @@ function StatusBar({ position, validation, assembly, autoSave, dirty, onCommand 
             <ToolbarButton
               className={styles.item}
               appearance='transparent'
-              onClick={() => doCommand(Commands.EDITOR_GOTO_LINE)}
+              onClick={() => execute(editorCommands.gotoLine())}
             >
               <Caption1>
                 Ln {position.lineNumber}, Col {position.column}{' '}
@@ -91,7 +91,7 @@ function StatusBar({ position, validation, assembly, autoSave, dirty, onCommand 
             <ToolbarButton
               className={styles.item}
               appearance='transparent'
-              onClick={() => doCommand(Commands.PANEL_OUTPUT_SHOW)}
+              onClick={() => execute(panelCommands.show('sidebar-s'))}
             >
               <Caption1>Bytes: {bytes}</Caption1>
             </ToolbarButton>

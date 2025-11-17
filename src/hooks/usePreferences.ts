@@ -19,6 +19,10 @@ export const Prefs = {
   }
 } as const;
 
+export type PanelType =
+  | 'sidebar-p'
+  | 'sidebar-s'
+  | 'panel';
 
 /**
  * Handles management of user preferences stored in local browser storage

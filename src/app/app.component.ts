@@ -1,26 +1,22 @@
 import { Component, isDevMode, OnInit, inject, viewChild } from '@angular/core';
 import { EmulatorComponent } from './emulator/emulator.component';
-import { IAssemblyDiagnostic, IAssemblyError, IAssemblyOutcome, IAssemblyWarning, OutputComponent } from './output/output.component';
+import { IAssemblyError, IAssemblyWarning, OutputComponent } from './output/output.component';
 import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
-import { EditorComponent } from './editor/editor.component';
 import { ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule } from '@clr/angular';
 import { DocsComponent } from './docs/docs.component';
-import { ExamplesComponent } from './examples/examples.component';
 import { DiffComponent } from './diff/diff.component';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, EditorComponent, ExamplesComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent, FormsModule]
+  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent, FormsModule]
 })
 export class AppComponent implements OnInit {
   private _clipboardService = inject(ClipboardService);
 
   readonly output = viewChild.required(OutputComponent);
-
-  readonly editor = viewChild.required(EditorComponent);
 
   readonly emulator = viewChild.required(EmulatorComponent);
 
@@ -67,13 +63,11 @@ export class AppComponent implements OnInit {
   }
 
   onEditorCodeChanged(code: string) {
-    const { prg, errors, warnings, labels, debugInfo } = rcasm.assemble(code);
+    const { prg, errors, warnings, debugInfo } = rcasm.assemble(code);
     this.lastCompile = prg;
     this.lastPcToLocs = debugInfo?.pcToLocs
-    this.editor().setDiagnostics(errors, warnings);
-    this.output().clearLabels();
     this.didAssemble = errors.length == 0;
-    const outcome = <IAssemblyOutcome>{
+    const outcome = {
       bytes: prg.length,
       errors: errors.map(e => <IAssemblyError>{ message: e.msg, line: e.loc.start.line, column: e.loc.start.column }),
       warnings: warnings.map(w => <IAssemblyWarning>{ message: w.msg, line: w.loc.start.line, column: w.loc.start.column })
@@ -84,43 +78,11 @@ export class AppComponent implements OnInit {
         isData: debugInfo?.info().isData,
         dataLength: debugInfo?.info().dataLength
       }).join('\n');
-      let labelDict = Object.fromEntries(labels.map(l => [l.addr.toString(16).padStart(4, '0').toUpperCase(), { name: l.name }]));
-      this.output().setLabels(labelDict);
       this.emulator().load(this.lastCompile);
     } else {
       this.dasm = `❌ Assembly failed (${errors.length} error${errors.length === 1 ? '' : 's'})`;
     }
     this.output().didAssemble(outcome);
-  }
-
-  gotoSource(addr: number) {
-    if (!this.lastPcToLocs) { return; }
-    let locs = this.lastPcToLocs?.[addr];
-    if (!locs) {
-      const closestAddr = Object.keys(this.lastPcToLocs)
-        .map(Number)
-        .reduce((prev, curr) => (Math.abs(curr - addr) < Math.abs(prev - addr) ? curr : prev));
-      locs = this.lastPcToLocs[closestAddr];
-    }
-
-    if (locs) {
-      this.editor().gotoPosition({ lineNumber: locs[0].lineNo, column: 1 });
-    }
-  }
-
-  gotoSourcePosition(diag: IAssemblyDiagnostic) {
-    this.editor().gotoPosition({ lineNumber: diag.line, column: diag.column });
-  }
-
-  gotoAssembled(line: number) {
-    if (!this.lastPcToLocs) { return; }
-    const matchingAddr = Object.keys(this.lastPcToLocs)
-      .map(Number)
-      .find(pc => this.lastPcToLocs![pc].some(loc => loc.lineNo === line));
-    if (matchingAddr) {
-      const hexAddr = matchingAddr.toString(16).toUpperCase().padStart(4, '0');
-      this.output().gotoLine(hexAddr)
-    }
   }
 
   exportToClipboard() {

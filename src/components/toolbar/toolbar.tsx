@@ -82,7 +82,6 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
           checkedValues={checkedValues}
           onCheckedValueChange={handleCheckedChange}
           dirty={props.dirty}
-          onCommand={props.onCommand}
         />
       </ToolbarGroup>
       <ToolbarGroup role='presentation'>

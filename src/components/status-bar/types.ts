@@ -1,5 +1,4 @@
 import type { AssemblerResult } from "../../assembler";
-import type { AppCommand } from "../../commands";
 
 export type StatusBarProps = {
 
@@ -14,9 +13,6 @@ export type StatusBarProps = {
 
   /** True when there are unsaved changes (only meaningful if autoSave is false) */
   dirty: boolean;
-
-  /** Emitted when a command was initiated */
-  onCommand?: (command: AppCommand) => void;
 }
 
 export type StatusBarValidation = {

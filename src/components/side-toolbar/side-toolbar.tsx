@@ -53,7 +53,7 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
   // Derive checkedValues from prefs
   const checkedValues = mapPrefsToCheckedValues(prefs, Prefs.Panels);
 
-  // Apply changes from side toolbar to prefs
+  // Apply changes from the side toolbar to prefs
   const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
     onPrefsChange(
       (prev: IPreferences): IPreferences => updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels)
