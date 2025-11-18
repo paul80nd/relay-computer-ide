@@ -4,14 +4,12 @@ import { IAssemblyError, IAssemblyWarning, OutputComponent } from './output/outp
 import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
 import { ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule } from '@clr/angular';
-import { DocsComponent } from './docs/docs.component';
 import { DiffComponent } from './diff/diff.component';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [ClrCheckboxModule, ClrDropdownModule, DocsComponent, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent, FormsModule]
+  imports: [ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent]
 })
 export class AppComponent implements OnInit {
   private _clipboardService = inject(ClipboardService);

@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { usePreferences } from './hooks/usePreferences';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
-import { AppWelcome } from './components/welcome';
+import  Welcome from './components/welcome';
 import { AppEmulator } from './components/emulator';
 import { AppExport } from './components/export';
 import Examples from './components/examples';
@@ -213,7 +213,7 @@ export const App = (): JSXElement => {
                       <Route path='/examples' element={<Examples onExampleRequested={onExampleRequested} />} />
                       <Route path='/export' element={<AppExport />} />
                       <Route path='/emulator' element={<AppEmulator />} />
-                      <Route path='/welcome' element={<AppWelcome />} />
+                      <Route path='/welcome' element={<Welcome />} />
                       <Route path='/' element={<Navigate to='/welcome' replace />} />
                     </Routes>
                   </Panel>

@@ -108,7 +108,6 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
         </Tooltip>
         <Tooltip content='Welcome / Help' relationship='description' positioning='after' withArrow>
           <ToolbarRadioButton
-            disabled
             className={styles.toggle}
             aria-label='Italic'
             icon={<BookInformation className={styles.icon} />}
