@@ -1,4 +1,4 @@
-import type { PanelType } from "./hooks/usePreferences.ts";
+import type { PanelType, SectionType } from "./hooks/usePreferences.ts";
 
 export type CommandType =
   | 'app.save'
@@ -8,7 +8,8 @@ export type CommandType =
   | 'editor.gotoLine'
   | 'editor.doMonacoAction'
   | 'output.gotoAddress'
-  | 'panel.show';
+  | 'panel.show'
+  | 'panel.showSection';
 
 export type CommandTarget = 'app' | 'editor' | 'output' | 'panel';
 
@@ -31,7 +32,8 @@ export type Command =
   | CommandBase<'editor.gotoLine', 'editor', { lineNumber?: number }>
   | CommandBase<'editor.doMonacoAction', 'editor', { actionId: string; }>
   | CommandBase<'output.gotoAddress', 'output', { address: number }>
-  | CommandBase<'panel.show', 'panel', { panel: PanelType }>;
+  | CommandBase<'panel.show', 'panel', { panel: PanelType }>
+  | CommandBase<'panel.showSection', 'panel', { section: SectionType }>;
 
 // Per-target subsets
 export type AppCommand = Extract<Command, { target: 'app' }>;
@@ -55,7 +57,7 @@ export const appCommands = {
   save: (): AppCommand => ({ target: 'app', type: 'app.save' }),
   loadExample: (example: string): AppCommand => ({ target: 'app', type: 'app.loadExample', example }),
   jumpToAssembled: (fromSourceLineNumber: number): AppCommand => ({ target: 'app', type: 'app.jumpToAssembled', fromSourceLineNumber }),
-  jumpToSource: (fromAddress: number): AppCommand => ({ target: 'app', type: 'app.jumpToSource', fromAddress })
+  jumpToSource: (fromAddress: number): AppCommand => ({ target: 'app', type: 'app.jumpToSource', fromAddress }),
 };
 
 export const editorCommands = {
@@ -69,4 +71,5 @@ export const outputCommands = {
 
 export const panelCommands = {
   show: (panel: PanelType): PanelCommand => makeCommand('panel', 'panel.show', { panel }),
+  showSection: (section: SectionType): PanelCommand => ({ target: 'panel', type: 'panel.showSection', section }),
 };

@@ -16,6 +16,12 @@ export const Prefs = {
     PRI_SIDEBAR: 'sidebar-p',
     SEC_SIDEBAR: 'sidebar-s',
     PANEL: 'panel',
+  },
+  Sections: {
+    EXAMPLES: 'examples',
+    EXPORT: 'export',
+    EMULATOR: 'emulator',
+    WELCOME: 'welcome',
   }
 } as const;
 
@@ -23,6 +29,12 @@ export type PanelType =
   | 'sidebar-p'
   | 'sidebar-s'
   | 'panel';
+
+export type SectionType =
+  | 'examples'
+  | 'export'
+  | 'emulator'
+  | 'welcome';
 
 /**
  * Handles management of user preferences stored in local browser storage
@@ -105,7 +117,9 @@ export function updatePrefsFromCheckedValues(
     const secondaryChecked = checkedItems.includes(panelsEnum.SEC_SIDEBAR);
     const bottomChecked = checkedItems.includes(panelsEnum.PANEL);
 
-    const section = primaryChecked ? next.section : undefined;
+    // If primary sidebar is opened, keep the current section or default to 'emulator'
+    // If primary sidebar is closed, clear the section
+    const section = primaryChecked ? next.section ?? 'emulator' : undefined;
 
     return {
       ...next,

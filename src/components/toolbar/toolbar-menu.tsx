@@ -17,10 +17,9 @@ import {
   MenuItemRadio,
 } from '@fluentui/react-components';
 import { useEffect, useMemo, useState } from 'react';
-import { Prefs } from '../../hooks/usePreferences';
-import { useNavigate } from 'react-router-dom';
+import { Prefs, type SectionType } from '../../hooks/usePreferences';
 import type { AppToolbarProps } from './types';
-import { appCommands, editorCommands } from '../../commands';
+import { appCommands, editorCommands, panelCommands } from '../../commands';
 import { useCommandBus } from '../../hooks/useCommandBus.ts';
 
 const useStyles = makeStyles({
@@ -41,7 +40,6 @@ function AppToolbarMenu(
   }
 ): JSXElement {
   const styles = useStyles();
-  const navigate = useNavigate();
   const { execute } = useCommandBus();
 
   // Platform detection – derived once
@@ -83,6 +81,8 @@ function AppToolbarMenu(
   const handleViewCheckedChange: ToolbarProps['onCheckedValueChange'] = (e, data) => {
     props.onCheckedValueChange?.(e, data);
   };
+
+  const setSection = (section: SectionType) => execute(panelCommands.showSection(section));
 
   return (
     <>
@@ -244,7 +244,6 @@ function AppToolbarMenu(
               name='section'
               value='examples'
               secondaryContent='Ctrl+Shift+E'
-              onClick={() => navigate('/examples')}
             >
               Examples
             </MenuItemRadio>
@@ -253,7 +252,6 @@ function AppToolbarMenu(
               name='section'
               value='export'
               secondaryContent='Ctrl+Shift+X'
-              onClick={() => navigate('/export')}
             >
               Export
             </MenuItemRadio>
@@ -262,7 +260,6 @@ function AppToolbarMenu(
               name='section'
               value='emulator'
               secondaryContent='Ctrl+Shift+M'
-              onClick={() => navigate('/emulator')}
             >
               Emulator
             </MenuItemRadio>
@@ -271,7 +268,6 @@ function AppToolbarMenu(
               name='section'
               value='welcome'
               secondaryContent='Ctrl+Shift+W'
-              onClick={() => navigate('/welcome')}
             >
               Welcome
             </MenuItemRadio>
@@ -379,7 +375,7 @@ function AppToolbarMenu(
           <MenuList>
             <MenuGroup>
               <MenuGroupHeader>Getting Started</MenuGroupHeader>
-              <MenuItem disabled>Welcome</MenuItem>
+              <MenuItem onClick={() => setSection('welcome')}>Welcome</MenuItem>
               <MenuItem
                 secondaryContent='F1'
                 onClick={() => execute(editorCommands.doMonacoAction('editor.action.quickCommand'))}

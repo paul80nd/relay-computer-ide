@@ -16,8 +16,7 @@
     "@paul80nd/rcasm": "^1.18.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-resizable-panels": "^3.0.6",
-    "react-router-dom": "^7.9.5"
+    "react-resizable-panels": "^3.0.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

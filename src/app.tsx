@@ -6,9 +6,8 @@ import Editor from './components/editor';
 import Output from './components/output';
 import { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { usePreferences } from './hooks/usePreferences';
-import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
-import  Welcome from './components/welcome';
+import { usePreferences, Prefs } from './hooks/usePreferences';
+import Welcome from './components/welcome';
 import { AppEmulator } from './components/emulator';
 import { AppExport } from './components/export';
 import Examples from './components/examples';
@@ -99,8 +98,10 @@ export const App = (): JSXElement => {
   const editorRef = useRef<IEditorApi | undefined>(undefined);
   const onEditorMounted = (api: IEditorApi) => (editorRef.current = api);
 
+  /** Panel command handling */
   useEffect(() => {
     return bus.subscribe('panel', command => {
+      // Show secondary sidebar
       if (command.type === 'panel.show' && command.panel === 'sidebar-s') {
         setPrefs(prev => {
           if (prev.panels.secondary) return prev;
@@ -110,10 +111,28 @@ export const App = (): JSXElement => {
           };
         });
       }
+      // Show section
+      if (command.type === 'panel.showSection') {
+        setPrefs(prev => {
+          if (prev.section === command.section) return prev;
+          return {
+            ...prev,
+            section: command.section,
+          };
+        });
+        // Ensure primary panel is visible
+        if (prefs.panels.primary === false) {
+          setPrefs(prev => ({
+            ...prev,
+            panels: { ...prev.panels, primary: true },
+          }));
+        }
+      }
       return;
     });
   }, [bus, setPrefs]);
 
+  /** App command handling */
   useEffect(() => {
     return bus.subscribe('app', command => {
       switch (command.type) {
@@ -163,6 +182,7 @@ export const App = (): JSXElement => {
     setValidation(v);
   };
 
+  /** Keyboard shortcuts handling */
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       const isSaveKey = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's';
@@ -202,66 +222,64 @@ export const App = (): JSXElement => {
       });
   }
 
+  function renderSecton() {
+    switch (prefs.section) {
+      case Prefs.Sections.EXAMPLES:
+        return <Examples />;
+      case Prefs.Sections.EXPORT:
+        return <AppExport />;
+      case Prefs.Sections.EMULATOR:
+        return <AppEmulator />;
+    }
+    return <Welcome />;
+  }
+
   return (
-    <Router>
-      <CommandBusProvider value={bus}>
-        <div className={styles.container}>
-          <AppToolbar prefs={prefs} onPrefsChange={setPrefs} dirty={dirty} />
-          <div className={styles.main}>
-            <SideToolbar prefs={prefs} onPrefsChange={setPrefs} />
-            <PanelGroup direction='horizontal' autoSaveId='layout-horizontal'>
-              {prefs.panels.primary && (
-                <>
-                  <Panel id='left' defaultSize={25} minSize={25} className={styles.panel} order={1}>
-                    <Routes>
-                      <Route path='/examples' element={<Examples />} />
-                      <Route path='/export' element={<AppExport />} />
-                      <Route path='/emulator' element={<AppEmulator />} />
-                      <Route path='/welcome' element={<Welcome />} />
-                      <Route path='/' element={<Navigate to='/welcome' replace />} />
-                    </Routes>
-                  </Panel>
-                  <PanelResizeHandle className={styles.resizeHandle} />
-                </>
-              )}
-              <Panel order={2} id='middle'>
-                <PanelGroup direction='vertical' autoSaveId='layout-vertical'>
-                  <Panel id='editor' minSize={33} order={1}>
-                    <Editor
-                      initialCode={code}
-                      onCodeChange={onCodeChange}
-                      onMount={onEditorMounted}
-                      onValidate={onEditorValidated}
-                      onPositionChange={onEditorPositionChanged}
-                    />
-                  </Panel>
-                  {prefs.panels.bottom && (
-                    <>
-                      <PanelResizeHandle className={styles.resizeHandle} />
-                      <Panel id='bottom' order={2} defaultSize={25} minSize={25} className={styles.panel}></Panel>
-                    </>
-                  )}
-                </PanelGroup>
-              </Panel>
-              {prefs.panels.secondary && (
-                <>
-                  <PanelResizeHandle className={styles.resizeHandle} />
-                  <Panel id='right' defaultSize={20} minSize={20} className={styles.panel} order={3}>
-                    <Output assembly={assembly} />
-                  </Panel>
-                </>
-              )}
-            </PanelGroup>
-          </div>
-          <StatusBar
-            position={position}
-            validation={validation}
-            assembly={assembly}
-            autoSave={autoSave}
-            dirty={dirty}
-          />
+    <CommandBusProvider value={bus}>
+      <div className={styles.container}>
+        <AppToolbar prefs={prefs} onPrefsChange={setPrefs} dirty={dirty} />
+        <div className={styles.main}>
+          <SideToolbar prefs={prefs} onPrefsChange={setPrefs} />
+          <PanelGroup direction='horizontal' autoSaveId='layout-horizontal'>
+            {prefs.panels.primary && (
+              <>
+                <Panel id='left' defaultSize={25} minSize={25} className={styles.panel} order={1}>
+                  {renderSecton()}
+                </Panel>
+                <PanelResizeHandle className={styles.resizeHandle} />
+              </>
+            )}
+            <Panel order={2} id='middle'>
+              <PanelGroup direction='vertical' autoSaveId='layout-vertical'>
+                <Panel id='editor' minSize={33} order={1}>
+                  <Editor
+                    initialCode={code}
+                    onCodeChange={onCodeChange}
+                    onMount={onEditorMounted}
+                    onValidate={onEditorValidated}
+                    onPositionChange={onEditorPositionChanged}
+                  />
+                </Panel>
+                {prefs.panels.bottom && (
+                  <>
+                    <PanelResizeHandle className={styles.resizeHandle} />
+                    <Panel id='bottom' order={2} defaultSize={25} minSize={25} className={styles.panel}></Panel>
+                  </>
+                )}
+              </PanelGroup>
+            </Panel>
+            {prefs.panels.secondary && (
+              <>
+                <PanelResizeHandle className={styles.resizeHandle} />
+                <Panel id='right' defaultSize={20} minSize={20} className={styles.panel} order={3}>
+                  <Output assembly={assembly} />
+                </Panel>
+              </>
+            )}
+          </PanelGroup>
         </div>
-      </CommandBusProvider>
-    </Router>
+        <StatusBar position={position} validation={validation} assembly={assembly} autoSave={autoSave} dirty={dirty} />
+      </div>
+    </CommandBusProvider>
   );
 };

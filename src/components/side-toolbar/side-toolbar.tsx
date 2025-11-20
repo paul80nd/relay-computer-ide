@@ -26,7 +26,6 @@ import {
   Prefs,
   updatePrefsFromCheckedValues,
 } from '../../hooks/usePreferences';
-import { useNavigate } from 'react-router-dom';
 import type { SideToolbarProps } from './types.ts';
 
 const BookInformation = bundleIcon(QuestionCircleFilled, QuestionCircleRegular);
@@ -62,7 +61,6 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
   };
 
   const styles = useStyles();
-  const navigate = useNavigate();
 
   return (
     <Toolbar
@@ -80,7 +78,6 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
             name='section'
             appearance='transparent'
             value='examples'
-            onClick={() => navigate('/examples')}
           />
         </Tooltip>
         <Tooltip content='Export Code' relationship='description' positioning='after' withArrow>
@@ -91,7 +88,6 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
             name='section'
             appearance='transparent'
             value='export'
-            onClick={() => navigate('/export')}
           />
         </Tooltip>
         <Tooltip content='Emulator' relationship='description' positioning='after' withArrow>
@@ -103,7 +99,6 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
             name='section'
             appearance='transparent'
             value='emulator'
-            onClick={() => navigate('/emulator')}
           />
         </Tooltip>
         <Tooltip content='Welcome / Help' relationship='description' positioning='after' withArrow>
@@ -114,7 +109,6 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
             name='section'
             appearance='transparent'
             value='welcome'
-            onClick={() => navigate('/welcome')}
           />
         </Tooltip>
       </ToolbarGroup>
