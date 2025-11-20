@@ -9,8 +9,6 @@
     </div>
     <div class="header-actions">
       <div class="nav-link">
-        <input id="docsToggle" type="checkbox" clrToggle [(ngModel)]="showDocs" />
-        <label for="docsToggle" class="nav-text" cds-layout="m-r:md">Documentation</label>
         <input id="emuToggle" type="checkbox" clrToggle [(ngModel)]="showEmu" />
         <label for="emuToggle" class="nav-text">Emulator</label>
       </div>
@@ -65,4 +63,3 @@
   <app-ride-diff #diff class="editor-container"></app-ride-diff>
   }
 </div>
-<app-ride-examples #examples (exampleRequested)="onExampleRequested($event)" />
