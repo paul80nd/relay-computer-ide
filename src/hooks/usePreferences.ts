@@ -18,6 +18,7 @@ export const Prefs = {
     PANEL: 'panel',
   },
   Sections: {
+    DOCUMENTATION: 'documentation',
     EXAMPLES: 'examples',
     EXPORT: 'export',
     EMULATOR: 'emulator',
@@ -31,6 +32,7 @@ export type PanelType =
   | 'panel';
 
 export type SectionType =
+  | 'documentation'
   | 'examples'
   | 'export'
   | 'emulator'

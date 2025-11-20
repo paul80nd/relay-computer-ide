@@ -240,22 +240,22 @@ function AppToolbarMenu(
               </MenuPopover>
             </Menu>
             <MenuDivider />
-            <MenuItemRadio disabled name='section' value='examples' secondaryContent='Ctrl+Shift+E'>
+            <MenuItemRadio name='section' value='examples' secondaryContent={isMac ? '⇧ ⌘ E' : 'Ctrl+Shift+E'}>
               Examples
             </MenuItemRadio>
-            <MenuItemRadio disabled name='section' value='export' secondaryContent='Ctrl+Shift+X'>
+            <MenuItemRadio disabled name='section' value='export' secondaryContent={isMac ? '⇧ ⌘ X' : 'Ctrl+Shift+X'}>
               Export
             </MenuItemRadio>
-            <MenuItemRadio disabled name='section' value='emulator' secondaryContent='Ctrl+Shift+M'>
+            <MenuItemRadio disabled name='section' value='emulator' secondaryContent={isMac ? '⇧ ⌘ Y' : 'Ctrl+Shift+Y'}>
               Emulator
             </MenuItemRadio>
-            <MenuItemRadio disabled name='section' value='welcome' secondaryContent='Ctrl+Shift+W'>
+            <MenuItemRadio name='section' value='documentation' secondaryContent={isMac ? '⇧ ⌘ D' : 'Ctrl+Shift+D'}>
+              Documentation
+            </MenuItemRadio>
+            <MenuItemRadio name='section' value='welcome' secondaryContent={isMac ? '⇧ ⌘ W' : 'Ctrl+Shift+W'}>
               Welcome
             </MenuItemRadio>
             <MenuDivider />
-            <MenuItem disabled secondaryContent='Ctrl+Shift+D'>
-              Documentation
-            </MenuItem>
             <MenuItem disabled secondaryContent='Ctrl+Shift+M'>
               Problems
             </MenuItem>
@@ -363,7 +363,7 @@ function AppToolbarMenu(
               >
                 Show All Commands
               </MenuItem>
-              <MenuItem onClick={() => setSection('welcome')}>Documentation</MenuItem>
+              <MenuItem onClick={() => setSection('documentation')}>Documentation</MenuItem>
             </MenuGroup>
             <MenuDivider />
             <MenuGroup>

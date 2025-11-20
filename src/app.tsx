@@ -14,12 +14,13 @@ import Examples from './components/examples';
 import StatusBar from './components/status-bar';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { StatusBarValidation } from './components/status-bar';
-import { appCommands, editorCommands, outputCommands } from './commands';
+import { appCommands, editorCommands, outputCommands, panelCommands } from './commands';
 import type { IEditorApi } from './components/editor';
 import { useAssembler } from './hooks/useAssembler.ts';
 import { useCodeStorage } from './hooks/useCodeStorage.ts';
 import { CommandBusProvider, useCreateCommandBus } from './hooks/useCommandBus.ts';
 import { exchangeAddressForSourceLine, exchangeSourceLineNumberForAddress } from './assembler.ts';
+import Documentation from './components/documentation/documentation.tsx';
 
 const useStyles = makeStyles({
   container: {
@@ -185,10 +186,38 @@ export const App = (): JSXElement => {
   /** Keyboard shortcuts handling */
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
-      const isSaveKey = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's';
-      if (!isSaveKey) return;
-      event.preventDefault();
-      bus.execute(appCommands.save());
+      // Save (Cmd+S / Ctrl+S)
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        bus.execute(appCommands.save());
+        return;
+      }
+      // Sections (Ctrl+Shift+D/E/X/Y/W or Cmd+Shift+D/E/X/Y/W)
+      if (event.shiftKey && (event.metaKey || event.ctrlKey)) {
+        let section = undefined;
+        switch (event.key.toLowerCase()) {
+          case 'd':
+            section = Prefs.Sections.DOCUMENTATION;
+            break;
+          case 'e':
+            section = Prefs.Sections.EXAMPLES;
+            break;
+          case 'x':
+            section = Prefs.Sections.EXPORT;
+            break;
+          case 'y':
+            section = Prefs.Sections.EMULATOR;
+            break;
+          case 'w':
+            section = Prefs.Sections.WELCOME;
+            break;
+        }
+        if (section) {
+          event.preventDefault();
+          bus.execute(panelCommands.showSection(section));
+          return;
+        }
+      }
     };
 
     window.addEventListener('keydown', handler);
@@ -224,6 +253,8 @@ export const App = (): JSXElement => {
 
   function renderSecton() {
     switch (prefs.section) {
+      case Prefs.Sections.DOCUMENTATION:
+        return <Documentation />;
       case Prefs.Sections.EXAMPLES:
         return <Examples />;
       case Prefs.Sections.EXPORT:

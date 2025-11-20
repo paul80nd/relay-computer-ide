@@ -10,6 +10,8 @@ import {
   ShareRegular,
   QuestionCircleRegular,
   QuestionCircleFilled,
+  BookInformationFilled,
+  BookInformationRegular,
 } from '@fluentui/react-icons';
 import {
   Toolbar,
@@ -28,7 +30,8 @@ import {
 } from '../../hooks/usePreferences';
 import type { SideToolbarProps } from './types.ts';
 
-const BookInformation = bundleIcon(QuestionCircleFilled, QuestionCircleRegular);
+const Welcome = bundleIcon(QuestionCircleFilled, QuestionCircleRegular);
+const Documentation = bundleIcon(BookInformationFilled, BookInformationRegular);
 const Emulator = bundleIcon(DeveloperBoardLightningFilled, DeveloperBoardLightningRegular);
 const Examples = bundleIcon(FolderLightningFilled, FolderLightningRegular);
 const Export = bundleIcon(ShareFilled, ShareRegular);
@@ -101,11 +104,21 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
             value='emulator'
           />
         </Tooltip>
-        <Tooltip content='Welcome / Help' relationship='description' positioning='after' withArrow>
+         <Tooltip content='Documentation' relationship='description' positioning='after' withArrow>
           <ToolbarRadioButton
             className={styles.toggle}
             aria-label='Italic'
-            icon={<BookInformation className={styles.icon} />}
+            icon={<Documentation className={styles.icon} />}
+            name='section'
+            appearance='transparent'
+            value='documentation'
+          />
+        </Tooltip>
+        <Tooltip content='Welcome' relationship='description' positioning='after' withArrow>
+          <ToolbarRadioButton
+            className={styles.toggle}
+            aria-label='Italic'
+            icon={<Welcome className={styles.icon} />}
             name='section'
             appearance='transparent'
             value='welcome'
