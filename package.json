@@ -13,7 +13,7 @@
   "private": true,
   "dependencies": {
     "@fluentui/react-components": "^9.72.6",
-    "@paul80nd/rcasm": "^1.17.0",
+    "@paul80nd/rcasm": "^1.18.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-resizable-panels": "^3.0.6",
@@ -22,16 +22,16 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.0",
-    "@types/react": "^19.2.2",
+    "@types/react": "19.2.6",
     "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^5.1.0",
     "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-hooks": "7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "monaco-editor": "../monaco/monaco-editor/out/monaco-editor",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.46.3",
+    "typescript-eslint": "8.47.0",
     "vite": "^7.2.2"
   }
 }
