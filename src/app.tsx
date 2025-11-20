@@ -121,6 +121,10 @@ export const App = (): JSXElement => {
           save();
           return;
         }
+        case 'app.loadExample': {
+          loadExample(command.example);
+          return;
+        }
         case 'app.jumpToSource': {
           // Jump to the nearest source code line for the given assembled address
           if (assembly) {
@@ -175,7 +179,7 @@ export const App = (): JSXElement => {
 
   const styles = useStyles();
 
-  function onExampleRequested(name: string): void {
+  function loadExample(name: string): void {
     // Normalise to `<id>.rcasm` if the caller passed just an ID
     const fileName = name.endsWith('.rcasm') ? name : `${name}.rcasm`;
 
@@ -210,7 +214,7 @@ export const App = (): JSXElement => {
                 <>
                   <Panel id='left' defaultSize={25} minSize={25} className={styles.panel} order={1}>
                     <Routes>
-                      <Route path='/examples' element={<Examples onExampleRequested={onExampleRequested} />} />
+                      <Route path='/examples' element={<Examples />} />
                       <Route path='/export' element={<AppExport />} />
                       <Route path='/emulator' element={<AppEmulator />} />
                       <Route path='/welcome' element={<Welcome />} />

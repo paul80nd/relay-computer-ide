@@ -2,6 +2,7 @@ import type { PanelType } from "./hooks/usePreferences.ts";
 
 export type CommandType =
   | 'app.save'
+  | 'app.loadExample'
   | 'app.jumpToSource'
   | 'app.jumpToAssembled'
   | 'editor.gotoLine'
@@ -24,6 +25,7 @@ type CommandBase<
 /** Global command union */
 export type Command =
   | CommandBase<'app.save', 'app'>
+  | CommandBase<'app.loadExample', 'app', { example: string }>
   | CommandBase<'app.jumpToSource', 'app', { fromAddress: number }>
   | CommandBase<'app.jumpToAssembled', 'app', { fromSourceLineNumber: number }>
   | CommandBase<'editor.gotoLine', 'editor', { lineNumber?: number }>
@@ -51,6 +53,7 @@ function makeCommand<
 // Nice factories for call-sites
 export const appCommands = {
   save: (): AppCommand => ({ target: 'app', type: 'app.save' }),
+  loadExample: (example: string): AppCommand => ({ target: 'app', type: 'app.loadExample', example }),
   jumpToAssembled: (fromSourceLineNumber: number): AppCommand => ({ target: 'app', type: 'app.jumpToAssembled', fromSourceLineNumber }),
   jumpToSource: (fromAddress: number): AppCommand => ({ target: 'app', type: 'app.jumpToSource', fromAddress })
 };

@@ -11,8 +11,9 @@ import {
   makeStyles,
   tokens,
 } from '@fluentui/react-components';
-import type { ExamplesProps } from './types.ts';
 import { Text } from '@fluentui/react-components';
+import { useCommandBus } from '../../hooks/useCommandBus.ts';
+import { appCommands } from '../../commands.ts';
 
 const useStyles = makeStyles({
   root: {
@@ -56,10 +57,11 @@ const useStyles = makeStyles({
 
 const isDevMode = import.meta.env.DEV;
 
-function Examples({ onExampleRequested }: ExamplesProps) {
+function Examples() {
   const styles = useStyles();
+   const { execute } = useCommandBus();
 
-  const loadExample = (example: string) => onExampleRequested?.(example);
+  const loadExample = (example: string) => execute(appCommands.loadExample(example));
 
   const renderSectionHeader = (description: string) => (
     <Card className={styles.card} size='small' appearance='subtle' role='listitem'>
