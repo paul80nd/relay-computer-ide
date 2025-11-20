@@ -84,6 +84,8 @@ function AppToolbarMenu(
   };
 
   const setSection = (section: SectionType) => execute(panelCommands.showSection(section));
+  const doMonacoAction = (action: string) => execute(editorCommands.doMonacoAction(action));
+  const doMonacoKeyboard = (id: string) => execute(editorCommands.doMonacoKeyboardAction(id));
 
   return (
     <>
@@ -102,7 +104,7 @@ function AppToolbarMenu(
             <MenuItem disabled secondaryContent='Ctrl+O'>
               Open…
             </MenuItem>
-            <MenuItem disabled>Open from Examples…</MenuItem>
+            <MenuItem onClick={() => setSection('examples')}>Open from Examples…</MenuItem>
             <MenuDivider />
             <MenuItem
               secondaryContent={isMac ? '⌘ S' : 'Ctrl+S'}
@@ -132,10 +134,10 @@ function AppToolbarMenu(
         </MenuTrigger>
         <MenuPopover>
           <MenuList>
-            <MenuItem disabled secondaryContent='Ctrl+Z'>
+            <MenuItem onClick={() => doMonacoKeyboard('undo')} secondaryContent={isMac ? '⌘ Z' : 'Ctrl+Z'}>
               Undo
             </MenuItem>
-            <MenuItem disabled secondaryContent='Ctrl+Y'>
+            <MenuItem onClick={() => doMonacoKeyboard('redo')} secondaryContent={isMac ? '⇧ ⌘ Z' : 'Ctrl+Y'}>
               Redo
             </MenuItem>
             <MenuDivider />
@@ -145,20 +147,27 @@ function AppToolbarMenu(
             <MenuItem disabled icon={<CopyRegular />} secondaryContent='Ctrl+C'>
               Copy
             </MenuItem>
-            <MenuItem disabled icon={<ClipboardPasteRegular />} secondaryContent='Ctrl+V'>
+            <MenuItem
+              onClick={() => doMonacoKeyboard('paste')}
+              icon={<ClipboardPasteRegular />}
+              secondaryContent='Ctrl+V'
+            >
               Paste
             </MenuItem>
             <MenuDivider />
-            <MenuItem disabled secondaryContent='Ctrl+F'>
+            <MenuItem onClick={() => doMonacoAction('actions.find')} secondaryContent={isMac ? '⌘ F' : 'Ctrl+F'}>
               Find
             </MenuItem>
-            <MenuItem disabled secondaryContent='Ctrl+H'>
+            <MenuItem
+              onClick={() => doMonacoAction('editor.action.startFindReplaceAction')}
+              secondaryContent={isMac ? '⌥ ⌘ F' : 'Ctrl+H'}
+            >
               Replace
             </MenuItem>
             <MenuDivider />
             <MenuItem
               secondaryContent={isMac ? '⌘ /' : 'Ctrl+/'}
-              onClick={() => execute(editorCommands.doMonacoAction('editor.action.commentLine'))}
+              onClick={() => doMonacoAction('editor.action.commentLine')}
             >
               Toggle Line Comment
             </MenuItem>
@@ -178,20 +187,18 @@ function AppToolbarMenu(
             </MenuItem>
             <MenuItem
               secondaryContent={isMac ? '⇧ ⌃ ⌘ →' : 'Shift+Alt+RightArrow'}
-              onClick={() => execute(editorCommands.doMonacoAction('editor.action.smartSelect.expand'))}
+              onClick={() => doMonacoAction('editor.action.smartSelect.expand')}
             >
               Expand Selection
             </MenuItem>
             <MenuItem
               secondaryContent={isMac ? '⇧ ⌃ ⌘ ←' : 'Shift+Alt+LeftArrow'}
-              onClick={() => execute(editorCommands.doMonacoAction('editor.action.smartSelect.shrink'))}
+              onClick={() => doMonacoAction('editor.action.smartSelect.shrink')}
             >
               Shrink Selection
             </MenuItem>
             <MenuDivider />
-            <MenuItem onClick={() => execute(editorCommands.doMonacoAction('editor.action.duplicateSelection'))}>
-              Duplicate Selection{' '}
-            </MenuItem>
+            <MenuItem onClick={() => doMonacoAction('editor.action.duplicateSelection')}>Duplicate Selection</MenuItem>
           </MenuList>
         </MenuPopover>
       </Menu>
@@ -204,10 +211,7 @@ function AppToolbarMenu(
         </MenuTrigger>
         <MenuPopover>
           <MenuList>
-            <MenuItem
-              secondaryContent='F1'
-              onClick={() => execute(editorCommands.doMonacoAction('editor.action.quickCommand'))}
-            >
+            <MenuItem secondaryContent='F1' onClick={() => doMonacoAction('editor.action.quickCommand')}>
               Command Palette…
             </MenuItem>
             <MenuDivider />
@@ -217,10 +221,6 @@ function AppToolbarMenu(
               </MenuTrigger>
               <MenuPopover>
                 <MenuList>
-                  <MenuItem secondaryContent='F11' disabled>
-                    Full Screen
-                  </MenuItem>
-                  <MenuDivider />
                   <MenuItemCheckbox name='panels' value={Prefs.Panels.PRI_SIDEBAR}>
                     Primary Side Bar
                   </MenuItemCheckbox>
@@ -230,8 +230,6 @@ function AppToolbarMenu(
                   <MenuItemCheckbox name='panels' value={Prefs.Panels.PANEL} disabled>
                     Panel
                   </MenuItemCheckbox>
-                  <MenuDivider />
-                  <MenuItem disabled>Move Primary Side Bar Right</MenuItem>
                   <MenuDivider />
                   <MenuItemCheckbox disabled name='view' value='mini-map'>
                     Minimap
@@ -259,12 +257,8 @@ function AppToolbarMenu(
             <MenuItem disabled secondaryContent='Ctrl+Shift+M'>
               Problems
             </MenuItem>
-            <MenuItemCheckbox name='panels' value={Prefs.Panels.SEC_SIDEBAR} secondaryContent='Ctrl+Shift+U' disabled>
+            <MenuItemCheckbox name='panels' value={Prefs.Panels.SEC_SIDEBAR}>
               Output
-            </MenuItemCheckbox>
-            <MenuDivider />
-            <MenuItemCheckbox disabled name='view' value='word-wrap' secondaryContent='Alt+Z'>
-              Word Wrap
             </MenuItemCheckbox>
           </MenuList>
         </MenuPopover>
@@ -292,16 +286,19 @@ function AppToolbarMenu(
             <MenuItem secondaryContent={isMac ? '⌃ G' : 'Ctrl+G'} onClick={() => execute(editorCommands.gotoLine())}>
               Go to Line/Column…
             </MenuItem>
-            <MenuDivider />
             <MenuItem
-              secondaryContent='F8'
-              onClick={() => execute(editorCommands.doMonacoAction('editor.action.marker.next'))}
+              secondaryContent={isMac ? '⇧ ⌘ O' : 'Shift+Ctrl+O'}
+              onClick={() => doMonacoAction('editor.action.quickOutline')}
             >
+              Go to Symbol…
+            </MenuItem>
+            <MenuDivider />
+            <MenuItem secondaryContent='F8' onClick={() => doMonacoAction('editor.action.marker.next')}>
               Next Problem
             </MenuItem>
             <MenuItem
               secondaryContent={isMac ? '⇧ F8' : 'Shift+F8'}
-              onClick={() => execute(editorCommands.doMonacoAction('editor.action.marker.prev'))}
+              onClick={() => doMonacoAction('editor.action.marker.prev')}
             >
               Previous Problem
             </MenuItem>
@@ -357,10 +354,7 @@ function AppToolbarMenu(
             <MenuGroup>
               <MenuGroupHeader>Getting Started</MenuGroupHeader>
               <MenuItem onClick={() => setSection('welcome')}>Welcome</MenuItem>
-              <MenuItem
-                secondaryContent='F1'
-                onClick={() => execute(editorCommands.doMonacoAction('editor.action.quickCommand'))}
-              >
+              <MenuItem secondaryContent='F1' onClick={() => doMonacoAction('editor.action.quickCommand')}>
                 Show All Commands
               </MenuItem>
               <MenuItem onClick={() => setSection('documentation')}>Documentation</MenuItem>

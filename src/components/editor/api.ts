@@ -29,6 +29,10 @@ export class EditorApi implements IEditorApi {
     this.editor.getAction(type)?.run();
   }
 
+  runKeyboardAction(id: string) {
+    this.editor.trigger('keyboard', id, {});
+  }
+
   public get onDidChangeCursorPosition() { return this.editor.onDidChangeCursorPosition; }
   public get onDidChangeModelContent() { return this.editor.onDidChangeModelContent; }
 

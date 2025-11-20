@@ -82,8 +82,11 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
             editor.runAction('editor.action.gotoLine');
           }
           break;
+        case 'editor.doMonacoKeyboardAction':
+          editor.runKeyboardAction(cmd.id);
+          break;
         case 'editor.doMonacoAction':
-          editor.runAction(cmd.actionId);
+         editor.runAction(cmd.actionId);
       }
     });
   }, [isEditorReady, bus]);

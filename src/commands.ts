@@ -6,6 +6,7 @@ export type CommandType =
   | 'app.jumpToSource'
   | 'app.jumpToAssembled'
   | 'editor.gotoLine'
+  | 'editor.doMonacoKeyboardAction'
   | 'editor.doMonacoAction'
   | 'output.gotoAddress'
   | 'panel.show'
@@ -30,6 +31,7 @@ export type Command =
   | CommandBase<'app.jumpToSource', 'app', { fromAddress: number }>
   | CommandBase<'app.jumpToAssembled', 'app', { fromSourceLineNumber: number }>
   | CommandBase<'editor.gotoLine', 'editor', { lineNumber?: number }>
+  | CommandBase<'editor.doMonacoKeyboardAction', 'editor', { id: string; }>
   | CommandBase<'editor.doMonacoAction', 'editor', { actionId: string; }>
   | CommandBase<'output.gotoAddress', 'output', { address: number }>
   | CommandBase<'panel.show', 'panel', { panel: PanelType }>
@@ -61,6 +63,7 @@ export const appCommands = {
 };
 
 export const editorCommands = {
+  doMonacoKeyboardAction: (id: string): EditorCommand => ({ target: 'editor', type: 'editor.doMonacoKeyboardAction', id }),
   doMonacoAction: (actionId: string): EditorCommand => ({ target: 'editor', type: 'editor.doMonacoAction', actionId }),
   gotoLine: (lineNumber?: number): EditorCommand => ({ target: 'editor', type: 'editor.gotoLine', lineNumber }),
 };
