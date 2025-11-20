@@ -15,6 +15,7 @@ import {
 } from '@fluentui/react-components';
 import { mnemonicDocs } from './docs';
 import { Mnemonic } from './mnemonic';
+import { Links } from '../../links';
 
 type Section = {
   title: string;
@@ -123,7 +124,7 @@ function Welcome() {
             You can load an example program into the editor from the examples folder icon at the top left. You can also
             export the current program via the export icon below the examples icon. This includes the ability to export
             the assembled program to your clipboard which can then be imported/pasted into the{' '}
-            <Link href='https://simulator.relaycomputer.co.uk' target='_blank' rel='noreferrer'>
+            <Link href={Links.Simulator} target='_blank' rel='noreferrer'>
               Relay Computer Simulator
             </Link>
             .
@@ -358,12 +359,12 @@ function Welcome() {
         <div className={styles.contentHeader2}>
           <p className={styles.para}>
             More details on my relay computer can be found at&nbsp;
-            <Link href='https://relaycomputer.co.uk' target='_blank' rel='noreferrer'>
-              https://relaycomputer.co.uk
+            <Link href={Links.Blog} target='_blank' rel='noreferrer'>
+              {Links.Blog}
             </Link>
             &nbsp;and a full simulation is available at&nbsp;
-            <Link href='https://simulator.relaycomputer.co.uk' target='_blank' rel='noreferrer'>
-              https://simulator.relaycomputer.co.uk
+            <Link href={Links.Simulator} target='_blank' rel='noreferrer'>
+              {Links.Simulator}
             </Link>
           </p>
         </div>

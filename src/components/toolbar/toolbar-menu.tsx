@@ -21,6 +21,7 @@ import { Prefs, type SectionType } from '../../hooks/usePreferences';
 import type { AppToolbarProps } from './types';
 import { appCommands, editorCommands, panelCommands } from '../../commands';
 import { useCommandBus } from '../../hooks/useCommandBus.ts';
+import { Links } from '../../links.ts';
 
 const useStyles = makeStyles({
   menuTrigger: {
@@ -239,36 +240,16 @@ function AppToolbarMenu(
               </MenuPopover>
             </Menu>
             <MenuDivider />
-            <MenuItemRadio
-              disabled
-              name='section'
-              value='examples'
-              secondaryContent='Ctrl+Shift+E'
-            >
+            <MenuItemRadio disabled name='section' value='examples' secondaryContent='Ctrl+Shift+E'>
               Examples
             </MenuItemRadio>
-            <MenuItemRadio
-              disabled
-              name='section'
-              value='export'
-              secondaryContent='Ctrl+Shift+X'
-            >
+            <MenuItemRadio disabled name='section' value='export' secondaryContent='Ctrl+Shift+X'>
               Export
             </MenuItemRadio>
-            <MenuItemRadio
-              disabled
-              name='section'
-              value='emulator'
-              secondaryContent='Ctrl+Shift+M'
-            >
+            <MenuItemRadio disabled name='section' value='emulator' secondaryContent='Ctrl+Shift+M'>
               Emulator
             </MenuItemRadio>
-            <MenuItemRadio
-              disabled
-              name='section'
-              value='welcome'
-              secondaryContent='Ctrl+Shift+W'
-            >
+            <MenuItemRadio disabled name='section' value='welcome' secondaryContent='Ctrl+Shift+W'>
               Welcome
             </MenuItemRadio>
             <MenuDivider />
@@ -382,18 +363,18 @@ function AppToolbarMenu(
               >
                 Show All Commands
               </MenuItem>
-              <MenuItem disabled>Documentation</MenuItem>
+              <MenuItem onClick={() => setSection('welcome')}>Documentation</MenuItem>
             </MenuGroup>
             <MenuDivider />
             <MenuGroup>
               <MenuGroupHeader>Related Sites</MenuGroupHeader>
-              <MenuItemLink disabled href='https://www.microsoft.com' target='_blank'>
+              <MenuItemLink href={Links.Blog} target='_blank'>
                 Blog
               </MenuItemLink>
-              <MenuItemLink disabled href='https://www.microsoft.com' target='_blank'>
+              <MenuItemLink href={Links.Simulator} target='_blank'>
                 Simulator
               </MenuItemLink>
-              <MenuItemLink disabled href='https://www.microsoft.com' target='_blank'>
+              <MenuItemLink href={Links.GitHubSource} target='_blank'>
                 GitHub Source
               </MenuItemLink>
             </MenuGroup>
