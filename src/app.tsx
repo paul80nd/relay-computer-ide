@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { usePreferences, Prefs } from './hooks/usePreferences';
 import Welcome from './components/welcome';
-import { AppEmulator } from './components/emulator';
+import Emulator from './components/emulator';
 import Export from './components/export';
 import Examples from './components/examples';
 import StatusBar from './components/status-bar';
@@ -293,7 +293,7 @@ export const App = () => {
       case Prefs.Sections.EXPORT:
         return <Export assembly={assembly} />;
       case Prefs.Sections.EMULATOR:
-        return <AppEmulator />;
+        return <Emulator assembly={assembly} />;
     }
     return <Welcome />;
   }

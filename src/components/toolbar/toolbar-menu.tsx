@@ -212,10 +212,6 @@ function AppToolbarMenu(
                   <MenuItemCheckbox name='panels' value={Prefs.Panels.PANEL}>
                     Panel
                   </MenuItemCheckbox>
-                  <MenuDivider />
-                  <MenuItemCheckbox disabled name='view' value='mini-map'>
-                    Minimap
-                  </MenuItemCheckbox>
                 </MenuList>
               </MenuPopover>
             </Menu>
@@ -226,7 +222,7 @@ function AppToolbarMenu(
             <MenuItemRadio name='section' value='export' secondaryContent={isMac ? '⇧ ⌘ X' : 'Ctrl+Shift+X'}>
               Export
             </MenuItemRadio>
-            <MenuItemRadio disabled name='section' value='emulator' secondaryContent={isMac ? '⇧ ⌘ Y' : 'Ctrl+Shift+Y'}>
+            <MenuItemRadio name='section' value='emulator' secondaryContent={isMac ? '⇧ ⌘ Y' : 'Ctrl+Shift+Y'}>
               Emulator
             </MenuItemRadio>
             <MenuItemRadio name='section' value='documentation' secondaryContent={isMac ? '⇧ ⌘ D' : 'Ctrl+Shift+D'}>
@@ -362,8 +358,6 @@ function AppToolbarMenu(
                 GitHub Source
               </MenuItemLink>
             </MenuGroup>
-            <MenuDivider />
-            <MenuItem disabled>About</MenuItem>
           </MenuList>
         </MenuPopover>
       </Menu>

@@ -94,7 +94,6 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
         </Tooltip>
         <Tooltip content='Emulator' relationship='description' positioning='after' withArrow>
           <ToolbarRadioButton
-            disabled
             className={styles.toggle}
             aria-label='Underline'
             icon={<Emulator className={styles.icon} />}
