@@ -1,6 +1,7 @@
 import type { PanelType, SectionType } from "./hooks/usePreferences.ts";
 
 export type CommandType =
+  | 'app.new'
   | 'app.save'
   | 'app.saveAs'
   | 'app.open'
@@ -28,6 +29,7 @@ type CommandBase<
 
 /** Global command union */
 export type Command =
+  | CommandBase<'app.new', 'app'>
   | CommandBase<'app.save', 'app'>
   | CommandBase<'app.saveAs', 'app'>
   | CommandBase<'app.open', 'app'>
@@ -60,6 +62,7 @@ function makeCommand<
 
 // Nice factories for call-sites
 export const appCommands = {
+  new: (): AppCommand => ({ target: 'app', type: 'app.new' }),
   save: (): AppCommand => ({ target: 'app', type: 'app.save' }),
   saveAs: (): AppCommand => ({ target: 'app', type: 'app.saveAs' }),
   open: (): AppCommand => ({ target: 'app', type: 'app.open' }),

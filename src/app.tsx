@@ -56,6 +56,17 @@ const useStyles = makeStyles({
   },
 });
 
+const defaultTemplate = [
+  '; *****************************************************',
+  ';  Welcome to Relay Computer Assembly (RCASM)',
+  ';',
+  ';  Start typing your program below or open an example',
+  ';  from the examples folder top left',
+  '; *****************************************************',
+  '',
+  '',
+].join('\n');
+
 export const App = () => {
   const [position, setPosition] = useState<monaco.IPosition | undefined>(undefined);
   const [validation, setValidation] = useState<StatusBarValidation>({ warnings: 0, errors: 0 });
@@ -70,16 +81,7 @@ export const App = () => {
   const { code, onCodeChange, save, dirty } = useCodeStorage({
     storageKey: 'code',
     autoSave,
-    defaultCode: [
-      '; *****************************************************',
-      ';  Welcome to Relay Computer Assembly (RCASM)',
-      ';',
-      ';  Start typing your program below or open an example',
-      ';  from the examples folder top left',
-      '; *****************************************************',
-      '',
-      '',
-    ].join('\n'),
+    defaultCode: defaultTemplate,
   });
 
   // Debounced assembly from the current code
@@ -128,6 +130,14 @@ export const App = () => {
   useEffect(() => {
     return bus.subscribe('app', async command => {
       switch (command.type) {
+        case 'app.new': {
+          const ok = window.confirm(
+            'This will clear the editor (and clear the code saved in your browser storage). Continue?'
+          );
+          if (!ok) return;
+          editorRef.current?.loadCode(defaultTemplate);
+          return;
+        }
         case 'app.open': {
           const picked = await pickTextFile();
           if (!picked) return;
@@ -294,10 +304,7 @@ export const App = () => {
         <AppToolbar prefs={prefs} onPrefsChange={setPrefs} dirty={dirty} />
         <div className={styles.main}>
           <SideToolbar prefs={prefs} onPrefsChange={setPrefs} />
-          <PanelGroup
-            direction='horizontal'
-            autoSaveId='layout-horizontal'
-          >
+          <PanelGroup direction='horizontal' autoSaveId='layout-horizontal'>
             {prefs.panels.primary && (
               <>
                 <Panel id='left' defaultSize={25} minSize={25} className={styles.panel} order={1}>

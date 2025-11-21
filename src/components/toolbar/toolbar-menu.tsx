@@ -96,7 +96,7 @@ function AppToolbarMenu(
         </MenuTrigger>
         <MenuPopover>
           <MenuList>
-            <MenuItem disabled secondaryContent='Ctrl+N'>
+            <MenuItem onClick={() => execute(appCommands.new())}>
               New…
             </MenuItem>
             <MenuDivider />
