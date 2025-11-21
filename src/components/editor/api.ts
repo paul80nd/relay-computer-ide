@@ -18,9 +18,9 @@ export class EditorApi implements IEditorApi {
     this.editor.revealLineInCenter(1);
   }
 
-  gotoLine(lineNumber: number) {
+  gotoLine(lineNumber: number, column?: number) {
     this.editor.revealLineInCenterIfOutsideViewport(lineNumber, monaco.editor.ScrollType.Smooth);
-    this.editor.setPosition({ lineNumber: lineNumber, column: 1 });
+    this.editor.setPosition({ lineNumber: lineNumber, column: column ?? 1 });
     this.editor.focus();
   }
 

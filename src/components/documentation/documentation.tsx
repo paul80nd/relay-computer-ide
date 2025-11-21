@@ -1,10 +1,9 @@
-import { type ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import {
   Accordion,
   AccordionHeader,
   AccordionItem,
   AccordionPanel,
-  Body1,
   Card,
   CardHeader,
   Link,
@@ -82,6 +81,8 @@ const useStyles = makeStyles({
     fontFamily: 'Menlo, Monaco, "Courier New", monospace',
     fontWeight: tokens.fontWeightRegular,
     color: tokens.colorPaletteGreenForeground2,
+    fontSize: tokens.fontSizeBase200,
+    lineHeight: tokens.lineHeightBase200,
   },
 });
 
@@ -102,10 +103,10 @@ function Documentation() {
   );
 
   function Code({ children }: { children: ReactNode }) {
-    return <Text className={styles.code}>{children}</Text>;
+    return <code className={styles.code}>{children}</code>;
   }
 
-  const sections: Section[] = [
+  const sections = useMemo<Section[]>(() => [
     {
       title: 'Getting Started',
       content: (
@@ -123,7 +124,7 @@ function Documentation() {
             You can load an example program into the editor from the examples folder icon at the top left. You can also
             export the current program via the export icon below the examples icon. This includes the ability to export
             the assembled program to your clipboard which can then be imported/pasted into the{' '}
-            <Link href={Links.Simulator} target='_blank' rel='noreferrer'>
+            <Link href={Links.Simulator} target='_blank' rel='noreferrer noopener'>
               Relay Computer Simulator
             </Link>
             .
@@ -217,7 +218,7 @@ function Documentation() {
             <Text>8-bit ALU Operations</Text>
             <br />
             <br />
-            For ALU instructions the result in placed in <em>dst</em> (register <Code>a</Code> or <Code>d</Code>). If{' '}
+            For ALU instructions the result is placed in <em>dst</em> (register <Code>a</Code> or <Code>d</Code>). If{' '}
             <em>dst</em> is not specified then register <Code>a</Code> is assumed.
             <br />
             <br />
@@ -341,17 +342,17 @@ function Documentation() {
         </>
       ),
     },
-  ];
+  ],[]);
 
   return (
     <div className={styles.root}>
       <header className={styles.header}>
-        <Body1>Documentation</Body1>
+        <Text as="h2" size={300}>Documentation</Text>
       </header>
       <div className={styles.content}>
         <Accordion collapsible multiple aria-label='IDE documentation'>
           {sections.map((s, i) => (
-            <AccordionItem value={i} key={i}>
+            <AccordionItem value={i} key={String(i)}>
               <AccordionHeader className={styles.accordionHeader}>
                 <div className={styles.accordionHeaderBlock}>
                   {s.section ? <Text className={styles.accordionHeaderBlockSection}>{s.section}</Text> : null}

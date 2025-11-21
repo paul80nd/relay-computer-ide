@@ -227,7 +227,7 @@ function AppToolbarMenu(
                   <MenuItemCheckbox name='panels' value={Prefs.Panels.SEC_SIDEBAR}>
                     Secondary Side Bar
                   </MenuItemCheckbox>
-                  <MenuItemCheckbox name='panels' value={Prefs.Panels.PANEL} disabled>
+                  <MenuItemCheckbox name='panels' value={Prefs.Panels.PANEL}>
                     Panel
                   </MenuItemCheckbox>
                   <MenuDivider />
@@ -254,10 +254,10 @@ function AppToolbarMenu(
               Welcome
             </MenuItemRadio>
             <MenuDivider />
-            <MenuItem disabled secondaryContent='Ctrl+Shift+M'>
+            <MenuItemCheckbox name='panels' value={Prefs.Panels.PANEL} secondaryContent={isMac ? '⇧ ⌘ M':'Ctrl+Shift+M'}>
               Problems
-            </MenuItem>
-            <MenuItemCheckbox name='panels' value={Prefs.Panels.SEC_SIDEBAR}>
+            </MenuItemCheckbox>
+            <MenuItemCheckbox name='panels' value={Prefs.Panels.SEC_SIDEBAR} secondaryContent={isMac ? '⇧ ⌘ U':'Ctrl+Shift+U'}>
               Output
             </MenuItemCheckbox>
           </MenuList>

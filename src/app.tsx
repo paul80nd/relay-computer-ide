@@ -1,4 +1,4 @@
-import type { JSXElement } from '@fluentui/react-components';
+
 import { makeStyles, tokens } from '@fluentui/react-components';
 import AppToolbar from './components/toolbar';
 import SideToolbar from './components/side-toolbar';
@@ -21,6 +21,7 @@ import { useCodeStorage } from './hooks/useCodeStorage.ts';
 import { CommandBusProvider, useCreateCommandBus } from './hooks/useCommandBus.ts';
 import { exchangeAddressForSourceLine, exchangeSourceLineNumberForAddress } from './assembler.ts';
 import Documentation from './components/documentation/documentation.tsx';
+import Problems from './components/problems/index.ts';
 
 const useStyles = makeStyles({
   container: {
@@ -55,9 +56,10 @@ const useStyles = makeStyles({
   },
 });
 
-export const App = (): JSXElement => {
+export const App = () => {
   const [position, setPosition] = useState<monaco.IPosition | undefined>(undefined);
   const [validation, setValidation] = useState<StatusBarValidation>({ warnings: 0, errors: 0 });
+  const [markers, setMarkers] = useState<monaco.editor.IMarker[]>([]);
 
   const [prefs, setPrefs] = usePreferences();
   const autoSave = prefs.autoSave ?? true;
@@ -89,6 +91,7 @@ export const App = (): JSXElement => {
 
     const handler = (event: BeforeUnloadEvent) => {
       event.preventDefault();
+      event.returnValue = '';
     };
 
     window.addEventListener('beforeunload', handler);
@@ -103,31 +106,19 @@ export const App = (): JSXElement => {
   useEffect(() => {
     return bus.subscribe('panel', command => {
       // Show secondary sidebar
-      if (command.type === 'panel.show' && command.panel === 'sidebar-s') {
-        setPrefs(prev => {
-          if (prev.panels.secondary) return prev;
-          return {
-            ...prev,
-            panels: { ...prev.panels, secondary: true },
-          };
-        });
+      if (command.type === 'panel.toggle' && command.panel === 'sidebar-s') {
+        setPrefs(prev => ({ ...prev, panels: { ...prev.panels, secondary: !prev.panels.secondary } }));
+      }
+      if (command.type === 'panel.toggle' && command.panel === 'panel') {
+        setPrefs(prev => ({ ...prev, panels: { ...prev.panels, bottom: !prev.panels.bottom } }));
       }
       // Show section
       if (command.type === 'panel.showSection') {
         setPrefs(prev => {
-          if (prev.section === command.section) return prev;
-          return {
-            ...prev,
-            section: command.section,
-          };
+          const next = prev.section === command.section ? prev : { ...prev, section: command.section };
+          // Ensure primary panel is visible
+          return next.panels.primary ? next : { ...next, panels: { ...next.panels, primary: true } };
         });
-        // Ensure primary panel is visible
-        if (prefs.panels.primary === false) {
-          setPrefs(prev => ({
-            ...prev,
-            panels: { ...prev.panels, primary: true },
-          }));
-        }
       }
       return;
     });
@@ -168,9 +159,9 @@ export const App = (): JSXElement => {
     });
   }, [bus, assembly, save]);
 
-  const onEditorValidated = (markers: monaco.editor.IMarker[]) => {
+  const onEditorValidated = (newMarkers: monaco.editor.IMarker[]) => {
     const v: StatusBarValidation = { errors: 0, warnings: 0 };
-    markers.forEach(m => {
+    newMarkers.forEach(m => {
       switch (m.severity) {
         case monaco.MarkerSeverity.Error:
           v.errors++;
@@ -181,40 +172,62 @@ export const App = (): JSXElement => {
       }
     });
     setValidation(v);
+    setMarkers(newMarkers);
   };
 
   /** Keyboard shortcuts handling */
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
       // Save (Cmd+S / Ctrl+S)
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+      if ((event.metaKey || event.ctrlKey) && key === 's') {
         event.preventDefault();
         bus.execute(appCommands.save());
         return;
       }
-      // Sections (Ctrl+Shift+D/E/X/Y/W or Cmd+Shift+D/E/X/Y/W)
+      // Ctrl+Shift/Cmd+Shift Combinations
       if (event.shiftKey && (event.metaKey || event.ctrlKey)) {
-        let section = undefined;
-        switch (event.key.toLowerCase()) {
-          case 'd':
-            section = Prefs.Sections.DOCUMENTATION;
-            break;
-          case 'e':
-            section = Prefs.Sections.EXAMPLES;
-            break;
-          case 'x':
-            section = Prefs.Sections.EXPORT;
-            break;
-          case 'y':
-            section = Prefs.Sections.EMULATOR;
-            break;
-          case 'w':
-            section = Prefs.Sections.WELCOME;
-            break;
+        // Sections (+D/E/X/Y/W)
+        if (['d', 'e', 'x', 'y', 'w'].includes(key)) {
+          let section = undefined;
+          switch (event.key.toLowerCase()) {
+            case 'd':
+              section = Prefs.Sections.DOCUMENTATION;
+              break;
+            case 'e':
+              section = Prefs.Sections.EXAMPLES;
+              break;
+            case 'x':
+              section = Prefs.Sections.EXPORT;
+              break;
+            case 'y':
+              section = Prefs.Sections.EMULATOR;
+              break;
+            case 'w':
+              section = Prefs.Sections.WELCOME;
+              break;
+          }
+          if (section) {
+            event.preventDefault();
+            bus.execute(panelCommands.showSection(section));
+            return;
+          }
         }
-        if (section) {
+        // Panels (+M/U)
+        if (key === 'm') {
           event.preventDefault();
-          bus.execute(panelCommands.showSection(section));
+          setPrefs(prev => ({
+            ...prev,
+            panels: { ...prev.panels, bottom: !prev.panels.bottom },
+          }));
+          return;
+        }
+        if (key === 'u') {
+          event.preventDefault();
+          setPrefs(prev => ({
+            ...prev,
+            panels: { ...prev.panels, secondary: !prev.panels.secondary },
+          }));
           return;
         }
       }
@@ -228,30 +241,20 @@ export const App = (): JSXElement => {
 
   const styles = useStyles();
 
-  function loadExample(name: string): void {
-    // Normalise to `<id>.rcasm` if the caller passed just an ID
+  async function loadExample(name: string): Promise<void> {
     const fileName = name.endsWith('.rcasm') ? name : `${name}.rcasm`;
-
-    // Adjust this path if your examples live somewhere else (e.g. `/assets/examples/`)
     const url = `/examples/${fileName}`;
-
-    fetch(url)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Failed to load example: ${fileName}`);
-        }
-        return response.text();
-      })
-      .then(text => {
-        editorRef.current?.loadCode(text);
-      })
-      .catch(err => {
-        console.error(err);
-        // TODO: surface this via a toast / message bar if you like
-      });
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to load example: ${fileName}`);
+      const text = await response.text();
+      editorRef.current?.loadCode(text);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
-  function renderSecton() {
+  function renderSection() {
     switch (prefs.section) {
       case Prefs.Sections.DOCUMENTATION:
         return <Documentation />;
@@ -275,7 +278,7 @@ export const App = (): JSXElement => {
             {prefs.panels.primary && (
               <>
                 <Panel id='left' defaultSize={25} minSize={25} className={styles.panel} order={1}>
-                  {renderSecton()}
+                  {renderSection()}
                 </Panel>
                 <PanelResizeHandle className={styles.resizeHandle} />
               </>
@@ -294,7 +297,15 @@ export const App = (): JSXElement => {
                 {prefs.panels.bottom && (
                   <>
                     <PanelResizeHandle className={styles.resizeHandle} />
-                    <Panel id='bottom' order={2} defaultSize={25} minSize={25} className={styles.panel}></Panel>
+                    <Panel id='bottom' order={2} defaultSize={20} minSize={20} className={styles.panel}>
+                      <Problems
+                        markers={markers}
+                        onSelect={marker => {
+                          // Jump to the marker location in the editor
+                          bus.execute(editorCommands.gotoLine(marker.startLineNumber ?? 1, marker.startColumn ?? 1));
+                        }}
+                      />
+                    </Panel>
                   </>
                 )}
               </PanelGroup>

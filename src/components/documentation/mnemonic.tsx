@@ -45,7 +45,7 @@ export function Mnemonic(doc: MnemonicDoc) {
   const styles = useStyles();
 
   function Code({ children }: { children: React.ReactNode }) {
-    return <Text className={styles.code}>{children}</Text>;
+    return <code className={styles.code}>{children}</code>;
   }
 
   const renderWithInlineCode = (input?: string) => {
@@ -119,9 +119,9 @@ export function Mnemonic(doc: MnemonicDoc) {
     const main = (
       <Card className={styles.card}>
         <CardHeader
-          header={doc.syntax.map(s =>
+          header={doc.syntax.map((s, ii) =>
             s.split(' ').map((p, i) => (
-              <Text className={styles.syntax} key={i} weight={i == 0 ? 'semibold' : 'regular'}>
+              <Text className={styles.syntax} key={`${ii}_${i}`} weight={i == 0 ? 'semibold' : 'regular'}>
                 {p}
               </Text>
             ))
@@ -148,15 +148,15 @@ export function Mnemonic(doc: MnemonicDoc) {
       </Card>
     );
 
-    const variants = vs.map(v => (
-      <Card className={styles.card}>
+    const variants = vs.map((v,iii) => (
+      <Card className={styles.card} key={`${iii}`}>
         <CardHeader
           header={
             <div>
-              {v.syntax.map(s => (
-                <div>
+              {v.syntax.map((s,ii) => (
+                <div key={`${ii}`}>
                   {s.split(' ').map((p, i) => (
-                    <Text className={styles.syntax} key={i} weight={i == 0 ? 'semibold' : 'regular'}>
+                    <Text className={styles.syntax} key={`${i}`} weight={i == 0 ? 'semibold' : 'regular'}>
                       {p}
                     </Text>
                   ))}

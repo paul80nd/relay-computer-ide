@@ -3,7 +3,6 @@ import {
   AccordionHeader,
   AccordionItem,
   AccordionPanel,
-  Body1,
   Button,
   Caption1,
   Card,
@@ -86,7 +85,7 @@ function Examples() {
   return (
     <div className={styles.root}>
       <header className={styles.header}>
-        <Body1>Example Programs</Body1>
+        <Text as="h2" size={300}>Code Examples</Text>
       </header>
       <div className={styles.content}>
         <div className={styles.contentHeader}>

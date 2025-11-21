@@ -77,7 +77,7 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
         case 'editor.gotoLine':
           // if provided a line number then jump otherwise ask Monaco to show it's goto box
           if (cmd.lineNumber) {
-            editor.gotoLine(cmd.lineNumber);
+            editor.gotoLine(cmd.lineNumber, cmd.column);
           } else {
             editor.runAction('editor.action.gotoLine');
           }

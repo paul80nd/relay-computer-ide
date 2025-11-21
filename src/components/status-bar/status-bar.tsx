@@ -55,7 +55,7 @@ function StatusBar({ position, validation, assembly, autoSave, dirty }: StatusBa
           positioning='above-start'
           withArrow
         >
-          <ToolbarButton className={styles.item} appearance='transparent'>
+          <ToolbarButton className={styles.item} appearance='transparent'  onClick={() => execute(panelCommands.togglePanel('panel'))}>
             <ErrorCircle16Regular className={validation.errors === 0 ? undefined : styles.error} />
             <Caption1 className={validation.errors === 0 ? undefined : styles.error}>{validation.errors}</Caption1>
             &nbsp;
@@ -91,7 +91,7 @@ function StatusBar({ position, validation, assembly, autoSave, dirty }: StatusBa
             <ToolbarButton
               className={styles.item}
               appearance='transparent'
-              onClick={() => execute(panelCommands.show('sidebar-s'))}
+              onClick={() => execute(panelCommands.togglePanel('sidebar-s'))}
             >
               <Caption1>Bytes: {bytes}</Caption1>
             </ToolbarButton>

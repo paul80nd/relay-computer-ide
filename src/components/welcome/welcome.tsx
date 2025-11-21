@@ -1,5 +1,5 @@
 import {
-  Body1,
+  Text,
   Link,
   makeStyles,
   tokens,
@@ -44,7 +44,7 @@ function Welcome() {
   return (
     <div className={styles.root}>
       <header className={styles.header}>
-        <Body1>Welcome</Body1>
+        <Text as="h2" size={300}>Welcome</Text>
       </header>
       <div className={styles.content}>
         <div className={styles.contentHeader}>
@@ -56,11 +56,11 @@ function Welcome() {
         <div className={styles.contentHeader2}>
           <p className={styles.para}>
             More details on my relay computer can be found at&nbsp;
-            <Link href={Links.Blog} target='_blank' rel='noreferrer'>
+            <Link href={Links.Blog} target='_blank' rel='noreferrer noopener'>
               {Links.Blog}
             </Link>
             &nbsp;and a full simulation is available at&nbsp;
-            <Link href={Links.Simulator} target='_blank' rel='noreferrer'>
+            <Link href={Links.Simulator} target='_blank' rel='noreferrer noopener'>
               {Links.Simulator}
             </Link>
           </p>

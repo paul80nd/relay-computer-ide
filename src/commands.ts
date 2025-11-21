@@ -9,7 +9,7 @@ export type CommandType =
   | 'editor.doMonacoKeyboardAction'
   | 'editor.doMonacoAction'
   | 'output.gotoAddress'
-  | 'panel.show'
+  | 'panel.toggle'
   | 'panel.showSection';
 
 export type CommandTarget = 'app' | 'editor' | 'output' | 'panel';
@@ -30,11 +30,11 @@ export type Command =
   | CommandBase<'app.loadExample', 'app', { example: string }>
   | CommandBase<'app.jumpToSource', 'app', { fromAddress: number }>
   | CommandBase<'app.jumpToAssembled', 'app', { fromSourceLineNumber: number }>
-  | CommandBase<'editor.gotoLine', 'editor', { lineNumber?: number }>
+  | CommandBase<'editor.gotoLine', 'editor', { lineNumber?: number, column?: number }>
   | CommandBase<'editor.doMonacoKeyboardAction', 'editor', { id: string; }>
   | CommandBase<'editor.doMonacoAction', 'editor', { actionId: string; }>
   | CommandBase<'output.gotoAddress', 'output', { address: number }>
-  | CommandBase<'panel.show', 'panel', { panel: PanelType }>
+  | CommandBase<'panel.toggle', 'panel', { panel: PanelType }>
   | CommandBase<'panel.showSection', 'panel', { section: SectionType }>;
 
 // Per-target subsets
@@ -65,7 +65,7 @@ export const appCommands = {
 export const editorCommands = {
   doMonacoKeyboardAction: (id: string): EditorCommand => ({ target: 'editor', type: 'editor.doMonacoKeyboardAction', id }),
   doMonacoAction: (actionId: string): EditorCommand => ({ target: 'editor', type: 'editor.doMonacoAction', actionId }),
-  gotoLine: (lineNumber?: number): EditorCommand => ({ target: 'editor', type: 'editor.gotoLine', lineNumber }),
+  gotoLine: (lineNumber?: number, column: number | undefined = undefined): EditorCommand => ({ target: 'editor', type: 'editor.gotoLine', lineNumber, column }),
 };
 
 export const outputCommands = {
@@ -73,6 +73,6 @@ export const outputCommands = {
 };
 
 export const panelCommands = {
-  show: (panel: PanelType): PanelCommand => makeCommand('panel', 'panel.show', { panel }),
+  togglePanel: (panel: PanelType): PanelCommand => makeCommand('panel', 'panel.toggle', { panel }),
   showSection: (section: SectionType): PanelCommand => ({ target: 'panel', type: 'panel.showSection', section }),
 };

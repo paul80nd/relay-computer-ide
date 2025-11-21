@@ -1,22 +1,18 @@
-import { Component, isDevMode, OnInit, inject, viewChild } from '@angular/core';
+import { Component, isDevMode, type OnInit, inject, ViewChild } from '@angular/core';
 import { EmulatorComponent } from './emulator/emulator.component';
-import { IAssemblyError, IAssemblyWarning, OutputComponent } from './output/output.component';
 import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
 import { ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule } from '@clr/angular';
-import { DiffComponent } from './diff/diff.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule, EmulatorComponent, OutputComponent, DiffComponent]
+  imports: [ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule, EmulatorComponent]
 })
 export class AppComponent implements OnInit {
   private _clipboardService = inject(ClipboardService);
 
-  readonly output = viewChild.required(OutputComponent);
-
-  readonly emulator = viewChild.required(EmulatorComponent);
+  readonly emulator = ViewChild.required(EmulatorComponent);
 
   _showDocs = false;
   _showEmu = false;
@@ -33,7 +29,6 @@ export class AppComponent implements OnInit {
     localStorage.setItem('showEmu', value ? 'true' : 'false');
   }
 
-  dasm = ''
   isDevMode: boolean;
   lastCompile?: Uint8Array;
   didAssemble: boolean = false;
@@ -61,26 +56,13 @@ export class AppComponent implements OnInit {
   }
 
   onEditorCodeChanged(code: string) {
-    const { prg, errors, warnings, debugInfo } = rcasm.assemble(code);
+    const { prg, errors, debugInfo } = rcasm.assemble(code);
     this.lastCompile = prg;
     this.lastPcToLocs = debugInfo?.pcToLocs
     this.didAssemble = errors.length == 0;
-    const outcome = {
-      bytes: prg.length,
-      errors: errors.map(e => <IAssemblyError>{ message: e.msg, line: e.loc.start.line, column: e.loc.start.column }),
-      warnings: warnings.map(w => <IAssemblyWarning>{ message: w.msg, line: w.loc.start.line, column: w.loc.start.column })
-    }
     if (this.didAssemble) {
-      this.dasm = rcasm.disassemble(prg, {
-        isInstruction: debugInfo?.info().isInstruction,
-        isData: debugInfo?.info().isData,
-        dataLength: debugInfo?.info().dataLength
-      }).join('\n');
       this.emulator().load(this.lastCompile);
-    } else {
-      this.dasm = `❌ Assembly failed (${errors.length} error${errors.length === 1 ? '' : 's'})`;
     }
-    this.output().didAssemble(outcome);
   }
 
   exportToClipboard() {

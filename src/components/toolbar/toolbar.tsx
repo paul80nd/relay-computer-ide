@@ -8,8 +8,6 @@ import {
   Code20Color,
   PanelBottomFilled,
   PanelBottomRegular,
-  BroadActivityFeedFilled,
-  BroadActivityFeedRegular,
 } from '@fluentui/react-icons';
 import {
   Toolbar,
@@ -32,7 +30,6 @@ import AppToolbarMenu from './toolbar-menu';
 const PanelLeft = bundleIcon(PanelLeftFilled, PanelLeftRegular);
 const PanelRight = bundleIcon(PanelRightFilled, PanelRightRegular);
 const PanelBottom = bundleIcon(PanelBottomFilled, PanelBottomRegular);
-const Panels = bundleIcon(BroadActivityFeedFilled, BroadActivityFeedRegular);
 
 const useStyles = makeStyles({
   toolbar: {
@@ -94,16 +91,6 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
         <Text weight='semibold' size={200} style={{ marginRight: '1rem', color: tokens.colorBrandForeground2 }}>
           Relay Computer IDE
         </Text>
-        <Tooltip content='Customize Layout…' relationship='description' positioning='below-end' withArrow>
-          <ToolbarToggleButton
-            className={styles.toggle}
-            icon={<Panels />}
-            disabled
-            name='panels'
-            appearance='transparent'
-            value='customize'
-          />
-        </Tooltip>
         <Tooltip content='Toggle Primary Side Bar' relationship='description' positioning='below-end' withArrow>
           <ToolbarToggleButton
             className={styles.toggle}
@@ -115,7 +102,6 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
         </Tooltip>
         <Tooltip content='Toggle Bottom Panel' relationship='description' positioning='below-start' withArrow>
           <ToolbarToggleButton
-            disabled
             className={styles.toggle}
             icon={<PanelBottom />}
             name='panels'
