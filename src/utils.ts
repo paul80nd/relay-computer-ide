@@ -49,3 +49,47 @@ export async function saveAsTextFile(text: string): Promise<void> {
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 }
+
+export async function pickTextFile(): Promise<{ name: string; text: string } | null> {
+  const extensions = ['rcasm']
+  const mimeTypes = ['text/plain']
+  const w = window as any;
+
+  // Prefer File System Access API
+  if (typeof w.showOpenFilePicker === 'function') {
+    try {
+      const [handle] = await w.showOpenFilePicker({
+        multiple: false,
+        types: [
+          {
+            description: 'RCASM source',
+            accept: { [mimeTypes[0]]: extensions.map(ext => `.${ext}`) },
+          },
+        ],
+        excludeAcceptAllOption: false,
+      });
+      const file = await handle.getFile();
+      const text = await file.text();
+      return { name: file.name, text };
+    } catch (err: any) {
+      // User likely canceled
+      return null;
+    }
+  }
+
+  // Fallback: hidden input
+  return new Promise(resolve => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = extensions.map(ext => `.${ext}`).concat(mimeTypes).join(',');
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return resolve(null);
+      const text = await file.text();
+      resolve({ name: file.name, text });
+    };
+    input.oncancel = () => resolve(null);
+    // Click on next tick to play nice with menus
+    setTimeout(() => input.click(), 0);
+  });
+}

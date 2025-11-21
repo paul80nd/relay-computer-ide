@@ -21,7 +21,7 @@ import { CommandBusProvider, useCreateCommandBus } from './hooks/useCommandBus.t
 import { exchangeAddressForSourceLine, exchangeSourceLineNumberForAddress } from './assembler.ts';
 import Documentation from './components/documentation/documentation.tsx';
 import Problems from './components/problems/index.ts';
-import { saveAsTextFile } from './utils.ts';
+import { saveAsTextFile, pickTextFile } from './utils.ts';
 
 const useStyles = makeStyles({
   container: {
@@ -128,6 +128,12 @@ export const App = () => {
   useEffect(() => {
     return bus.subscribe('app', async command => {
       switch (command.type) {
+        case 'app.open': {
+          const picked = await pickTextFile();
+          if (!picked) return;
+          editorRef.current?.loadCode(picked.text);
+          return;
+        }
         case 'app.save': {
           save();
           return;
@@ -183,6 +189,12 @@ export const App = () => {
   useEffect(() => {
     const handler = async (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
+      // Open (Shift+Cmd/Ctrl+O)
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && key === 'o') {
+        event.preventDefault();
+        await bus.executeAsync(appCommands.open());
+        return;
+      }
       // Save (Cmd+S / Ctrl+S) (Save As if shift is held)
       if ((event.metaKey || event.ctrlKey) && key === 's') {
         event.preventDefault();
@@ -282,7 +294,10 @@ export const App = () => {
         <AppToolbar prefs={prefs} onPrefsChange={setPrefs} dirty={dirty} />
         <div className={styles.main}>
           <SideToolbar prefs={prefs} onPrefsChange={setPrefs} />
-          <PanelGroup direction='horizontal' autoSaveId='layout-horizontal'>
+          <PanelGroup
+            direction='horizontal'
+            autoSaveId='layout-horizontal'
+          >
             {prefs.panels.primary && (
               <>
                 <Panel id='left' defaultSize={25} minSize={25} className={styles.panel} order={1}>

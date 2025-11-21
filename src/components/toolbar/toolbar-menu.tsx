@@ -100,7 +100,7 @@ function AppToolbarMenu(
               New…
             </MenuItem>
             <MenuDivider />
-            <MenuItem disabled secondaryContent='Ctrl+O'>
+            <MenuItem onClick={async () => await executeAsync(appCommands.open())} secondaryContent={isMac ? '⇧ ⌘ O':'Ctrl+Shift+O'}>
               Open…
             </MenuItem>
             <MenuItem onClick={() => setSection('examples')}>Open from Examples…</MenuItem>

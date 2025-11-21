@@ -3,6 +3,7 @@ import type { PanelType, SectionType } from "./hooks/usePreferences.ts";
 export type CommandType =
   | 'app.save'
   | 'app.saveAs'
+  | 'app.open'
   | 'app.loadExample'
   | 'app.jumpToSource'
   | 'app.jumpToAssembled'
@@ -29,6 +30,7 @@ type CommandBase<
 export type Command =
   | CommandBase<'app.save', 'app'>
   | CommandBase<'app.saveAs', 'app'>
+  | CommandBase<'app.open', 'app'>
   | CommandBase<'app.loadExample', 'app', { example: string }>
   | CommandBase<'app.jumpToSource', 'app', { fromAddress: number }>
   | CommandBase<'app.jumpToAssembled', 'app', { fromSourceLineNumber: number }>
@@ -60,6 +62,7 @@ function makeCommand<
 export const appCommands = {
   save: (): AppCommand => ({ target: 'app', type: 'app.save' }),
   saveAs: (): AppCommand => ({ target: 'app', type: 'app.saveAs' }),
+  open: (): AppCommand => ({ target: 'app', type: 'app.open' }),
   loadExample: (example: string): AppCommand => ({ target: 'app', type: 'app.loadExample', example }),
   jumpToAssembled: (fromSourceLineNumber: number): AppCommand => ({ target: 'app', type: 'app.jumpToAssembled', fromSourceLineNumber }),
   jumpToSource: (fromAddress: number): AppCommand => ({ target: 'app', type: 'app.jumpToSource', fromAddress }),
