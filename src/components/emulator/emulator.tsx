@@ -1,98 +1,206 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Tooltip, makeStyles, tokens, Caption1 } from '@fluentui/react-components';
+import {
+  Button,
+  Tooltip,
+  makeStyles,
+  tokens,
+  Caption1,
+  Popover,
+  PopoverTrigger,
+  PopoverSurface,
+  Badge,
+} from '@fluentui/react-components';
+import { CaretLeft16Filled, CaretRight16Filled, Settings16Regular } from '@fluentui/react-icons';
 import type { EmulatorProps } from './types';
+import { Section, SectionContent, SectionFooter } from '../shared';
 
 const useStyles = makeStyles({
-  root: {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
-    overflow: 'hidden',
-  },
   content: {
-    padding: '8px',
+    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL} 0`,
     overflow: 'auto',
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: tokens.spacingVerticalS,
   },
   tablesRow: {
     display: 'flex',
-    flexWrap: 'wrap',
-    gap: '8px',
-    alignItems: 'stretch',
+    gap: tokens.spacingHorizontalSNudge,
   },
   table: {
-    borderCollapse: 'collapse',
+    flexGrow: 1,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
     borderSpacing: 0,
-    fontVariantNumeric: 'tabular-nums',
+    borderCollapse: 'collapse',
   },
   th: {
-    textAlign: 'left',
-    padding: '4px 6px',
+    textAlign: 'center',
+    fontSize: tokens.fontSizeBase200,
+    fontWeight: tokens.fontWeightMedium,
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    backgroundColor: tokens.colorNeutralBackground2,
     color: tokens.colorNeutralForeground2,
   },
   td: {
-    padding: '4px 6px',
-    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    textAlign: 'center',
+    backgroundColor: tokens.colorNeutralBackground1,
   },
   code: {
-    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-    padding: '1px 4px',
-    borderRadius: tokens.borderRadiusSmall,
-    backgroundColor: tokens.colorNeutralBackground2,
-    display: 'inline-block',
-    minWidth: '2ch',
+    fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+    fontWeight: tokens.fontWeightRegular,
+    fontSize: tokens.fontSizeBase200,
+    color: tokens.colorNeutralForeground2,
+    lineHeight: tokens.lineHeightBase200,
   },
   dot: { fontSize: '16px' },
   controlsRow: {
     display: 'flex',
-    gap: '8px',
-    alignItems: 'center',
+    flexGrow: 1,
+    gap: tokens.spacingHorizontalXS,
   },
   switchesRow: {
     display: 'flex',
-    gap: '4px',
+    flexGrow: 1,
+    gap: tokens.spacingHorizontalXS,
   },
   switchBtn: {
-    padding: '2px 6px',
+    flexGrow: 1,
     border: `1px solid ${tokens.colorNeutralStroke2}`,
     borderRadius: tokens.borderRadiusSmall,
     background: tokens.colorNeutralBackground1,
+    color: tokens.colorNeutralForeground2,
     cursor: 'pointer',
     userSelect: 'none',
   },
   switchActive: {
     background: tokens.colorNeutralBackground1Hover,
-    border: `2px solid ${tokens.colorBrandForeground2}`,
+    border: `1px solid ${tokens.colorBrandForeground2}`,
   },
   memoryTable: {
+    flexGrow: 1,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderSpacing: 0,
     borderCollapse: 'collapse',
-    fontVariantNumeric: 'tabular-nums',
   },
   memTh: {
-    textAlign: 'left',
-    padding: '4px 6px',
+    textAlign: 'center',
+    fontSize: tokens.fontSizeBase200,
+    fontWeight: tokens.fontWeightMedium,
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    backgroundColor: tokens.colorNeutralBackground2,
+    color: tokens.colorNeutralForeground2,
   },
   memTd: {
-    padding: '2px 6px',
     textAlign: 'center',
+    backgroundColor: tokens.colorNeutralBackground1,
     borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
-    borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
   },
   pcMarker: { outline: `2px solid ${tokens.colorPaletteBlueBorderActive}` },
   mMarker: { outline: `2px solid ${tokens.colorPaletteGreenBorder2}` },
-  footer: {
+  status: {
+    fontSize: tokens.fontSizeBase200,
+    color: tokens.colorNeutralForeground3,
+  },
+  dgBus: {
+    borderRight: `3px solid ${tokens.colorBrandStroke2}`,
+  },
+  dgLink: {
+    borderTop: `2px solid ${tokens.colorBrandStroke2}`,
+  },
+  dgLinkU: {
+    borderBottom: `2px solid ${tokens.colorBrandStroke2}`,
+  },
+  dgR8V: {
+    margin: '1px 0',
+    borderLeft: `1px solid ${tokens.colorNeutralStroke1}`,
     borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
-    padding: '6px 8px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    padding: `${tokens.spacingHorizontalXXS} ${tokens.spacingHorizontalM}`,
+    borderTopLeftRadius: tokens.borderRadiusMedium,
+    borderBottomLeftRadius: tokens.borderRadiusMedium,
+    backgroundColor: tokens.colorNeutralBackground1,
+    cursor: 'pointer',
+  },
+  dgR16V: {
+    margin: '1px 0',
+    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    padding: `${tokens.spacingVerticalXXS} ${tokens.spacingHorizontalM}`,
+    borderTopRightRadius: tokens.borderRadiusMedium,
+    borderBottomRightRadius: tokens.borderRadiusMedium,
+    alignContent: 'center',
+    backgroundColor: tokens.colorNeutralBackground1,
+    cursor: 'pointer',
+  },
+  dgRLab: {
+    margin: '1px 0',
+    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    alignContent: 'center',
+    fontSize: tokens.fontSizeBase200,
+    fontWeight: tokens.fontWeightMedium,
     color: tokens.colorNeutralForeground2,
-    flexShrink: 0,
+  },
+  dgR8E: {
+    margin: '1px 0',
+    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderTopRightRadius: tokens.borderRadiusMedium,
+    borderBottomRightRadius: tokens.borderRadiusMedium,
+  },
+  dgPCV: {
+    borderLeft: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    padding: `${tokens.spacingVerticalXXS} ${tokens.spacingHorizontalM}`,
+    borderTopLeftRadius: tokens.borderRadiusMedium,
+    borderBottomLeftRadius: tokens.borderRadiusMedium,
+    alignContent: 'center',
+    backgroundColor: tokens.colorNeutralBackground1,
+    cursor: 'pointer',
+  },
+  dgPCLab: {
+    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderTopRightRadius: tokens.borderRadiusMedium,
+    borderBottomRightRadius: tokens.borderRadiusMedium,
+    alignContent: 'center',
+    fontSize: tokens.fontSizeBase200,
+    fontWeight: tokens.fontWeightMedium,
+    color: tokens.colorNeutralForeground2,
+  },
+  dgAILab: {
+    fontSize: tokens.fontSizeBase200,
+    fontWeight: tokens.fontWeightMedium,
+    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeft: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderTopRightRadius: tokens.borderRadiusMedium,
+    borderTopLeftRadius: tokens.borderRadiusMedium,
+    alignContent: 'center',
+    color: tokens.colorNeutralForeground2,
+  },
+  dgAIBL: {
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderLeft: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderBottomLeftRadius: tokens.borderRadiusMedium,
+    alignContent: 'center',
+    backgroundColor: tokens.colorNeutralBackground1,
+  },
+  dgAIBM: {
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    alignContent: 'center',
+    backgroundColor: tokens.colorNeutralBackground1,
+  },
+  dgAIBR: {
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderBottomRightRadius: tokens.borderRadiusMedium,
+    alignContent: 'center',
+    backgroundColor: tokens.colorNeutralBackground1,
   },
 });
 
@@ -109,15 +217,6 @@ function toBin(v: number, width: number) {
 function toDec(v: number) {
   return String(v ?? 0);
 }
-
-export type EmulatorHandle = {
-  load: (values: Uint8Array) => void;
-  reset: () => void;
-  run: () => void;
-  stop: () => void;
-  step: () => boolean;
-  setIpr: (n: number) => void;
-};
 
 export default function Emulator({ assembly }: EmulatorProps) {
   const classes = useStyles();
@@ -475,314 +574,455 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
   const canRun = !!(assembly?.didAssemble && assembly.bytes && assembly.bytes.length > 2);
 
+  const reg8 = (label: string, v: number, from: number, to: number) => (
+    <>
+      <Tooltip
+        withArrow
+        appearance='inverted'
+        relationship='label'
+        positioning='after'
+        content={
+          <div>
+            <small>Register {label}</small>
+            <br />
+            <code>
+              Hex: {toHex(v, 2)}
+              <br />
+              Bin: {toBin(v, 2)}
+              <br />
+              Dec: {toDec(v)}
+            </code>
+          </div>
+        }
+      >
+        <div className={classes.dgR8V} style={{ gridColumn: '3 / 3', gridRow: `${from} / ${to}` }}>
+          <code className={classes.code}>{toHex(v, 2)}</code>
+        </div>
+      </Tooltip>
+      <div className={classes.dgRLab} style={{ gridColumn: '4 / 5', gridRow: `${from} / ${to}` }}></div>
+      <div className={classes.dgRLab} style={{ gridColumn: '5 / 6', gridRow: `${from} / ${to}` }}>
+        {label}
+      </div>
+      <div className={classes.dgR8E} style={{ gridColumn: '6 / 7', gridRow: `${from} / ${to}` }}></div>
+    </>
+  );
+
+  const reg16L = (label: string, v: number, from: number, to: number) => (
+    <>
+      <Tooltip
+        withArrow
+        appearance='inverted'
+        relationship='label'
+        positioning='after'
+        content={
+          <div>
+            <small>Register {label}</small>
+            <br />
+            <code>
+              Hex: {toHex(v, 2)}
+              <br />
+              Bin: {toBin(v, 2)}
+              <br />
+              Dec: {toDec(v)}
+            </code>
+          </div>
+        }
+      >
+        <div className={classes.dgR8V} style={{ gridColumn: '3 / 3', gridRow: `${from} / ${to}` }}>
+          <code className={classes.code}>{toHex(v, 2)}</code>
+        </div>
+      </Tooltip>
+      <div className={classes.dgRLab} style={{ gridColumn: '4 / 5', gridRow: `${from} / ${to}` }}>
+        {label}
+      </div>
+    </>
+  );
+
+  const reg16R = (label: string, v: number, from: number, to: number) => (
+    <>
+      <div className={classes.dgRLab} style={{ gridColumn: '5 / 6', gridRow: `${from} / ${to}` }}>
+        {label}
+      </div>
+      <Tooltip
+        withArrow
+        appearance='inverted'
+        relationship='label'
+        positioning='after'
+        content={
+          <div>
+            <small>Register {label}</small>
+            <br />
+            <code>
+              Hex: {toHex(v, 4)}
+              <br />
+              Bin: {toBin(v, 4)}
+              <br />
+              Dec: {toDec(v)}
+            </code>
+          </div>
+        }
+      >
+        <div className={classes.dgR16V} style={{ gridColumn: '6 / 7', gridRow: `${from} / ${to}` }}>
+          <code className={classes.code}>{toHex(v, 4)}</code>
+        </div>
+      </Tooltip>
+    </>
+  );
+
   return (
-    <div className={classes.root}>
-      <div className={classes.content}>
-        <div className={classes.tablesRow}>
-          {/* 8-bit registers */}
-          <table className={classes.table}>
-            <thead>
-              <tr>
-                <th className={classes.th}>A</th>
-                <th className={classes.th}>B</th>
-                <th className={classes.th}>C</th>
-                <th className={classes.th}>D</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {[snapshot.A, snapshot.B, snapshot.C, snapshot.D].map((v, i) => (
-                  <td key={i} className={classes.td}>
+    <Section title='Emulator'>
+      <SectionContent>
+        <div className={classes.content}>
+          <div className={classes.tablesRow}>
+            {/* Control registers */}
+            <table className={classes.table}>
+              <thead>
+                <tr>
+                  <th className={classes.th}>I</th>
+                  <th className={classes.th}>PC</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className={classes.td}>
                     <Tooltip
+                      withArrow
+                      appearance='inverted'
                       relationship='label'
                       content={
                         <div>
-                          <small>Register {String.fromCharCode(65 + i)}</small>
+                          <small>Instruction</small>
                           <br />
                           <code>
-                            Hex: {toHex(v, 2)}
+                            Hex: {toHex(snapshot.I, 2)}
                             <br />
-                            Bin: {toBin(v, 2)}
-                            <br />
-                            Dec: {toDec(v)}
+                            Bin: {toBin(snapshot.I, 2)}
                           </code>
                         </div>
                       }
                     >
-                      <code className={classes.code}>{toHex(v, 2)}</code>
+                      <code className={classes.code}>{toHex(snapshot.I, 2)}</code>
                     </Tooltip>
                   </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
-
-          {/* Control registers */}
-          <table className={classes.table}>
-            <thead>
-              <tr>
-                <th className={classes.th}>I</th>
-                <th className={classes.th}>PC</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className={classes.td}>
-                  <Tooltip
-                    relationship='label'
-                    content={
-                      <div>
-                        <small>Instruction</small>
-                        <br />
-                        <code>
-                          Hex: {toHex(snapshot.I, 2)}
-                          <br />
-                          Bin: {toBin(snapshot.I, 2)}
-                        </code>
-                      </div>
-                    }
-                  >
-                    <code className={classes.code}>{toHex(snapshot.I, 2)}</code>
-                  </Tooltip>
-                </td>
-                <td className={classes.td}>
-                  <Tooltip
-                    relationship='label'
-                    content={
-                      <div>
-                        <small>Program Counter</small>
-                        <br />
-                        <code>Hex: {toHex(snapshot.PC, 4)}</code>
-                      </div>
-                    }
-                  >
-                    <code className={classes.code}>{toHex(snapshot.PC, 4)}</code>
-                  </Tooltip>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          {/* 16-bit registers M, XY, J */}
-          <table className={classes.table}>
-            <thead>
-              <tr>
-                <th className={classes.th}>M</th>
-                <th className={classes.th}>XY</th>
-                <th className={classes.th}>J</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {[
-                  { label: 'M', val: snapshot.M, hi: (snapshot.M >> 8) & 0xff, lo: snapshot.M & 0xff },
-                  { label: 'XY', val: snapshot.XY, hi: (snapshot.XY >> 8) & 0xff, lo: snapshot.XY & 0xff },
-                  { label: 'J', val: snapshot.J, hi: (snapshot.J >> 8) & 0xff, lo: snapshot.J & 0xff },
-                ].map((reg, idx) => (
-                  <td key={idx} className={classes.td}>
+                  <td className={classes.td}>
                     <Tooltip
+                      withArrow
+                      appearance='inverted'
                       relationship='label'
                       content={
                         <div>
-                          <small>Register {reg.label}</small>
+                          <small>Program Counter</small>
+                          <br />
+                          <code>Hex: {toHex(snapshot.PC, 4)}</code>
+                        </div>
+                      }
+                    >
+                      <code className={classes.code}>{toHex(snapshot.PC, 4)}</code>
+                    </Tooltip>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* Primary switches */}
+            <table className={classes.table}>
+              <thead>
+                <tr>
+                  <th className={classes.th}>PS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className={classes.td}>
+                    <Tooltip
+                      withArrow
+                      appearance='inverted'
+                      relationship='label'
+                      content={
+                        <div>
+                          <small>Primary Switches</small>
                           <br />
                           <code>
-                            Hex: {toHex(reg.val, 4)}
+                            Hex: {toHex(snapshot.PS, 2)}
                             <br />
-                            Dec: {toDec(reg.val)}
-                          </code>
-                          <hr />
-                          <small>{reg.label === 'XY' ? 'X' : reg.label + '1'}</small>
-                          <code>
+                            Bin: {toBin(snapshot.PS, 2)}
                             <br />
-                            Hex: {toHex(reg.hi, 2)}
-                            <br />
-                            Bin: {toBin(reg.hi, 2)}
-                            <br />
-                            Dec: {toDec(reg.hi)}
-                          </code>
-                          <hr />
-                          <small>{reg.label === 'XY' ? 'Y' : reg.label + '2'}</small>
-                          <code>
-                            <br />
-                            Hex: {toHex(reg.lo, 2)}
-                            <br />
-                            Bin: {toBin(reg.lo, 2)}
-                            <br />
-                            Dec: {toDec(reg.lo)}
+                            Dec: {toDec(snapshot.PS)}
                           </code>
                         </div>
                       }
                     >
-                      <code className={classes.code}>{toHex(reg.val, 4)}</code>
+                      <code className={classes.code}>{toHex(snapshot.PS, 2)}</code>
                     </Tooltip>
                   </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          {/* Primary switches */}
-          <table className={classes.table}>
-            <thead>
-              <tr>
-                <th className={classes.th}>PS</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className={classes.td}>
-                  <Tooltip
-                    relationship='label'
-                    content={
-                      <div>
-                        <small>Primary Switches</small>
-                        <br />
-                        <code>
-                          Hex: {toHex(snapshot.PS, 2)}
-                          <br />
-                          Bin: {toBin(snapshot.PS, 2)}
-                          <br />
-                          Dec: {toDec(snapshot.PS)}
-                        </code>
-                      </div>
-                    }
-                  >
-                    <code className={classes.code}>{toHex(snapshot.PS, 2)}</code>
-                  </Tooltip>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div className={classes.controlsRow}>
-          {runningRef.current ? (
-            <Button appearance='primary' onClick={stop}>
-              Stop
-            </Button>
-          ) : (
-            <Button onClick={run} disabled={!canRun}>
-              Run
-            </Button>
-          )}
-          <Button
-            onClick={() => {
-              const r = step();
-              setSnapshot(snap(regsRef.current));
-              if (!r) runningRef.current = false;
+          {/* Diagram */}
+          <div
+            className='diagram'
+            style={{
+              flexGrow: 1,
+              display: 'grid',
+              gridTemplateColumns: '3px 12px auto 1fr 1fr auto 12px 3px 12px 1fr 1fr 1fr',
+              gridTemplateRows: 'repeat(20, 1fr)',
+              textAlign: 'center',
             }}
-            disabled={!canRun}
           >
-            Step
-          </Button>
-          <Button onClick={reset}>Reset</Button>
+            {/* Data Bus */}
+            <div className={classes.dgBus} style={{ gridColumn: '1 / 1', gridRow: '2 / 20' }}></div>
+            {/* Data Links */}
+            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '2 / 2' }}></div>
+            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '4 / 4' }}></div>
+            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '6 / 6' }}></div>
+            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '8 / 8' }}></div>
+            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '10 / 10' }}></div>
+            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '12 / 12' }}></div>
+            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '14 / 14' }}></div>
+            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '16 / 16' }}></div>
+            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '18 / 18' }}></div>
+            <div className={classes.dgLinkU} style={{ gridColumn: '2 / 2', gridRow: '19 / 19' }}></div>
+            {/* Register A/B/C/D */}
+            {reg8('A', snapshot.A, 1, 3)}
+            {reg8('B', snapshot.B, 3, 5)}
+            {reg8('C', snapshot.C, 5, 7)}
+            {reg8('D', snapshot.D, 7, 9)}
+            {/* Register M1/M2/M */}
+            {reg16L('M1', (snapshot.M >> 8) & 0xff, 9, 11)}
+            {reg16L('M2', snapshot.M & 0xff, 11, 13)}
+            {reg16R('M', snapshot.M, 9, 13)}
+            {/* Register X/Y/XY */}
+            {reg16L('X', (snapshot.XY >> 8) & 0xff, 13, 15)}
+            {reg16L('Y', snapshot.XY & 0xff, 15, 17)}
+            {reg16R('XY', snapshot.XY, 13, 17)}
+            {/* Register J1/J2/J */}
+            {reg16L('J1', (snapshot.J >> 8) & 0xff, 17, 19)}
+            {reg16L('J2', snapshot.J & 0xff, 19, 21)}
+            {reg16R('J', snapshot.J, 17, 21)}
+            {/* ALU Links */}
+            <div className={classes.dgLink} style={{ gridColumn: '7 / 8', gridRow: '4 / 4' }}></div>
+            <div className={classes.dgLinkU} style={{ gridColumn: '7 / 8', gridRow: '5 / 5' }}></div>
+            <div className={classes.dgBus} style={{ gridColumn: '8 / 9', gridRow: '4 / 6' }}></div>
+            <div className={classes.dgLink} style={{ gridColumn: '9 / 10', gridRow: '5 / 5' }}></div>
+            {/* Links */}
+            <div className={classes.dgLink} style={{ gridColumn: '7 / 8', gridRow: '11 / 12' }}></div>
+            <div className={classes.dgLink} style={{ gridColumn: '7 / 8', gridRow: '15 / 16' }}></div>
+            <div className={classes.dgLinkU} style={{ gridColumn: '7 / 8', gridRow: '18 / 19' }}></div>
+            {/* Addr Bus */}
+            <div className={classes.dgBus} style={{ gridColumn: '8 / 9', gridRow: '11 / 19' }}></div>
+            {/* Links */}
+            <div className={classes.dgLinkU} style={{ gridColumn: '9 / 10', gridRow: '18 / 19' }}></div>
+            {/* Program Counter */}
 
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
-            <Caption1>IPR</Caption1>
-            <Button size='small' appearance='subtle' disabled={ipr === 1} onClick={() => setIpr(ipr / 2)}>
-              -
-            </Button>
-            <span>{ipr}</span>
-            <Button size='small' appearance='subtle' disabled={ipr === 32} onClick={() => setIpr(ipr * 2)}>
-              +
-            </Button>
+            <Tooltip
+              withArrow
+              appearance='inverted'
+              relationship='label'
+              content={
+                <div>
+                  <small>Program Counter</small>
+                  <br />
+                  <code>
+                    Hex: {toHex(snapshot.PC, 4)}
+                    <br />
+                    Bin: {toBin(snapshot.PC, 4)}
+                    <br />
+                    Dec: {toDec(snapshot.PC)}
+                  </code>
+                </div>
+              }
+            >
+              <div className={classes.dgPCV} style={{ gridColumn: '10 / 12', gridRow: '18 / 20' }}>
+                <code className={classes.code}>{toHex(snapshot.PC, 4)}</code>
+              </div>
+            </Tooltip>
+
+            <div className={classes.dgPCLab} style={{ gridColumn: '12 / 13', gridRow: '18 / 20' }}>
+              PC
+            </div>
+            {/* ALU */}
+            <div className={classes.dgAILab} style={{ gridColumn: '10 / 13', gridRow: '2 / 4' }}>
+              ALU
+            </div>
+            <div className={classes.dgAIBL} style={{ textAlign: 'right', gridColumn: '10 / 11', gridRow: '4 / 7' }}>
+              <Badge shape='circular' appearance='outline'>
+                S
+              </Badge>
+            </div>
+            <div className={classes.dgAIBM} style={{ gridColumn: '11 / 12', gridRow: '4 / 7' }}>
+              <Badge shape='circular' appearance='outline'>
+                C
+              </Badge>
+            </div>
+            <div className={classes.dgAIBR} style={{ textAlign: 'left', gridColumn: '12 / 13', gridRow: '4 / 7' }}>
+              <Badge shape='circular' appearance='outline'>
+                S
+              </Badge>
+            </div>
+            {/* Instruction */}
+            <div className={classes.dgAILab} style={{ gridColumn: '10 / 13', gridRow: '9 / 11' }}>
+              Instruction
+            </div>
+            <div className={classes.dgAIBL} style={{ textAlign: 'right', gridColumn: '10 / 11', gridRow: '11 / 13' }}>
+              <code className={classes.code}>00</code>
+            </div>
+            <div className={classes.dgAIBR} style={{ paddingLeft: '3px', gridColumn: '11 / 13', gridRow: '11 / 13' }}>
+              <Badge size='small' shape='rounded' color='brand' appearance='outline'>
+                MOV18
+              </Badge>
+            </div>
           </div>
-        </div>
 
-        {!canRun && (
-          <div style={{ color: tokens.colorNeutralForeground3 }}>
-            {assembly?.didAssemble === false
-              ? 'Assembly failed. Fix issues and re-assemble.'
-              : 'No program loaded. Assemble code to run it here.'}
-          </div>
-        )}
-
-        <div className={classes.switchesRow}>
-          {[7, 6, 5, 4, 3, 2, 1, 0].map(bit => {
-            const on = !!(snapshot.PS & (1 << bit));
-            return (
-              <button
-                key={bit}
-                className={`${classes.switchBtn} ${on ? classes.switchActive : ''}`}
-                onClick={() => flipBit(bit)}
-                aria-pressed={on}
-                title={`Primary switch ${bit}`}
-              >
-                {bit}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Memory table */}
-        <table className={classes.memoryTable}>
-          <thead>
-            <tr>
-              <th className={classes.memTh} style={{ width: 24 }}>
-                {memoryOffset >= 128 && (
-                  <button onClick={prevOffset} aria-label='Previous page'>
-                    {'<'}
-                  </button>
+          <div className={classes.tablesRow}>
+            <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalXS }}>
+              <div className={classes.controlsRow}>
+                {runningRef.current ? (
+                  <Button size='small' appearance='primary' onClick={stop} style={{ minWidth: 0, flexGrow: 1 }}>
+                    Stop
+                  </Button>
+                ) : (
+                  <Button size='small' onClick={run} disabled={!canRun} style={{ minWidth: 0, flexGrow: 1 }}>
+                    Run
+                  </Button>
                 )}
-              </th>
-              <th className={classes.memTh} colSpan={14}>
-                Memory (offset <code className={classes.code}>{toHex(memoryOffset, 4)}</code>)
-              </th>
-              <th className={classes.memTh} style={{ width: 24, textAlign: 'right' }}>
-                {memoryOffset < 32640 && (
-                  <button onClick={nextOffset} aria-label='Next page'>
-                    {'>'}
-                  </button>
-                )}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(r => (
-              <tr key={r}>
-                {cols.map(c => {
-                  const addr = memoryOffset + r * 16 + c;
-                  const v = memoryRef.current[addr] ?? 0;
-                  const isPC = (snapshot.PC & 0xffff) === addr;
-                  const isM = (snapshot.M & 0xffff) === addr;
+                <Button
+                  size='small'
+                  style={{ minWidth: 0, flexGrow: 1 }}
+                  onClick={() => {
+                    const r = step();
+                    setSnapshot(snap(regsRef.current));
+                    if (!r) runningRef.current = false;
+                  }}
+                  disabled={!canRun}
+                >
+                  Step
+                </Button>
+                <Button size='small' onClick={reset} style={{ minWidth: 0, flexGrow: 1 }}>
+                  Reset
+                </Button>
+
+                <Popover trapFocus>
+                  <PopoverTrigger disableButtonEnhancement>
+                    <Button size='small' style={{ minWidth: 0, flexGrow: 1 }} icon={<Settings16Regular />} />
+                  </PopoverTrigger>
+
+                  <PopoverSurface>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <Caption1>IPR</Caption1>
+                      <Button size='small' appearance='subtle' disabled={ipr === 1} onClick={() => setIpr(ipr / 2)}>
+                        -
+                      </Button>
+                      <span>{ipr}</span>
+                      <Button size='small' appearance='subtle' disabled={ipr === 32} onClick={() => setIpr(ipr * 2)}>
+                        +
+                      </Button>
+                    </div>
+                  </PopoverSurface>
+                </Popover>
+              </div>
+
+              <div className={classes.switchesRow}>
+                {[7, 6, 5, 4, 3, 2, 1, 0].map(bit => {
+                  const on = !!(snapshot.PS & (1 << bit));
                   return (
-                    <td
-                      key={c}
-                      className={`${classes.memTd} ${isPC ? classes.pcMarker : ''} ${isM ? classes.mMarker : ''}`}
-                    >
-                      <Tooltip
-                        relationship='label'
-                        content={
-                          <div>
-                            <small>Memory Slot</small>
-                            <br />
-                            <code>
-                              Address: {toHex(addr, 4)}
-                              <br />
-                              Hex: {toHex(v, 2)}
-                              <br />
-                              Bin: {toBin(v, 2)}
-                              <br />
-                              Dec: {toDec(v)}
-                            </code>
-                          </div>
-                        }
+                    <Tooltip relationship='label' content={`Primary switch ${bit}`} withArrow appearance='inverted'>
+                      <button
+                        key={bit}
+                        className={`${classes.switchBtn} ${on ? classes.switchActive : ''}`}
+                        onClick={() => flipBit(bit)}
+                        aria-pressed={on}
                       >
-                        <code className={classes.code}>{toHex(v, 2)}</code>
-                      </Tooltip>
-                    </td>
+                        {bit}
+                      </button>
+                    </Tooltip>
                   );
                 })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              </div>
+            </div>
+          </div>
 
-      <div className={classes.footer}>
-        <span>{status.text}</span>
-      </div>
-    </div>
+          {/* Memory table */}
+          <div className={classes.tablesRow}>
+            <table className={classes.memoryTable}>
+              <thead>
+                <tr>
+                  <th className={classes.memTh} style={{ width: 24 }} colSpan={2}>
+                    <Button
+                      onClick={prevOffset}
+                      disabled={memoryOffset === 0}
+                      icon={<CaretLeft16Filled />}
+                      size='small'
+                      appearance='transparent'
+                      style={{ minWidth: 0, flexGrow: 1 }}
+                      aria-label='Previous page'
+                    />
+                  </th>
+                  <th className={classes.memTh} colSpan={12}>
+                    Memory (offset <code className={classes.code}>{toHex(memoryOffset, 4)}</code>)
+                  </th>
+                  <th className={classes.memTh} style={{ width: 24, textAlign: 'right' }} colSpan={2}>
+                    <Button
+                      disabled={memoryOffset >= 32640}
+                      onClick={nextOffset}
+                      icon={<CaretRight16Filled />}
+                      size='small'
+                      appearance='transparent'
+                      aria-label='Next page'
+                      style={{ minWidth: 0, flexGrow: 1 }}
+                    />
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(r => (
+                  <tr key={r}>
+                    {cols.map(c => {
+                      const addr = memoryOffset + r * 16 + c;
+                      const v = memoryRef.current[addr] ?? 0;
+                      const isPC = (snapshot.PC & 0xffff) === addr;
+                      const isM = (snapshot.M & 0xffff) === addr;
+                      return (
+                        <td
+                          key={c}
+                          className={`${classes.memTd} ${isPC ? classes.pcMarker : ''} ${isM ? classes.mMarker : ''}`}
+                        >
+                          <Tooltip
+                            relationship='label'
+                            withArrow
+                            appearance='inverted'
+                            content={
+                              <div>
+                                <small>Memory Slot</small>
+                                <br />
+                                <code>
+                                  Address: {toHex(addr, 4)}
+                                  <br />
+                                  Hex: {toHex(v, 2)}
+                                  <br />
+                                  Bin: {toBin(v, 2)}
+                                  <br />
+                                  Dec: {toDec(v)}
+                                </code>
+                              </div>
+                            }
+                          >
+                            <code className={classes.code}>{toHex(v, 2)}</code>
+                          </Tooltip>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </SectionContent>
+      <SectionFooter>
+        <span className={classes.status}>{status.text}</span>
+      </SectionFooter>
+    </Section>
   );
 }
