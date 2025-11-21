@@ -1,5 +1,4 @@
 import { type JSXElement, type MenuProps, type ToolbarProps } from '@fluentui/react-components';
-import { CutRegular, ClipboardPasteRegular, CopyRegular } from '@fluentui/react-icons';
 import {
   tokens,
   makeStyles,
@@ -41,7 +40,7 @@ function AppToolbarMenu(
   }
 ): JSXElement {
   const styles = useStyles();
-  const { execute } = useCommandBus();
+  const { execute, executeAsync } = useCommandBus();
 
   // Platform detection – derived once
   const isMac = useMemo(
@@ -113,7 +112,7 @@ function AppToolbarMenu(
             >
               Save
             </MenuItem>
-            <MenuItem disabled secondaryContent='Ctrl+Shift+S'>
+            <MenuItem secondaryContent={isMac ? '⇧ ⌘ S' :'Ctrl+Shift+S'} onClick={async () => await executeAsync(appCommands.saveAs())}>
               Save As…
             </MenuItem>
             <MenuItem onClick={() => setSection('export')} secondaryContent={isMac ? '⇧ ⌘ X' : 'Ctrl+Shift+X'}>
@@ -139,20 +138,6 @@ function AppToolbarMenu(
             </MenuItem>
             <MenuItem onClick={() => doMonacoKeyboard('redo')} secondaryContent={isMac ? '⇧ ⌘ Z' : 'Ctrl+Y'}>
               Redo
-            </MenuItem>
-            <MenuDivider />
-            <MenuItem disabled icon={<CutRegular />} secondaryContent='Ctrl+X'>
-              Cut
-            </MenuItem>
-            <MenuItem disabled icon={<CopyRegular />} secondaryContent='Ctrl+C'>
-              Copy
-            </MenuItem>
-            <MenuItem
-              onClick={() => doMonacoKeyboard('paste')}
-              icon={<ClipboardPasteRegular />}
-              secondaryContent='Ctrl+V'
-            >
-              Paste
             </MenuItem>
             <MenuDivider />
             <MenuItem onClick={() => doMonacoAction('actions.find')} secondaryContent={isMac ? '⌘ F' : 'Ctrl+F'}>
@@ -182,9 +167,6 @@ function AppToolbarMenu(
         </MenuTrigger>
         <MenuPopover>
           <MenuList>
-            <MenuItem disabled secondaryContent='Ctrl+A'>
-              Select All
-            </MenuItem>
             <MenuItem
               secondaryContent={isMac ? '⇧ ⌃ ⌘ →' : 'Shift+Alt+RightArrow'}
               onClick={() => doMonacoAction('editor.action.smartSelect.expand')}

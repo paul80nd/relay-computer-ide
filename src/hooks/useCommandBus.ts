@@ -3,6 +3,7 @@ import { createContext, useContext, useMemo, useRef } from "react";
 
 export interface CommandBus {
   execute(command: Command): void;
+  executeAsync(command: Command): Promise<void>;
   subscribe(target: CommandTarget, handler: (cmd: Command) => void): () => void;
 }
 
@@ -18,7 +19,7 @@ export function useCommandBus(): CommandBus {
 
 export function useCreateCommandBus(): CommandBus {
   // Handlers live in a ref to avoid re-renders on subscribe/unsubscribe.
-  const handlersRef = useRef<Map<string, Set<(cmd: Command) => void>>>(new Map());
+  const handlersRef = useRef<Map<string, Set<(cmd: Command) => void | Promise<void>>>>(new Map());
 
   const bus = useMemo<CommandBus>(() => ({
     execute(command) {
@@ -28,6 +29,24 @@ export function useCreateCommandBus(): CommandBus {
         for (const h of Array.from(set)) {
           try { h(command); } catch (e) { console.error(e); }
         }
+      }
+    },
+    async executeAsync(command) {
+      const set = handlersRef.current.get(command.target);
+      if (!set) return;
+      const tasks: Promise<void>[] = [];
+      for (const h of Array.from(set)) {
+        try {
+          const res = h(command);
+          if (res && typeof (res as Promise<void>).then === 'function') {
+            tasks.push(res as Promise<void>);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      if (tasks.length) {
+        await Promise.allSettled(tasks);
       }
     },
     subscribe(target, handler) {

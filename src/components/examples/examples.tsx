@@ -38,9 +38,9 @@ const isDevMode = import.meta.env.DEV;
 
 function Examples() {
   const styles = useStyles();
-  const { execute } = useCommandBus();
+  const { executeAsync } = useCommandBus();
 
-  const loadExample = (example: string) => execute(appCommands.loadExample(example));
+  const loadExampleAsync = (example: string) => executeAsync(appCommands.loadExample(example));
 
   const renderSectionHeader = (description: string) => (
     <Card className={styles.card} size='small' appearance='subtle' role='listitem'>
@@ -54,7 +54,12 @@ function Examples() {
         header={<Text weight='semibold'>{name}</Text>}
         description={<Caption1 className={styles.caption}>{description}</Caption1>}
         action={
-          <Button size='small' appearance='secondary' style={{ minWidth: 0 }} onClick={() => loadExample(id)}>
+          <Button
+            size='small'
+            appearance='secondary'
+            style={{ minWidth: 0 }}
+            onClick={async () => await loadExampleAsync(id)}
+          >
             Open
           </Button>
         }

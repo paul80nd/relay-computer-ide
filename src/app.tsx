@@ -21,6 +21,7 @@ import { CommandBusProvider, useCreateCommandBus } from './hooks/useCommandBus.t
 import { exchangeAddressForSourceLine, exchangeSourceLineNumberForAddress } from './assembler.ts';
 import Documentation from './components/documentation/documentation.tsx';
 import Problems from './components/problems/index.ts';
+import { saveAsTextFile } from './utils.ts';
 
 const useStyles = makeStyles({
   container: {
@@ -125,14 +126,18 @@ export const App = () => {
 
   /** App command handling */
   useEffect(() => {
-    return bus.subscribe('app', command => {
+    return bus.subscribe('app', async command => {
       switch (command.type) {
         case 'app.save': {
           save();
           return;
         }
+        case 'app.saveAs': {
+          await saveAsTextFile(code);
+          return;
+        }
         case 'app.loadExample': {
-          loadExample(command.example);
+          await loadExample(command.example);
           return;
         }
         case 'app.jumpToSource': {
@@ -176,12 +181,16 @@ export const App = () => {
 
   /** Keyboard shortcuts handling */
   useEffect(() => {
-    const handler = (event: KeyboardEvent) => {
+    const handler = async (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
-      // Save (Cmd+S / Ctrl+S)
+      // Save (Cmd+S / Ctrl+S) (Save As if shift is held)
       if ((event.metaKey || event.ctrlKey) && key === 's') {
         event.preventDefault();
-        bus.execute(appCommands.save());
+        if (event.shiftKey) {
+          await bus.executeAsync(appCommands.saveAs());
+        } else {
+          bus.execute(appCommands.save());
+        }
         return;
       }
       // Ctrl+Shift/Cmd+Shift Combinations
@@ -260,7 +269,7 @@ export const App = () => {
       case Prefs.Sections.EXAMPLES:
         return <Examples />;
       case Prefs.Sections.EXPORT:
-        return <Export assembly={assembly}  />;
+        return <Export assembly={assembly} />;
       case Prefs.Sections.EMULATOR:
         return <AppEmulator />;
     }
