@@ -1,6 +1,5 @@
-import { Component, isDevMode, type OnInit, inject, ViewChild } from '@angular/core';
+import { Component, isDevMode, type OnInit, ViewChild } from '@angular/core';
 import { EmulatorComponent } from './emulator/emulator.component';
-import { ClipboardService } from 'ngx-clipboard'
 import * as rcasm from '@paul80nd/rcasm';
 import { ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule } from '@clr/angular';
 
@@ -10,7 +9,6 @@ import { ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule } from '@clr
   imports: [ClrCheckboxModule, ClrDropdownModule, ClrVerticalNavModule, EmulatorComponent]
 })
 export class AppComponent implements OnInit {
-  private _clipboardService = inject(ClipboardService);
 
   readonly emulator = ViewChild.required(EmulatorComponent);
 
@@ -65,32 +63,6 @@ export class AppComponent implements OnInit {
     }
   }
 
-  exportToClipboard() {
-    if (this.didAssemble && this.lastCompile) {
-      const hex = [...this.lastCompile].map(x => x.toString(16).padStart(2, "0")).join('')
-      this._clipboardService.copy(hex);
-      this.output().setStateInformation(`Copied ${hex.length > 14 ? hex.substring(0, 14) + '...' : hex} to the clipboard`);
-    }
-  }
-
-  exportToPaperTape() {
-    if (this.didAssemble && this.lastCompile) {
-      const wi = window.open('', 'tape', '');
-      if (wi) {
-        wi.location.href = 'assets/tape/tape.html';
-        // Wait for window instance to be created
-        setTimeout(() => {
-          const prgId = Math.random().toString(36).slice(2, 10);
-          const name = '';
-          const desc = '';
-          wi.document.body.innerText = `${prgId}@${name}@${desc}@${this.dasm.replace(/\n/gi, '|')}`;
-          var script = document.createElement('script');
-          script.src = 'tape.js';
-          wi.document.head.appendChild(script);
-        }, 500);
-      }
-    }
-  }
 
   exportToLoadSheet() {
     if (this.didAssemble && this.lastCompile) {

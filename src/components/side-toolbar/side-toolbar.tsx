@@ -85,7 +85,6 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
         </Tooltip>
         <Tooltip content='Export Code' relationship='description' positioning='after' withArrow>
           <ToolbarRadioButton
-            disabled
             className={styles.toggle}
             icon={<Export className={styles.icon} />}
             name='section'

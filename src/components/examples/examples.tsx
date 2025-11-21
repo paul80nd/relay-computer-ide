@@ -13,33 +13,13 @@ import {
 import { Text } from '@fluentui/react-components';
 import { useCommandBus } from '../../hooks/useCommandBus.ts';
 import { appCommands } from '../../commands.ts';
+import { Section, SectionContent, SectionFooter } from '../shared';
 
 const useStyles = makeStyles({
-  root: {
-    height: '100%',
-    minHeight: 0,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  header: {
-    textTransform: 'uppercase',
-    color: tokens.colorNeutralForeground3,
-    padding: '.8rem .75rem 0',
-  },
-  content: {
-    minHeight: 0,
-    flexGrow: 1,
-    overflowY: 'auto',
-  },
   contentHeader: {
-    padding: '.5rem .75rem',
+    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL} ${tokens.spacingVerticalXS}`,
     lineHeight: '.8rem',
     color: tokens.colorNeutralForeground2,
-  },
-  footer: {
-    color: tokens.colorStatusWarningForeground1,
-    padding: '.3rem .75rem .6rem',
-    lineHeight: '.8rem',
   },
   accordionHeader: {
     minHeight: '1rem',
@@ -58,7 +38,7 @@ const isDevMode = import.meta.env.DEV;
 
 function Examples() {
   const styles = useStyles();
-   const { execute } = useCommandBus();
+  const { execute } = useCommandBus();
 
   const loadExample = (example: string) => execute(appCommands.loadExample(example));
 
@@ -83,11 +63,8 @@ function Examples() {
   );
 
   return (
-    <div className={styles.root}>
-      <header className={styles.header}>
-        <Text as="h2" size={300}>Code Examples</Text>
-      </header>
-      <div className={styles.content}>
+    <Section title='Code Examples'>
+      <SectionContent>
         <div className={styles.contentHeader}>
           <Caption1>This is a curated set of example programs that can be loaded into the IDE.</Caption1>
         </div>
@@ -186,11 +163,11 @@ function Examples() {
             </AccordionPanel>
           </AccordionItem>
         </Accordion>
-      </div>
-      <div className={styles.footer}>
+      </SectionContent>
+      <SectionFooter>
         <Caption1>Loading an example will replace any existing program active in the IDE.</Caption1>
-      </div>
-    </div>
+      </SectionFooter>
+    </Section>
   );
 }
 

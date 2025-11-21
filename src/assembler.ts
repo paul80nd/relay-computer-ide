@@ -2,9 +2,8 @@ import * as rcasm from '@paul80nd/rcasm';
 import { pluralize } from './utils';
 
 export function assemble(code: string): AssemblerResult {
-  const { prg, errors, /* warnings,*/ labels, debugInfo } = rcasm.assemble(code);
+  const { prg, errors, labels, debugInfo } = rcasm.assemble(code);
 
-  // this.editor().setDiagnostics(errors, warnings);
   const didAssemble = errors.length === 0;
   let dasm = '';
   let labelDict = undefined;
@@ -15,13 +14,11 @@ export function assemble(code: string): AssemblerResult {
       dataLength: debugInfo?.info().dataLength
     }).join('\n');
     labelDict = Object.fromEntries(labels.map(l => [l.addr.toString(16).padStart(4, '0').toUpperCase(), { name: l.name }]));
-    //   this.output().setLabels(labelDict);
-    //   this.emulator().load(this.lastCompile);
   } else {
     dasm = `❌ Assembly failed (${pluralize(errors.length, 'error', 'errors')})`;
   }
-  // this.output().didAssemble(outcome);
   return {
+    didAssemble: didAssemble,
     bytes: prg,
     dasm: dasm,
     pcToLocs: debugInfo?.pcToLocs,
@@ -30,6 +27,7 @@ export function assemble(code: string): AssemblerResult {
 }
 
 export type AssemblerResult = {
+  didAssemble: boolean;
   bytes?: Uint8Array;
   dasm: string;
   pcToLocs?: {

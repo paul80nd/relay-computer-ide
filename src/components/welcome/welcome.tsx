@@ -1,39 +1,14 @@
-import {
-  Text,
-  Link,
-  makeStyles,
-  tokens,
-} from '@fluentui/react-components';
+import { Link, makeStyles, tokens } from '@fluentui/react-components';
 import { Links } from '../../links';
+import { Section, SectionContent } from '../shared';
 
 const useStyles = makeStyles({
-  root: {
-    height: '100%',
-    minHeight: 0,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  header: {
-    textTransform: 'uppercase',
-    color: tokens.colorNeutralForeground3,
-    padding: '.8rem .75rem 0',
-  },
-  content: {
-    minHeight: 0,
-    flexGrow: 1,
-    overflowY: 'auto',
-  },
   contentHeader: {
-    padding: '.5rem .75rem 0',
-    color: tokens.colorNeutralForeground2,
-  },
-  contentHeader2: {
-    padding: '0 .75rem',
+    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL} 0`,
     color: tokens.colorNeutralForeground2,
   },
   para: {
     marginTop: 0,
-    paddingLeft: '.7rem',
     marginBottom: tokens.spacingVerticalS,
   },
 });
@@ -42,18 +17,13 @@ function Welcome() {
   const styles = useStyles();
 
   return (
-    <div className={styles.root}>
-      <header className={styles.header}>
-        <Text as="h2" size={300}>Welcome</Text>
-      </header>
-      <div className={styles.content}>
+    <Section title='Welcome'>
+      <SectionContent>
         <div className={styles.contentHeader}>
           <p className={styles.para}>
             This is an &apos;Integrated Development Environment&apos; (IDE) for writing programs in an assembly language
             specific to my relay computer.
           </p>
-        </div>
-        <div className={styles.contentHeader2}>
           <p className={styles.para}>
             More details on my relay computer can be found at&nbsp;
             <Link href={Links.Blog} target='_blank' rel='noreferrer noopener'>
@@ -65,8 +35,8 @@ function Welcome() {
             </Link>
           </p>
         </div>
-      </div>
-    </div>
+      </SectionContent>
+    </Section>
   );
 }
 

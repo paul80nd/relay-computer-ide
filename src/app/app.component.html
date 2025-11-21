@@ -12,34 +12,6 @@
         <input id="emuToggle" type="checkbox" clrToggle [(ngModel)]="showEmu" />
         <label for="emuToggle" class="nav-text">Emulator</label>
       </div>
-      <clr-dropdown>
-        <button class="nav-icon" clrDropdownTrigger>
-          <cds-icon shape="import"></cds-icon> Import
-          <cds-icon shape="angle" direction="down"></cds-icon>
-        </button>
-        <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
-          <h4 class="dropdown-header">Import Program</h4>
-          <a href="#" (click)="examples.show()" clrDropdownItem>from Example ...</a>
-        </clr-dropdown-menu>
-      </clr-dropdown>
-      <clr-dropdown>
-        <button class="nav-icon" clrDropdownTrigger>
-          <cds-icon shape="export"></cds-icon> Export
-          <cds-icon shape="angle" direction="down"></cds-icon>
-        </button>
-        <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
-          <h4 class="dropdown-header">Export Assembled</h4>
-          <a href="#" (click)="exportToClipboard()" [clrDisabled]="!didAssemble" clrDropdownItem>to Clipboard</a>
-          <a href="#" (click)="exportToPaperTape()" [clrDisabled]="!didAssemble" clrDropdownItem>to Paper Tape</a>
-          <a href="#" (click)="exportToLoadSheet()" [clrDisabled]="!didAssemble" clrDropdownItem>to Load Sheet</a>
-        </clr-dropdown-menu>
-      </clr-dropdown>
-      <clr-dropdown>
-        <button class="nav-icon" clrDropdownTrigger>
-          <cds-icon shape="library"></cds-icon> Links
-          <cds-icon shape="angle" direction="down"></cds-icon>
-        </button>
-      </clr-dropdown>
     </div>
   </header>
   <div class="content-container">

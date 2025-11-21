@@ -1,4 +1,3 @@
-
 import { makeStyles, tokens } from '@fluentui/react-components';
 import AppToolbar from './components/toolbar';
 import SideToolbar from './components/side-toolbar';
@@ -9,7 +8,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { usePreferences, Prefs } from './hooks/usePreferences';
 import Welcome from './components/welcome';
 import { AppEmulator } from './components/emulator';
-import { AppExport } from './components/export';
+import Export from './components/export';
 import Examples from './components/examples';
 import StatusBar from './components/status-bar';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
@@ -261,7 +260,7 @@ export const App = () => {
       case Prefs.Sections.EXAMPLES:
         return <Examples />;
       case Prefs.Sections.EXPORT:
-        return <AppExport />;
+        return <Export assembly={assembly}  />;
       case Prefs.Sections.EMULATOR:
         return <AppEmulator />;
     }

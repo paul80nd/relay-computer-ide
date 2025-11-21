@@ -116,7 +116,7 @@ function AppToolbarMenu(
             <MenuItem disabled secondaryContent='Ctrl+Shift+S'>
               Save As…
             </MenuItem>
-            <MenuItem disabled secondaryContent='Ctrl+Shift+X'>
+            <MenuItem onClick={() => setSection('export')} secondaryContent={isMac ? '⇧ ⌘ X' : 'Ctrl+Shift+X'}>
               Export…
             </MenuItem>
             <MenuDivider />
@@ -241,7 +241,7 @@ function AppToolbarMenu(
             <MenuItemRadio name='section' value='examples' secondaryContent={isMac ? '⇧ ⌘ E' : 'Ctrl+Shift+E'}>
               Examples
             </MenuItemRadio>
-            <MenuItemRadio disabled name='section' value='export' secondaryContent={isMac ? '⇧ ⌘ X' : 'Ctrl+Shift+X'}>
+            <MenuItemRadio name='section' value='export' secondaryContent={isMac ? '⇧ ⌘ X' : 'Ctrl+Shift+X'}>
               Export
             </MenuItemRadio>
             <MenuItemRadio disabled name='section' value='emulator' secondaryContent={isMac ? '⇧ ⌘ Y' : 'Ctrl+Shift+Y'}>
@@ -254,10 +254,18 @@ function AppToolbarMenu(
               Welcome
             </MenuItemRadio>
             <MenuDivider />
-            <MenuItemCheckbox name='panels' value={Prefs.Panels.PANEL} secondaryContent={isMac ? '⇧ ⌘ M':'Ctrl+Shift+M'}>
+            <MenuItemCheckbox
+              name='panels'
+              value={Prefs.Panels.PANEL}
+              secondaryContent={isMac ? '⇧ ⌘ M' : 'Ctrl+Shift+M'}
+            >
               Problems
             </MenuItemCheckbox>
-            <MenuItemCheckbox name='panels' value={Prefs.Panels.SEC_SIDEBAR} secondaryContent={isMac ? '⇧ ⌘ U':'Ctrl+Shift+U'}>
+            <MenuItemCheckbox
+              name='panels'
+              value={Prefs.Panels.SEC_SIDEBAR}
+              secondaryContent={isMac ? '⇧ ⌘ U' : 'Ctrl+Shift+U'}
+            >
               Output
             </MenuItemCheckbox>
           </MenuList>
