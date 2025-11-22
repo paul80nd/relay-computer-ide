@@ -1,8 +1,16 @@
 import { Tooltip, makeStyles, tokens, Badge } from '@fluentui/react-components';
 import { toBin, toDec, toHex } from './fmt';
 import type { Snapshot } from './emulator';
+import { memo } from 'react';
 
 const useStyles = makeStyles({
+  root: {
+    flexGrow: 1,
+    display: 'grid',
+    gridTemplateColumns: '3px 12px auto 1fr 1fr auto 12px 3px 12px 1fr 1fr 1fr',
+    gridTemplateRows: 'repeat(20, 1fr)',
+    textAlign: 'center',
+  },
   code: {
     fontFamily: 'Menlo, Monaco, "Courier New", monospace',
     fontWeight: tokens.fontWeightRegular,
@@ -171,6 +179,16 @@ const useStyles = makeStyles({
   instrCls: { paddingLeft: '3px', gridColumn: '11 / 13', gridRow: '11 / 13' },
 });
 
+const FlagTooltip = memo(function FlagTooltip({ name, set }: { name: string; set: boolean }) {
+  return (
+    <div>
+      <small>{name} Flag</small>
+      <br />
+      <code>{set ? 'SET' : 'CLEAR'}</code>
+    </div>
+  );
+});
+
 function RegTooltipContent({
   title,
   value,
@@ -201,20 +219,30 @@ function RegTooltipContent({
   );
 }
 
-export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
-  const styles = useStyles();
+type RowCls = string;
 
-  const reg8 = (label: string, v: number, rowCls: string) => (
+const Reg8 = memo(function Reg8({
+  label,
+  value,
+  rowCls,
+  styles,
+}: {
+  label: string;
+  value: number;
+  rowCls: RowCls;
+  styles: ReturnType<typeof useStyles>;
+}) {
+  return (
     <>
       <Tooltip
         withArrow
         appearance='inverted'
         relationship='label'
         positioning='after'
-        content={<RegTooltipContent title={`Register ${label}`} value={v} width={2} showDec />}
+        content={<RegTooltipContent title={`Register ${label}`} value={value} width={2} showDec />}
       >
         <div className={`${styles.dgR8V} ${styles.posC3} ${rowCls}`}>
-          <code className={styles.code}>{toHex(v, 2)}</code>
+          <code className={styles.code}>{toHex(value, 2)}</code>
         </div>
       </Tooltip>
       <div className={`${styles.dgRLab} ${styles.posC4_5} ${rowCls}`}></div>
@@ -222,25 +250,49 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
       <div className={`${styles.dgR8E} ${styles.posC6_7} ${rowCls}`} />
     </>
   );
+});
 
-  const reg16L = (label: string, v: number, rowCls: string) => (
+const Reg16L = memo(function Reg16L({
+  label,
+  value,
+  rowCls,
+  styles,
+}: {
+  label: string;
+  value: number;
+  rowCls: RowCls;
+  styles: ReturnType<typeof useStyles>;
+}) {
+  return (
     <>
       <Tooltip
         withArrow
         appearance='inverted'
         relationship='label'
         positioning='after'
-        content={<RegTooltipContent title={`Register ${label}`} value={v} width={2} showDec />}
+        content={<RegTooltipContent title={`Register ${label}`} value={value} width={2} showDec />}
       >
         <div className={`${styles.dgR8V} ${styles.posC3} ${rowCls}`}>
-          <code className={styles.code}>{toHex(v, 2)}</code>
+          <code className={styles.code}>{toHex(value, 2)}</code>
         </div>
       </Tooltip>
       <div className={`${styles.dgRLab} ${styles.posC4_5} ${rowCls}`}>{label}</div>
     </>
   );
+});
 
-  const reg16R = (label: string, v: number, rowCls: string) => (
+const Reg16R = memo(function Reg16R({
+  label,
+  value,
+  rowCls,
+  styles,
+}: {
+  label: string;
+  value: number;
+  rowCls: RowCls;
+  styles: ReturnType<typeof useStyles>;
+}) {
+  return (
     <>
       <div className={`${styles.dgRLab} ${styles.posC5_6} ${rowCls}`}>{label}</div>
       <Tooltip
@@ -248,33 +300,19 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         appearance='inverted'
         relationship='label'
         positioning='after'
-        content={<RegTooltipContent title={`Register ${label}`} value={v} width={4} showDec />}
+        content={<RegTooltipContent title={`Register ${label}`} value={value} width={4} showDec />}
       >
         <div className={`${styles.dgR16V} ${styles.posC6_7} ${rowCls}`}>
-          <code className={styles.code}>{toHex(v, 4)}</code>
+          <code className={styles.code}>{toHex(value, 4)}</code>
         </div>
       </Tooltip>
     </>
   );
+});
 
-  const mHi = (snapshot.M >>> 8) & 0xff;
-  const mLo = snapshot.M & 0xff;
-  const xyHi = (snapshot.XY >>> 8) & 0xff;
-  const xyLo = snapshot.XY & 0xff;
-  const jHi = (snapshot.J >>> 8) & 0xff;
-  const jLo = snapshot.J & 0xff;
-
+const StaticLayer = memo(function StaticLayer({ styles }: { styles: ReturnType<typeof useStyles> }) {
   return (
-    <div
-      className='diagram'
-      style={{
-        flexGrow: 1,
-        display: 'grid',
-        gridTemplateColumns: '3px 12px auto 1fr 1fr auto 12px 3px 12px 1fr 1fr 1fr',
-        gridTemplateRows: 'repeat(20, 1fr)',
-        textAlign: 'center',
-      }}
-    >
+    <>
       {/* Data Bus */}
       <div className={`${styles.dgBus} ${styles.posC1R2_20}`}></div>
       {/* Data Links */}
@@ -288,23 +326,6 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
       <div className={`${styles.dgLink} ${styles.posC2R16}`}></div>
       <div className={`${styles.dgLink} ${styles.posC2R18}`}></div>
       <div className={`${styles.dgLinkU} ${styles.posC2R19}`}></div>
-      {/* Register A/B/C/D */}
-      {reg8('A', snapshot.A, styles.posR1_3)}
-      {reg8('B', snapshot.B, styles.posR3_5)}
-      {reg8('C', snapshot.C, styles.posR5_7)}
-      {reg8('D', snapshot.D, styles.posR7_9)}
-      {/* Register M1/M2/M */}
-      {reg16L('M1', mHi, styles.posR9_11)}
-      {reg16L('M2', mLo, styles.posR11_13)}
-      {reg16R('M', snapshot.M, styles.posR9_13)}
-      {/* Register X/Y/XY */}
-      {reg16L('X', xyHi, styles.posR13_15)}
-      {reg16L('Y', xyLo, styles.posR15_17)}
-      {reg16R('XY', snapshot.XY, styles.posR13_17)}
-      {/* Register J1/J2/J */}
-      {reg16L('J1', jHi, styles.posR17_19)}
-      {reg16L('J2', jLo, styles.posR19_21)}
-      {reg16R('J', snapshot.J, styles.posR17_21)}
       {/* ALU Links */}
       <div className={`${styles.dgLink} ${styles.posC7_8R4}`}></div>
       <div className={`${styles.dgLinkU} ${styles.posC7_8R5}`}></div>
@@ -318,6 +339,46 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
       <div className={`${styles.dgBus} ${styles.posC8_9R11_19}`}></div>
       {/* Links */}
       <div className={`${styles.dgLinkU} ${styles.posC9_10R18_19}`}></div>
+      {/* Labels */}
+      <div className={`${styles.dgPCLab} ${styles.psL}`}>PS</div>
+      <div className={`${styles.dgPCLab} ${styles.pcL}`}>PC</div>
+      <div className={`${styles.dgAILab} ${styles.instrL}`}>Instruction</div>
+      <div className={`${styles.dgAILab} ${styles.aluL}`}>ALU</div>
+    </>
+  );
+});
+
+export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
+  const styles = useStyles();
+
+  const mHi = (snapshot.M >>> 8) & 0xff;
+  const mLo = snapshot.M & 0xff;
+  const xyHi = (snapshot.XY >>> 8) & 0xff;
+  const xyLo = snapshot.XY & 0xff;
+  const jHi = (snapshot.J >>> 8) & 0xff;
+  const jLo = snapshot.J & 0xff;
+
+  return (
+    <div className={styles.root}>
+      {/* Static labels and layout */}
+      <StaticLayer styles={styles} />
+      {/* Register A/B/C/D */}
+      <Reg8 label='A' value={snapshot.A} styles={styles} rowCls={styles.posR1_3} />
+      <Reg8 label='B' value={snapshot.B} styles={styles} rowCls={styles.posR3_5} />
+      <Reg8 label='C' value={snapshot.C} styles={styles} rowCls={styles.posR5_7} />
+      <Reg8 label='C' value={snapshot.D} styles={styles} rowCls={styles.posR7_9} />
+      {/* Register M1/M2/M */}
+      <Reg16L label='M1' value={mHi} styles={styles} rowCls={styles.posR9_11} />
+      <Reg16L label='M2' value={mLo} styles={styles} rowCls={styles.posR11_13} />
+      <Reg16R label='M' value={snapshot.M} styles={styles} rowCls={styles.posR9_13} />
+      {/* Register X/Y/XY */}
+      <Reg16L label='X' value={xyHi} styles={styles} rowCls={styles.posR13_15} />
+      <Reg16L label='Y' value={xyLo} styles={styles} rowCls={styles.posR15_17} />
+      <Reg16R label='XY' value={snapshot.XY} styles={styles} rowCls={styles.posR13_17} />
+      {/* Register J1/J2/J */}
+      <Reg16L label='J1' value={jHi} styles={styles} rowCls={styles.posR17_19} />
+      <Reg16L label='J2' value={jLo} styles={styles} rowCls={styles.posR19_21} />
+      <Reg16R label='J' value={snapshot.J} styles={styles} rowCls={styles.posR17_21} />
 
       {/* Primary Switches */}
       <Tooltip
@@ -330,7 +391,6 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
           <code className={styles.code}>{toHex(snapshot.PS, 2)}</code>
         </div>
       </Tooltip>
-      <div className={`${styles.dgPCLab} ${styles.psL}`}>PS</div>
 
       {/* Program Counter */}
       <Tooltip
@@ -343,21 +403,13 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
           <code className={styles.code}>{toHex(snapshot.PC, 4)}</code>
         </div>
       </Tooltip>
-      <div className={`${styles.dgPCLab} ${styles.pcL}`}>PC</div>
 
       {/* ALU */}
-      <div className={`${styles.dgAILab} ${styles.aluL}`}>ALU</div>
       <Tooltip
         withArrow
         appearance='inverted'
         relationship='label'
-        content={
-          <div>
-            <small>Sign Flag</small>
-            <br />
-            <code>{snapshot.FS ? 'SET' : 'CLEAR'} </code>
-          </div>
-        }
+        content={<FlagTooltip name='Sign' set={snapshot.FS} />}
       >
         <div className={`${styles.dgAIBL} ${styles.aluS}`}>
           <Badge shape='circular' color='brand' appearance={snapshot.FS ? 'filled' : 'outline'}>
@@ -369,13 +421,7 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         withArrow
         appearance='inverted'
         relationship='label'
-        content={
-          <div>
-            <small>Carry Flag</small>
-            <br />
-            <code>{snapshot.FC ? 'SET' : 'CLEAR'} </code>
-          </div>
-        }
+        content={<FlagTooltip name='Carry' set={snapshot.FC} />}
       >
         <div className={`${styles.dgAIBM} ${styles.aluC}`}>
           <Badge shape='circular' color='brand' appearance={snapshot.FC ? 'filled' : 'outline'}>
@@ -387,13 +433,7 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         withArrow
         appearance='inverted'
         relationship='label'
-        content={
-          <div>
-            <small>Zero Flag</small>
-            <br />
-            <code>{snapshot.FZ ? 'SET' : 'CLEAR'} </code>
-          </div>
-        }
+        content={<FlagTooltip name='Zero' set={snapshot.FZ} />}
       >
         <div className={`${styles.dgAIBR} ${styles.aluZ}`}>
           <Badge shape='circular' color='brand' appearance={snapshot.FZ ? 'filled' : 'outline'}>
@@ -403,7 +443,6 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
       </Tooltip>
 
       {/* Instruction */}
-      <div className={`${styles.dgAILab} ${styles.instrL}`}>Instruction</div>
       <Tooltip
         withArrow
         appearance='inverted'
