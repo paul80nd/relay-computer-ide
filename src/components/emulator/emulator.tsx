@@ -13,6 +13,25 @@ import {
 import { CaretLeft16Filled, CaretRight16Filled, Settings16Regular } from '@fluentui/react-icons';
 import type { EmulatorProps } from './types';
 import { Section, SectionContent, SectionFooter } from '../shared';
+import { toBin, toDec, toHex } from './fmt';
+
+type Snapshot = {
+  A: number;
+  B: number;
+  C: number;
+  D: number;
+  I: number;
+  PC: number;
+  M: number;
+  XY: number;
+  J: number;
+  FZ: boolean;
+  FS: boolean;
+  FC: boolean;
+  PS: number;
+  CLS: string;
+  cycles: number;
+};
 
 const useStyles = makeStyles({
   content: {
@@ -207,26 +226,12 @@ const useStyles = makeStyles({
   },
 });
 
-function toHex(v: number, width: number) {
-  const mask = width <= 2 ? 0xff : 0xffff;
-  const n = (v ?? 0) & mask;
-  return n.toString(16).toUpperCase().padStart(width, '0');
-}
-function toBin(v: number, width: number) {
-  const mask = width <= 2 ? 0xff : 0xffff;
-  const n = (v ?? 0) & mask;
-  return n.toString(2).padStart(width * 4, '0');
-}
-function toDec(v: number) {
-  return String(v ?? 0);
-}
-
 export default function Emulator({ assembly }: EmulatorProps) {
   const classes = useStyles();
 
   // Emulation state kept in refs (hot path)
   const memoryRef = useRef<number[]>(new Array(32768));
-  const regsRef = useRef({
+  const regsRef = useRef<Snapshot>({
     A: 0,
     B: 0,
     C: 0,
@@ -239,8 +244,8 @@ export default function Emulator({ assembly }: EmulatorProps) {
     FZ: false,
     FS: false,
     FC: false,
-    CLS: 'MOV8',
     PS: 0,
+    CLS: 'MOV8',
     cycles: 0,
   });
   const runningRef = useRef(false);
@@ -249,12 +254,9 @@ export default function Emulator({ assembly }: EmulatorProps) {
   // UI state that we render
   const [running, setRunning] = useState(false);
   const [memoryOffset, setMemoryOffset] = useState(0);
-  const [snapshot, setSnapshot] = useState(() => snap(regsRef.current));
-  const [ipr, setIprUi] = useState(iprRef.current);
-  const [status, setStatus] = useState<{ type: 'info' | 'success'; text: string }>({
-    type: 'info',
-    text: 'Ready',
-  });
+  const [snapshot, setSnapshot] = useState<Snapshot>(() => snap(regsRef.current));
+  const [ipr, setIprState] = useState(iprRef.current);
+  const [statusText, setStatusText] = useState('Ready');
 
   function snap(r: typeof regsRef.current) {
     return {
@@ -279,7 +281,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
   const setIpr = useCallback((n: number) => {
     const clamped = Math.max(1, Math.min(32, Math.floor(n)));
     iprRef.current = clamped;
-    setIprUi(clamped);
+    setIprState(clamped);
     localStorage.setItem('emu_ipr', String(clamped));
   }, []);
 
@@ -293,10 +295,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
     const h = Math.floor(d / 3600);
     const m = Math.floor((d - h * 3600) / 60);
     const s = d - h * 3600 - m * 60;
-    setStatus({
-      type: 'success',
-      text: `${cycles} cycles, ${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s runtime`,
-    });
+    setStatusText(`${cycles} cycles, ${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s runtime`);
   };
 
   const getMov8 = [
@@ -368,7 +367,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
     r.FC = r.FS = r.FZ = false;
     r.PS = 0;
     r.cycles = 0;
-    setStatus({ type: 'info', text: 'Ready' });
+    setStatusText('Ready');
     setSnapshot(snap(r));
   }, []);
 
@@ -583,10 +582,10 @@ export default function Emulator({ assembly }: EmulatorProps) {
       // Reset then load program
       reset();
       load(assembly.bytes);
-      setStatus({ type: 'success', text: `Program loaded (${assembly.bytes.length - 2} bytes)` });
+      setStatusText(`Program loaded (${assembly.bytes.length - 2} bytes)`);
     } else if (assembly && !assembly.didAssemble) {
       runningRef.current = false;
-      setStatus({ type: 'info', text: 'Assembly failed' });
+      setStatusText('Assembly failed');
       // You may choose to keep previous program resident, or clear memory:
       // reset();
     }
@@ -1036,7 +1035,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
         </div>
       </SectionContent>
       <SectionFooter>
-        <span className={classes.status}>{status.text}</span>
+        <span className={classes.status}>{statusText}</span>
       </SectionFooter>
     </Section>
   );
