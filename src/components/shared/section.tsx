@@ -41,7 +41,7 @@ export function Section({ title, children }: { title: string; children: React.Re
   return (
     <div className={styles.root}>
       <header className={styles.header}>
-        <Text as='h2' size={300}>
+        <Text as='h2' size={200}>
           {title}
         </Text>
       </header>

@@ -21,7 +21,7 @@ const useStyles = makeStyles({
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    gap: tokens.spacingVerticalS,
+    gap: tokens.spacingVerticalL,
   },
   tablesRow: {
     display: 'flex',
@@ -189,11 +189,13 @@ const useStyles = makeStyles({
     borderBottomLeftRadius: tokens.borderRadiusMedium,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
+    cursor: 'pointer',
   },
   dgAIBM: {
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
+    cursor: 'pointer',
   },
   dgAIBR: {
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -201,6 +203,7 @@ const useStyles = makeStyles({
     borderBottomRightRadius: tokens.borderRadiusMedium,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
+    cursor: 'pointer',
   },
 });
 
@@ -236,6 +239,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
     FZ: false,
     FS: false,
     FC: false,
+    CLS: 'MOV8',
     PS: 0,
     cycles: 0,
   });
@@ -266,6 +270,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
       FS: r.FS,
       FC: r.FC,
       PS: r.PS,
+      CLS: r.CLS,
       cycles: r.cycles,
     };
   }
@@ -390,6 +395,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
     // SETAB 01rvvvvv
     if ((instr & 0xc0) === 0x40) {
+      r.CLS = 'SETAB';
       const isB = (instr & 0x20) === 0x20;
       const v = (instr & 0x10) === 0x10 ? (instr & 0x0f) + 0xf0 : instr & 0x0f;
       if (isB) r.B = v & 0xff;
@@ -401,6 +407,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
     // MOV8 00dddsss
     if ((instr & 0xc0) === 0x00) {
+      r.CLS = 'MOV8';
       const d = (instr & 0x38) >> 3;
       const s = instr & 0x07;
       const v = d === s ? 0 : getMov8[s]();
@@ -412,6 +419,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
     // ALU 1000rfff
     if ((instr & 0xf0) === 0x80) {
+      r.CLS = 'ALU';
       const toD = (instr & 0x08) === 0x08;
       const f = instr & 0x07;
       const v = aluFunc[f]();
@@ -428,6 +436,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
     // LOAD 100100dd
     if ((instr & 0xfc) === 0x90) {
+      r.CLS = 'LOAD';
       const d = instr & 0x03;
       const v = mem[r.M & 0x7fff] ?? 0;
       r.PC = (r.PC + 1) & 0xffff;
@@ -438,6 +447,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
     // STORE 100110ss
     if ((instr & 0xfc) === 0x98) {
+      r.CLS = 'STORE';
       const s = instr & 0x03;
       const v = saveReg[s]();
       r.PC = (r.PC + 1) & 0xffff;
@@ -448,6 +458,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
     // MOV16 10100dss
     if ((instr & 0xf8) === 0xa0) {
+      r.CLS = 'MOV16';
       const d = (instr & 0x04) >> 2;
       const s = instr & 0x03;
       const v = d === 0 && s === 1 ? 0 : getMov16[s]();
@@ -459,6 +470,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
     // LDSW 1010110d
     if ((instr & 0xfe) === 0xac) {
+      r.CLS = 'MISC';
       const toD = (instr & 0x01) === 0x01;
       if (toD) r.D = r.PS & 0xff;
       else r.A = r.PS & 0xff;
@@ -469,6 +481,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
     // HALT 1010111r
     if ((instr & 0xfe) === 0xae) {
+      r.CLS = 'MISC';
       const doJump = (instr & 0x01) === 0x01;
       r.PC = (r.PC + 1) & 0xffff;
       countCycles(10);
@@ -478,6 +491,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
     // INCXY 10110000
     if ((instr & 0xff) === 0xb0) {
+      r.CLS = 'INCXY';
       r.XY = (r.XY + 1) & 0xffff;
       r.PC = (r.PC + 1) & 0xffff;
       countCycles(14);
@@ -486,6 +500,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
     // GOTO 11dscznx
     if ((instr & 0xc0) === 0xc0) {
+      r.CLS = 'GOTO';
       const d = (instr & 0x20) === 0x20;
       const s = (instr & 0x10) === 0x10;
       const c = (instr & 0x08) === 0x08;
@@ -512,6 +527,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
       return true;
     }
 
+    r.CLS = '???';
     return false;
   }, []);
 
@@ -673,93 +689,6 @@ export default function Emulator({ assembly }: EmulatorProps) {
     <Section title='Emulator'>
       <SectionContent>
         <div className={classes.content}>
-          <div className={classes.tablesRow}>
-            {/* Control registers */}
-            <table className={classes.table}>
-              <thead>
-                <tr>
-                  <th className={classes.th}>I</th>
-                  <th className={classes.th}>PC</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className={classes.td}>
-                    <Tooltip
-                      withArrow
-                      appearance='inverted'
-                      relationship='label'
-                      content={
-                        <div>
-                          <small>Instruction</small>
-                          <br />
-                          <code>
-                            Hex: {toHex(snapshot.I, 2)}
-                            <br />
-                            Bin: {toBin(snapshot.I, 2)}
-                          </code>
-                        </div>
-                      }
-                    >
-                      <code className={classes.code}>{toHex(snapshot.I, 2)}</code>
-                    </Tooltip>
-                  </td>
-                  <td className={classes.td}>
-                    <Tooltip
-                      withArrow
-                      appearance='inverted'
-                      relationship='label'
-                      content={
-                        <div>
-                          <small>Program Counter</small>
-                          <br />
-                          <code>Hex: {toHex(snapshot.PC, 4)}</code>
-                        </div>
-                      }
-                    >
-                      <code className={classes.code}>{toHex(snapshot.PC, 4)}</code>
-                    </Tooltip>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            {/* Primary switches */}
-            <table className={classes.table}>
-              <thead>
-                <tr>
-                  <th className={classes.th}>PS</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className={classes.td}>
-                    <Tooltip
-                      withArrow
-                      appearance='inverted'
-                      relationship='label'
-                      content={
-                        <div>
-                          <small>Primary Switches</small>
-                          <br />
-                          <code>
-                            Hex: {toHex(snapshot.PS, 2)}
-                            <br />
-                            Bin: {toBin(snapshot.PS, 2)}
-                            <br />
-                            Dec: {toDec(snapshot.PS)}
-                          </code>
-                        </div>
-                      }
-                    >
-                      <code className={classes.code}>{toHex(snapshot.PS, 2)}</code>
-                    </Tooltip>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
           {/* Diagram */}
           <div
             className='diagram'
@@ -814,8 +743,35 @@ export default function Emulator({ assembly }: EmulatorProps) {
             <div className={classes.dgBus} style={{ gridColumn: '8 / 9', gridRow: '11 / 19' }}></div>
             {/* Links */}
             <div className={classes.dgLinkU} style={{ gridColumn: '9 / 10', gridRow: '18 / 19' }}></div>
-            {/* Program Counter */}
 
+            {/* Primary Switches */}
+            <Tooltip
+              withArrow
+              appearance='inverted'
+              relationship='label'
+              content={
+                <div>
+                  <small>Primary Switches</small>
+                  <br />
+                  <code>
+                    Hex: {toHex(snapshot.PS, 2)}
+                    <br />
+                    Bin: {toBin(snapshot.PS, 2)}
+                    <br />
+                    Dec: {toDec(snapshot.PS)}
+                  </code>
+                </div>
+              }
+            >
+              <div className={classes.dgPCV} style={{ gridColumn: '10 / 12', gridRow: '15 / 17' }}>
+                <code className={classes.code}>{toHex(snapshot.PS, 2)}</code>
+              </div>
+            </Tooltip>
+            <div className={classes.dgPCLab} style={{ gridColumn: '12 / 13', gridRow: '15 / 17' }}>
+              PS
+            </div>
+
+            {/* Program Counter */}
             <Tooltip
               withArrow
               appearance='inverted'
@@ -838,108 +794,163 @@ export default function Emulator({ assembly }: EmulatorProps) {
                 <code className={classes.code}>{toHex(snapshot.PC, 4)}</code>
               </div>
             </Tooltip>
-
             <div className={classes.dgPCLab} style={{ gridColumn: '12 / 13', gridRow: '18 / 20' }}>
               PC
             </div>
+
             {/* ALU */}
             <div className={classes.dgAILab} style={{ gridColumn: '10 / 13', gridRow: '2 / 4' }}>
               ALU
             </div>
-            <div className={classes.dgAIBL} style={{ textAlign: 'right', gridColumn: '10 / 11', gridRow: '4 / 7' }}>
-              <Badge shape='circular' appearance='outline'>
-                S
-              </Badge>
-            </div>
-            <div className={classes.dgAIBM} style={{ gridColumn: '11 / 12', gridRow: '4 / 7' }}>
-              <Badge shape='circular' appearance='outline'>
-                C
-              </Badge>
-            </div>
-            <div className={classes.dgAIBR} style={{ textAlign: 'left', gridColumn: '12 / 13', gridRow: '4 / 7' }}>
-              <Badge shape='circular' appearance='outline'>
-                S
-              </Badge>
-            </div>
+            <Tooltip
+              withArrow
+              appearance='inverted'
+              relationship='label'
+              content={
+                <div>
+                  <small>Sign Flag</small>
+                  <br />
+                  <code>{snapshot.FS ? 'SET' : 'CLEAR'} </code>
+                </div>
+              }
+            >
+              <div className={classes.dgAIBL} style={{ textAlign: 'right', gridColumn: '10 / 11', gridRow: '4 / 7' }}>
+                <Badge shape='circular' color='brand' appearance={snapshot.FS ? 'filled' : 'outline'}>
+                  S
+                </Badge>
+              </div>
+            </Tooltip>
+            <Tooltip
+              withArrow
+              appearance='inverted'
+              relationship='label'
+              content={
+                <div>
+                  <small>Carry Flag</small>
+                  <br />
+                  <code>{snapshot.FC ? 'SET' : 'CLEAR'} </code>
+                </div>
+              }
+            >
+              <div className={classes.dgAIBM} style={{ gridColumn: '11 / 12', gridRow: '4 / 7' }}>
+                <Badge shape='circular' color='brand' appearance={snapshot.FC ? 'filled' : 'outline'}>
+                  C
+                </Badge>
+              </div>
+            </Tooltip>
+            <Tooltip
+              withArrow
+              appearance='inverted'
+              relationship='label'
+              content={
+                <div>
+                  <small>Zero Flag</small>
+                  <br />
+                  <code>{snapshot.FZ ? 'SET' : 'CLEAR'} </code>
+                </div>
+              }
+            >
+              <div className={classes.dgAIBR} style={{ textAlign: 'left', gridColumn: '12 / 13', gridRow: '4 / 7' }}>
+                <Badge shape='circular' color='brand' appearance={snapshot.FZ ? 'filled' : 'outline'}>
+                  Z
+                </Badge>
+              </div>
+            </Tooltip>
+
             {/* Instruction */}
             <div className={classes.dgAILab} style={{ gridColumn: '10 / 13', gridRow: '9 / 11' }}>
               Instruction
             </div>
-            <div className={classes.dgAIBL} style={{ textAlign: 'right', gridColumn: '10 / 11', gridRow: '11 / 13' }}>
-              <code className={classes.code}>00</code>
-            </div>
+            <Tooltip
+              withArrow
+              appearance='inverted'
+              relationship='label'
+              content={
+                <div>
+                  <small>Instruction</small>
+                  <br />
+                  <code>
+                    Hex: {toHex(snapshot.I, 2)}
+                    <br />
+                    Bin: {toBin(snapshot.I, 2)}
+                  </code>
+                </div>
+              }
+            >
+              <div className={classes.dgAIBL} style={{ textAlign: 'right', gridColumn: '10 / 11', gridRow: '11 / 13' }}>
+                <code className={classes.code}>{toHex(snapshot.I, 2)}</code>
+              </div>
+            </Tooltip>
             <div className={classes.dgAIBR} style={{ paddingLeft: '3px', gridColumn: '11 / 13', gridRow: '11 / 13' }}>
               <Badge size='small' shape='rounded' color='brand' appearance='outline'>
-                MOV18
+                {snapshot.CLS}
               </Badge>
             </div>
           </div>
 
-          <div className={classes.tablesRow}>
-            <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalXS }}>
-              <div className={classes.controlsRow}>
-                {runningRef.current ? (
-                  <Button size='small' appearance='primary' onClick={stop} style={{ minWidth: 0, flexGrow: 1 }}>
-                    Stop
-                  </Button>
-                ) : (
-                  <Button size='small' onClick={run} disabled={!canRun} style={{ minWidth: 0, flexGrow: 1 }}>
-                    Run
-                  </Button>
-                )}
-                <Button
-                  size='small'
-                  style={{ minWidth: 0, flexGrow: 1 }}
-                  onClick={() => {
-                    const r = step();
-                    setSnapshot(snap(regsRef.current));
-                    if (!r) runningRef.current = false;
-                  }}
-                  disabled={!canRun}
-                >
-                  Step
+          <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalXS }}>
+            <div className={classes.controlsRow}>
+              {runningRef.current ? (
+                <Button size='small' appearance='primary' onClick={stop} style={{ minWidth: 0, flexGrow: 1 }}>
+                  Stop
                 </Button>
-                <Button size='small' onClick={reset} style={{ minWidth: 0, flexGrow: 1 }}>
-                  Reset
+              ) : (
+                <Button size='small' onClick={run} disabled={!canRun} style={{ minWidth: 0, flexGrow: 1 }}>
+                  Run
                 </Button>
+              )}
+              <Button
+                size='small'
+                style={{ minWidth: 0, flexGrow: 1 }}
+                onClick={() => {
+                  const r = step();
+                  setSnapshot(snap(regsRef.current));
+                  if (!r) runningRef.current = false;
+                }}
+                disabled={!canRun}
+              >
+                Step
+              </Button>
+              <Button size='small' onClick={reset} style={{ minWidth: 0, flexGrow: 1 }}>
+                Reset
+              </Button>
 
-                <Popover trapFocus>
-                  <PopoverTrigger disableButtonEnhancement>
-                    <Button size='small' style={{ minWidth: 0, flexGrow: 1 }} icon={<Settings16Regular />} />
-                  </PopoverTrigger>
+              <Popover trapFocus>
+                <PopoverTrigger disableButtonEnhancement>
+                  <Button size='small' style={{ minWidth: 0, flexGrow: 1 }} icon={<Settings16Regular />} />
+                </PopoverTrigger>
 
-                  <PopoverSurface>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <Caption1>IPR</Caption1>
-                      <Button size='small' appearance='subtle' disabled={ipr === 1} onClick={() => setIpr(ipr / 2)}>
-                        -
-                      </Button>
-                      <span>{ipr}</span>
-                      <Button size='small' appearance='subtle' disabled={ipr === 32} onClick={() => setIpr(ipr * 2)}>
-                        +
-                      </Button>
-                    </div>
-                  </PopoverSurface>
-                </Popover>
-              </div>
+                <PopoverSurface>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <Caption1>IPR</Caption1>
+                    <Button size='small' appearance='subtle' disabled={ipr === 1} onClick={() => setIpr(ipr / 2)}>
+                      -
+                    </Button>
+                    <span>{ipr}</span>
+                    <Button size='small' appearance='subtle' disabled={ipr === 32} onClick={() => setIpr(ipr * 2)}>
+                      +
+                    </Button>
+                  </div>
+                </PopoverSurface>
+              </Popover>
+            </div>
 
-              <div className={classes.switchesRow}>
-                {[7, 6, 5, 4, 3, 2, 1, 0].map(bit => {
-                  const on = !!(snapshot.PS & (1 << bit));
-                  return (
-                    <Tooltip relationship='label' content={`Primary switch ${bit}`} withArrow appearance='inverted'>
-                      <button
-                        key={bit}
-                        className={`${classes.switchBtn} ${on ? classes.switchActive : ''}`}
-                        onClick={() => flipBit(bit)}
-                        aria-pressed={on}
-                      >
-                        {bit}
-                      </button>
-                    </Tooltip>
-                  );
-                })}
-              </div>
+            <div className={classes.switchesRow}>
+              {[7, 6, 5, 4, 3, 2, 1, 0].map(bit => {
+                const on = !!(snapshot.PS & (1 << bit));
+                return (
+                  <Tooltip relationship='label' content={`Primary switch ${bit}`} withArrow appearance='inverted'>
+                    <button
+                      key={bit}
+                      className={`${classes.switchBtn} ${on ? classes.switchActive : ''}`}
+                      onClick={() => flipBit(bit)}
+                      aria-pressed={on}
+                    >
+                      {bit}
+                    </button>
+                  </Tooltip>
+                );
+              })}
             </div>
           </div>
 
