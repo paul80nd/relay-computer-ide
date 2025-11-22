@@ -1,6 +1,8 @@
-export const conf = <monaco.languages.LanguageConfiguration>{};
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
-export const language = <monaco.languages.IMonarchLanguage>{
+export const conf = {} as monaco.languages.LanguageConfiguration;
+
+export const language = {
   defaultToken: '',
   ignoreCase: false,
   tokenPostfix: '.rcdsm',
@@ -24,4 +26,4 @@ export const language = <monaco.languages.IMonarchLanguage>{
       [/.*/, 'comment']
     ]
   }
-};
+} as monaco.languages.IMonarchLanguage;

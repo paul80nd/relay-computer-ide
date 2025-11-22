@@ -1,0 +1,69 @@
+import type { Command, CommandTarget } from "../commands.ts";
+import { createContext, useContext, useMemo, useRef } from "react";
+
+export interface CommandBus {
+  execute(command: Command): void;
+  executeAsync(command: Command): Promise<void>;
+  subscribe(target: CommandTarget, handler: (cmd: Command) => void): () => void;
+}
+
+const CommandBusContext = createContext<CommandBus | undefined>(undefined);
+
+export function useCommandBus(): CommandBus {
+  const ctx = useContext(CommandBusContext);
+  if (!ctx) {
+    throw new Error('useCommandBus must be used within a CommandBusProvider');
+  }
+  return ctx;
+}
+
+export function useCreateCommandBus(): CommandBus {
+  // Handlers live in a ref to avoid re-renders on subscribe/unsubscribe.
+  const handlersRef = useRef<Map<string, Set<(cmd: Command) => void | Promise<void>>>>(new Map());
+
+  const bus = useMemo<CommandBus>(() => ({
+    execute(command) {
+      // deliver to specific target
+      const set = handlersRef.current.get(command.target);
+      if (set) {
+        for (const h of Array.from(set)) {
+          try { h(command); } catch (e) { console.error(e); }
+        }
+      }
+    },
+    async executeAsync(command) {
+      const set = handlersRef.current.get(command.target);
+      if (!set) return;
+      const tasks: Promise<void>[] = [];
+      for (const h of Array.from(set)) {
+        try {
+          const res = h(command);
+          if (res && typeof (res as Promise<void>).then === 'function') {
+            tasks.push(res as Promise<void>);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      if (tasks.length) {
+        await Promise.allSettled(tasks);
+      }
+    },
+    subscribe(target, handler) {
+      let set = handlersRef.current.get(target);
+      if (!set) {
+        set = new Set();
+        handlersRef.current.set(target, set);
+      }
+      set.add(handler);
+      return () => {
+        set!.delete(handler);
+        if (set!.size === 0) handlersRef.current.delete(target);
+      };
+    },
+  }), []);
+
+  return bus;
+}
+
+export const CommandBusProvider = CommandBusContext.Provider;
