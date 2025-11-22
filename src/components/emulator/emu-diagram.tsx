@@ -114,6 +114,61 @@ const useStyles = makeStyles({
     backgroundColor: tokens.colorNeutralBackground1,
     cursor: 'default',
   },
+
+  posC3: { gridColumn: '3 / 3' },
+  posC4_5: { gridColumn: '4 / 5' },
+  posC5_6: { gridColumn: '5 / 6' },
+  posC6_7: { gridColumn: '6 / 7' },
+
+  posR1_3: { gridRow: '1 / 3' },
+  posR3_5: { gridRow: '3 / 5' },
+  posR5_7: { gridRow: '5 / 7' },
+  posR7_9: { gridRow: '7 / 9' },
+  posR9_11: { gridRow: '9 / 11' },
+  posR9_13: { gridRow: '9 / 13' },
+  posR11_13: { gridRow: '11 / 13' },
+  posR13_15: { gridRow: '13 / 15' },
+  posR13_17: { gridRow: '13 / 17' },
+  posR15_17: { gridRow: '15 / 17' },
+  posR17_19: { gridRow: '17 / 19' },
+  posR17_21: { gridRow: '17 / 21' },
+  posR19_21: { gridRow: '19 / 21' },
+
+  posC1R2_20: { gridColumn: '1 / 1', gridRow: '2 / 20' },
+  posC2R2: { gridColumn: '2 / 2', gridRow: '2 / 2' },
+  posC2R4: { gridColumn: '2 / 2', gridRow: '4 / 4' },
+  posC2R6: { gridColumn: '2 / 2', gridRow: '6 / 6' },
+  posC2R8: { gridColumn: '2 / 2', gridRow: '8 / 8' },
+  posC2R10: { gridColumn: '2 / 2', gridRow: '10 / 10' },
+  posC2R12: { gridColumn: '2 / 2', gridRow: '12 / 12' },
+  posC2R14: { gridColumn: '2 / 2', gridRow: '14 / 14' },
+  posC2R16: { gridColumn: '2 / 2', gridRow: '16 / 16' },
+  posC2R18: { gridColumn: '2 / 2', gridRow: '18 / 18' },
+  posC2R19: { gridColumn: '2 / 2', gridRow: '19 / 19' },
+  posC7_8R4: { gridColumn: '7 / 8', gridRow: '4 / 4' },
+  posC7_8R5: { gridColumn: '7 / 8', gridRow: '5 / 5' },
+  posC8_9R4_6: { gridColumn: '8 / 9', gridRow: '4 / 6' },
+  posC9_10R5: { gridColumn: '9 / 10', gridRow: '5 / 5' },
+  posC7_8R11_12: { gridColumn: '7 / 8', gridRow: '11 / 12' },
+  posC7_8R15_16: { gridColumn: '7 / 8', gridRow: '15 / 16' },
+  posC7_8R18_19: { gridColumn: '7 / 8', gridRow: '18 / 19' },
+  posC8_9R11_19: { gridColumn: '8 / 9', gridRow: '11 / 19' },
+  posC9_10R18_19: { gridColumn: '9 / 10', gridRow: '18 / 19' },
+
+  psL: { gridColumn: '12 / 13', gridRow: '15 / 17' },
+  psV: { gridColumn: '10 / 12', gridRow: '15 / 17' },
+
+  pcL: { gridColumn: '12 / 13', gridRow: '18 / 20' },
+  pcV: { gridColumn: '10 / 12', gridRow: '18 / 20' },
+
+  aluL: { gridColumn: '10 / 13', gridRow: '2 / 4' },
+  aluS: { textAlign: 'right', gridColumn: '10 / 11', gridRow: '4 / 7' },
+  aluC: { gridColumn: '11 / 12', gridRow: '4 / 7' },
+  aluZ: { textAlign: 'left', gridColumn: '12 / 13', gridRow: '4 / 7' },
+
+  instrL: { gridColumn: '10 / 13', gridRow: '9 / 11' },
+  instrV: { textAlign: 'right', gridColumn: '10 / 11', gridRow: '11 / 13' },
+  instrCls: { paddingLeft: '3px', gridColumn: '11 / 13', gridRow: '11 / 13' },
 });
 
 function RegTooltipContent({
@@ -146,13 +201,10 @@ function RegTooltipContent({
   );
 }
 
-const gc = (from: number, to?: number) => `${from} / ${to ?? from}`;
-const gr = (from: number, to?: number) => `${from} / ${to ?? from}`;
-
 export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
   const styles = useStyles();
 
-  const reg8 = (label: string, v: number, from: number, to: number) => (
+  const reg8 = (label: string, v: number, rowCls: string) => (
     <>
       <Tooltip
         withArrow
@@ -161,19 +213,17 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         positioning='after'
         content={<RegTooltipContent title={`Register ${label}`} value={v} width={2} showDec />}
       >
-        <div className={styles.dgR8V} style={{ gridColumn: gc(3), gridRow: gr(from, to) }}>
+        <div className={`${styles.dgR8V} ${styles.posC3} ${rowCls}`}>
           <code className={styles.code}>{toHex(v, 2)}</code>
         </div>
       </Tooltip>
-      <div className={styles.dgRLab} style={{ gridColumn: gc(4, 5), gridRow: gr(from, to) }}></div>
-      <div className={styles.dgRLab} style={{ gridColumn: gc(5, 6), gridRow: gr(from, to) }}>
-        {label}
-      </div>
-      <div className={styles.dgR8E} style={{ gridColumn: gc(6, 7), gridRow: gr(from, to) }}></div>
+      <div className={`${styles.dgRLab} ${styles.posC4_5} ${rowCls}`}></div>
+      <div className={`${styles.dgRLab} ${styles.posC5_6} ${rowCls}`}>{label}</div>
+      <div className={`${styles.dgR8E} ${styles.posC6_7} ${rowCls}`} />
     </>
   );
 
-  const reg16L = (label: string, v: number, from: number, to: number) => (
+  const reg16L = (label: string, v: number, rowCls: string) => (
     <>
       <Tooltip
         withArrow
@@ -182,21 +232,17 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         positioning='after'
         content={<RegTooltipContent title={`Register ${label}`} value={v} width={2} showDec />}
       >
-        <div className={styles.dgR8V} style={{ gridColumn: gc(3), gridRow: gr(from, to) }}>
+        <div className={`${styles.dgR8V} ${styles.posC3} ${rowCls}`}>
           <code className={styles.code}>{toHex(v, 2)}</code>
         </div>
       </Tooltip>
-      <div className={styles.dgRLab} style={{ gridColumn: gc(4, 5), gridRow: gr(from, to) }}>
-        {label}
-      </div>
+      <div className={`${styles.dgRLab} ${styles.posC4_5} ${rowCls}`}>{label}</div>
     </>
   );
 
-  const reg16R = (label: string, v: number, from: number, to: number) => (
+  const reg16R = (label: string, v: number, rowCls: string) => (
     <>
-      <div className={styles.dgRLab} style={{ gridColumn: gc(5, 6), gridRow: gr(from, to) }}>
-        {label}
-      </div>
+      <div className={`${styles.dgRLab} ${styles.posC5_6} ${rowCls}`}>{label}</div>
       <Tooltip
         withArrow
         appearance='inverted'
@@ -204,12 +250,19 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         positioning='after'
         content={<RegTooltipContent title={`Register ${label}`} value={v} width={4} showDec />}
       >
-        <div className={styles.dgR16V} style={{ gridColumn: gc(6, 7), gridRow: gr(from, to) }}>
+        <div className={`${styles.dgR16V} ${styles.posC6_7} ${rowCls}`}>
           <code className={styles.code}>{toHex(v, 4)}</code>
         </div>
       </Tooltip>
     </>
   );
+
+  const mHi = (snapshot.M >>> 8) & 0xff;
+  const mLo = snapshot.M & 0xff;
+  const xyHi = (snapshot.XY >>> 8) & 0xff;
+  const xyLo = snapshot.XY & 0xff;
+  const jHi = (snapshot.J >>> 8) & 0xff;
+  const jLo = snapshot.J & 0xff;
 
   return (
     <div
@@ -223,48 +276,48 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
       }}
     >
       {/* Data Bus */}
-      <div className={styles.dgBus} style={{ gridColumn: '1 / 1', gridRow: '2 / 20' }}></div>
+      <div className={`${styles.dgBus} ${styles.posC1R2_20}`}></div>
       {/* Data Links */}
-      <div className={styles.dgLink} style={{ gridColumn: '2 / 2', gridRow: '2 / 2' }}></div>
-      <div className={styles.dgLink} style={{ gridColumn: '2 / 2', gridRow: '4 / 4' }}></div>
-      <div className={styles.dgLink} style={{ gridColumn: '2 / 2', gridRow: '6 / 6' }}></div>
-      <div className={styles.dgLink} style={{ gridColumn: '2 / 2', gridRow: '8 / 8' }}></div>
-      <div className={styles.dgLink} style={{ gridColumn: '2 / 2', gridRow: '10 / 10' }}></div>
-      <div className={styles.dgLink} style={{ gridColumn: '2 / 2', gridRow: '12 / 12' }}></div>
-      <div className={styles.dgLink} style={{ gridColumn: '2 / 2', gridRow: '14 / 14' }}></div>
-      <div className={styles.dgLink} style={{ gridColumn: '2 / 2', gridRow: '16 / 16' }}></div>
-      <div className={styles.dgLink} style={{ gridColumn: '2 / 2', gridRow: '18 / 18' }}></div>
-      <div className={styles.dgLinkU} style={{ gridColumn: '2 / 2', gridRow: '19 / 19' }}></div>
+      <div className={`${styles.dgLink} ${styles.posC2R2}`}></div>
+      <div className={`${styles.dgLink} ${styles.posC2R4}`}></div>
+      <div className={`${styles.dgLink} ${styles.posC2R6}`}></div>
+      <div className={`${styles.dgLink} ${styles.posC2R8}`}></div>
+      <div className={`${styles.dgLink} ${styles.posC2R10}`}></div>
+      <div className={`${styles.dgLink} ${styles.posC2R12}`}></div>
+      <div className={`${styles.dgLink} ${styles.posC2R14}`}></div>
+      <div className={`${styles.dgLink} ${styles.posC2R16}`}></div>
+      <div className={`${styles.dgLink} ${styles.posC2R18}`}></div>
+      <div className={`${styles.dgLinkU} ${styles.posC2R19}`}></div>
       {/* Register A/B/C/D */}
-      {reg8('A', snapshot.A, 1, 3)}
-      {reg8('B', snapshot.B, 3, 5)}
-      {reg8('C', snapshot.C, 5, 7)}
-      {reg8('D', snapshot.D, 7, 9)}
+      {reg8('A', snapshot.A, styles.posR1_3)}
+      {reg8('B', snapshot.B, styles.posR3_5)}
+      {reg8('C', snapshot.C, styles.posR5_7)}
+      {reg8('D', snapshot.D, styles.posR7_9)}
       {/* Register M1/M2/M */}
-      {reg16L('M1', (snapshot.M >> 8) & 0xff, 9, 11)}
-      {reg16L('M2', snapshot.M & 0xff, 11, 13)}
-      {reg16R('M', snapshot.M, 9, 13)}
+      {reg16L('M1', mHi, styles.posR9_11)}
+      {reg16L('M2', mLo, styles.posR11_13)}
+      {reg16R('M', snapshot.M, styles.posR9_13)}
       {/* Register X/Y/XY */}
-      {reg16L('X', (snapshot.XY >> 8) & 0xff, 13, 15)}
-      {reg16L('Y', snapshot.XY & 0xff, 15, 17)}
-      {reg16R('XY', snapshot.XY, 13, 17)}
+      {reg16L('X', xyHi, styles.posR13_15)}
+      {reg16L('Y', xyLo, styles.posR15_17)}
+      {reg16R('XY', snapshot.XY, styles.posR13_17)}
       {/* Register J1/J2/J */}
-      {reg16L('J1', (snapshot.J >> 8) & 0xff, 17, 19)}
-      {reg16L('J2', snapshot.J & 0xff, 19, 21)}
-      {reg16R('J', snapshot.J, 17, 21)}
+      {reg16L('J1', jHi, styles.posR17_19)}
+      {reg16L('J2', jLo, styles.posR19_21)}
+      {reg16R('J', snapshot.J, styles.posR17_21)}
       {/* ALU Links */}
-      <div className={styles.dgLink} style={{ gridColumn: '7 / 8', gridRow: '4 / 4' }}></div>
-      <div className={styles.dgLinkU} style={{ gridColumn: '7 / 8', gridRow: '5 / 5' }}></div>
-      <div className={styles.dgBus} style={{ gridColumn: '8 / 9', gridRow: '4 / 6' }}></div>
-      <div className={styles.dgLink} style={{ gridColumn: '9 / 10', gridRow: '5 / 5' }}></div>
+      <div className={`${styles.dgLink} ${styles.posC7_8R4}`}></div>
+      <div className={`${styles.dgLinkU} ${styles.posC7_8R5}`}></div>
+      <div className={`${styles.dgBus} ${styles.posC8_9R4_6}`}></div>
+      <div className={`${styles.dgLink} ${styles.posC9_10R5}`}></div>
       {/* Links */}
-      <div className={styles.dgLink} style={{ gridColumn: '7 / 8', gridRow: '11 / 12' }}></div>
-      <div className={styles.dgLink} style={{ gridColumn: '7 / 8', gridRow: '15 / 16' }}></div>
-      <div className={styles.dgLinkU} style={{ gridColumn: '7 / 8', gridRow: '18 / 19' }}></div>
+      <div className={`${styles.dgLink} ${styles.posC7_8R11_12}`}></div>
+      <div className={`${styles.dgLink} ${styles.posC7_8R15_16}`}></div>
+      <div className={`${styles.dgLinkU} ${styles.posC7_8R18_19}`}></div>
       {/* Addr Bus */}
-      <div className={styles.dgBus} style={{ gridColumn: '8 / 9', gridRow: '11 / 19' }}></div>
+      <div className={`${styles.dgBus} ${styles.posC8_9R11_19}`}></div>
       {/* Links */}
-      <div className={styles.dgLinkU} style={{ gridColumn: '9 / 10', gridRow: '18 / 19' }}></div>
+      <div className={`${styles.dgLinkU} ${styles.posC9_10R18_19}`}></div>
 
       {/* Primary Switches */}
       <Tooltip
@@ -273,13 +326,11 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         relationship='label'
         content={<RegTooltipContent title='Primary Switches' value={snapshot.PS} width={2} showDec />}
       >
-        <div className={styles.dgPCV} style={{ gridColumn: '10 / 12', gridRow: '15 / 17' }}>
+        <div className={`${styles.dgPCV} ${styles.psV}`}>
           <code className={styles.code}>{toHex(snapshot.PS, 2)}</code>
         </div>
       </Tooltip>
-      <div className={styles.dgPCLab} style={{ gridColumn: '12 / 13', gridRow: '15 / 17' }}>
-        PS
-      </div>
+      <div className={`${styles.dgPCLab} ${styles.psL}`}>PS</div>
 
       {/* Program Counter */}
       <Tooltip
@@ -288,18 +339,14 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         relationship='label'
         content={<RegTooltipContent title='Program Counter' value={snapshot.PC} width={4} showDec />}
       >
-        <div className={styles.dgPCV} style={{ gridColumn: '10 / 12', gridRow: '18 / 20' }}>
+        <div className={`${styles.dgPCV} ${styles.pcV}`}>
           <code className={styles.code}>{toHex(snapshot.PC, 4)}</code>
         </div>
       </Tooltip>
-      <div className={styles.dgPCLab} style={{ gridColumn: '12 / 13', gridRow: '18 / 20' }}>
-        PC
-      </div>
+      <div className={`${styles.dgPCLab} ${styles.pcL}`}>PC</div>
 
       {/* ALU */}
-      <div className={styles.dgAILab} style={{ gridColumn: '10 / 13', gridRow: '2 / 4' }}>
-        ALU
-      </div>
+      <div className={`${styles.dgAILab} ${styles.aluL}`}>ALU</div>
       <Tooltip
         withArrow
         appearance='inverted'
@@ -312,7 +359,7 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
           </div>
         }
       >
-        <div className={styles.dgAIBL} style={{ textAlign: 'right', gridColumn: '10 / 11', gridRow: '4 / 7' }}>
+        <div className={`${styles.dgAIBL} ${styles.aluS}`}>
           <Badge shape='circular' color='brand' appearance={snapshot.FS ? 'filled' : 'outline'}>
             S
           </Badge>
@@ -330,7 +377,7 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
           </div>
         }
       >
-        <div className={styles.dgAIBM} style={{ gridColumn: '11 / 12', gridRow: '4 / 7' }}>
+        <div className={`${styles.dgAIBM} ${styles.aluC}`}>
           <Badge shape='circular' color='brand' appearance={snapshot.FC ? 'filled' : 'outline'}>
             C
           </Badge>
@@ -348,7 +395,7 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
           </div>
         }
       >
-        <div className={styles.dgAIBR} style={{ textAlign: 'left', gridColumn: '12 / 13', gridRow: '4 / 7' }}>
+        <div className={`${styles.dgAIBR} ${styles.aluZ}`}>
           <Badge shape='circular' color='brand' appearance={snapshot.FZ ? 'filled' : 'outline'}>
             Z
           </Badge>
@@ -356,20 +403,18 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
       </Tooltip>
 
       {/* Instruction */}
-      <div className={styles.dgAILab} style={{ gridColumn: '10 / 13', gridRow: '9 / 11' }}>
-        Instruction
-      </div>
+      <div className={`${styles.dgAILab} ${styles.instrL}`}>Instruction</div>
       <Tooltip
         withArrow
         appearance='inverted'
         relationship='label'
         content={<RegTooltipContent title='Instruction' value={snapshot.I} width={2} />}
       >
-        <div className={styles.dgAIBL} style={{ textAlign: 'right', gridColumn: '10 / 11', gridRow: '11 / 13' }}>
+        <div className={`${styles.dgAIBL} ${styles.instrV}`}>
           <code className={styles.code}>{toHex(snapshot.I, 2)}</code>
         </div>
       </Tooltip>
-      <div className={styles.dgAIBR} style={{ paddingLeft: '3px', gridColumn: '11 / 13', gridRow: '11 / 13' }}>
+      <div className={`${styles.dgAIBR} ${styles.instrCls}`}>
         <Badge size='small' shape='rounded' color='brand' appearance='outline'>
           {snapshot.CLS}
         </Badge>
