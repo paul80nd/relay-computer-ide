@@ -1,9 +1,4 @@
-import {
-  Tooltip,
-  makeStyles,
-  tokens,
-  Badge,
-} from '@fluentui/react-components';
+import { Tooltip, makeStyles, tokens, Badge } from '@fluentui/react-components';
 import { toBin, toDec, toHex } from './fmt';
 import type { Snapshot } from './emulator';
 
@@ -33,7 +28,7 @@ const useStyles = makeStyles({
     borderTopLeftRadius: tokens.borderRadiusMedium,
     borderBottomLeftRadius: tokens.borderRadiusMedium,
     backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'pointer',
+    cursor: 'default',
   },
   dgR16V: {
     margin: '1px 0',
@@ -45,7 +40,7 @@ const useStyles = makeStyles({
     borderBottomRightRadius: tokens.borderRadiusMedium,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'pointer',
+    cursor: 'default',
   },
   dgRLab: {
     margin: '1px 0',
@@ -73,7 +68,7 @@ const useStyles = makeStyles({
     borderBottomLeftRadius: tokens.borderRadiusMedium,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'pointer',
+    cursor: 'default',
   },
   dgPCLab: {
     borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -103,13 +98,13 @@ const useStyles = makeStyles({
     borderBottomLeftRadius: tokens.borderRadiusMedium,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'pointer',
+    cursor: 'default',
   },
   dgAIBM: {
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'pointer',
+    cursor: 'default',
   },
   dgAIBR: {
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -117,9 +112,42 @@ const useStyles = makeStyles({
     borderBottomRightRadius: tokens.borderRadiusMedium,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'pointer',
+    cursor: 'default',
   },
 });
+
+function RegTooltipContent({
+  title,
+  value,
+  width,
+  showDec = false,
+}: {
+  title: string;
+  value: number;
+  width: number;
+  showDec?: boolean;
+}) {
+  return (
+    <div>
+      <small>{title}</small>
+      <br />
+      <code>
+        Hex: {toHex(value, width)}
+        <br />
+        Bin: {toBin(value, width)}
+        {showDec && (
+          <>
+            <br />
+            Dec: {toDec(value)}
+          </>
+        )}
+      </code>
+    </div>
+  );
+}
+
+const gc = (from: number, to?: number) => `${from} / ${to ?? from}`;
+const gr = (from: number, to?: number) => `${from} / ${to ?? from}`;
 
 export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
   const styles = useStyles();
@@ -131,29 +159,17 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         appearance='inverted'
         relationship='label'
         positioning='after'
-        content={
-          <div>
-            <small>Register {label}</small>
-            <br />
-            <code>
-              Hex: {toHex(v, 2)}
-              <br />
-              Bin: {toBin(v, 2)}
-              <br />
-              Dec: {toDec(v)}
-            </code>
-          </div>
-        }
+        content={<RegTooltipContent title={`Register ${label}`} value={v} width={2} showDec />}
       >
-        <div className={styles.dgR8V} style={{ gridColumn: '3 / 3', gridRow: `${from} / ${to}` }}>
+        <div className={styles.dgR8V} style={{ gridColumn: gc(3), gridRow: gr(from, to) }}>
           <code className={styles.code}>{toHex(v, 2)}</code>
         </div>
       </Tooltip>
-      <div className={styles.dgRLab} style={{ gridColumn: '4 / 5', gridRow: `${from} / ${to}` }}></div>
-      <div className={styles.dgRLab} style={{ gridColumn: '5 / 6', gridRow: `${from} / ${to}` }}>
+      <div className={styles.dgRLab} style={{ gridColumn: gc(4, 5), gridRow: gr(from, to) }}></div>
+      <div className={styles.dgRLab} style={{ gridColumn: gc(5, 6), gridRow: gr(from, to) }}>
         {label}
       </div>
-      <div className={styles.dgR8E} style={{ gridColumn: '6 / 7', gridRow: `${from} / ${to}` }}></div>
+      <div className={styles.dgR8E} style={{ gridColumn: gc(6, 7), gridRow: gr(from, to) }}></div>
     </>
   );
 
@@ -164,25 +180,13 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         appearance='inverted'
         relationship='label'
         positioning='after'
-        content={
-          <div>
-            <small>Register {label}</small>
-            <br />
-            <code>
-              Hex: {toHex(v, 2)}
-              <br />
-              Bin: {toBin(v, 2)}
-              <br />
-              Dec: {toDec(v)}
-            </code>
-          </div>
-        }
+        content={<RegTooltipContent title={`Register ${label}`} value={v} width={2} showDec />}
       >
-        <div className={styles.dgR8V} style={{ gridColumn: '3 / 3', gridRow: `${from} / ${to}` }}>
+        <div className={styles.dgR8V} style={{ gridColumn: gc(3), gridRow: gr(from, to) }}>
           <code className={styles.code}>{toHex(v, 2)}</code>
         </div>
       </Tooltip>
-      <div className={styles.dgRLab} style={{ gridColumn: '4 / 5', gridRow: `${from} / ${to}` }}>
+      <div className={styles.dgRLab} style={{ gridColumn: gc(4, 5), gridRow: gr(from, to) }}>
         {label}
       </div>
     </>
@@ -190,7 +194,7 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
 
   const reg16R = (label: string, v: number, from: number, to: number) => (
     <>
-      <div className={styles.dgRLab} style={{ gridColumn: '5 / 6', gridRow: `${from} / ${to}` }}>
+      <div className={styles.dgRLab} style={{ gridColumn: gc(5, 6), gridRow: gr(from, to) }}>
         {label}
       </div>
       <Tooltip
@@ -198,21 +202,9 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         appearance='inverted'
         relationship='label'
         positioning='after'
-        content={
-          <div>
-            <small>Register {label}</small>
-            <br />
-            <code>
-              Hex: {toHex(v, 4)}
-              <br />
-              Bin: {toBin(v, 4)}
-              <br />
-              Dec: {toDec(v)}
-            </code>
-          </div>
-        }
+        content={<RegTooltipContent title={`Register ${label}`} value={v} width={4} showDec />}
       >
-        <div className={styles.dgR16V} style={{ gridColumn: '6 / 7', gridRow: `${from} / ${to}` }}>
+        <div className={styles.dgR16V} style={{ gridColumn: gc(6, 7), gridRow: gr(from, to) }}>
           <code className={styles.code}>{toHex(v, 4)}</code>
         </div>
       </Tooltip>
@@ -279,19 +271,7 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         withArrow
         appearance='inverted'
         relationship='label'
-        content={
-          <div>
-            <small>Primary Switches</small>
-            <br />
-            <code>
-              Hex: {toHex(snapshot.PS, 2)}
-              <br />
-              Bin: {toBin(snapshot.PS, 2)}
-              <br />
-              Dec: {toDec(snapshot.PS)}
-            </code>
-          </div>
-        }
+        content={<RegTooltipContent title='Primary Switches' value={snapshot.PS} width={2} showDec />}
       >
         <div className={styles.dgPCV} style={{ gridColumn: '10 / 12', gridRow: '15 / 17' }}>
           <code className={styles.code}>{toHex(snapshot.PS, 2)}</code>
@@ -306,19 +286,7 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         withArrow
         appearance='inverted'
         relationship='label'
-        content={
-          <div>
-            <small>Program Counter</small>
-            <br />
-            <code>
-              Hex: {toHex(snapshot.PC, 4)}
-              <br />
-              Bin: {toBin(snapshot.PC, 4)}
-              <br />
-              Dec: {toDec(snapshot.PC)}
-            </code>
-          </div>
-        }
+        content={<RegTooltipContent title='Program Counter' value={snapshot.PC} width={4} showDec />}
       >
         <div className={styles.dgPCV} style={{ gridColumn: '10 / 12', gridRow: '18 / 20' }}>
           <code className={styles.code}>{toHex(snapshot.PC, 4)}</code>
@@ -395,17 +363,7 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         withArrow
         appearance='inverted'
         relationship='label'
-        content={
-          <div>
-            <small>Instruction</small>
-            <br />
-            <code>
-              Hex: {toHex(snapshot.I, 2)}
-              <br />
-              Bin: {toBin(snapshot.I, 2)}
-            </code>
-          </div>
-        }
+        content={<RegTooltipContent title='Instruction' value={snapshot.I} width={2} />}
       >
         <div className={styles.dgAIBL} style={{ textAlign: 'right', gridColumn: '10 / 11', gridRow: '11 / 13' }}>
           <code className={styles.code}>{toHex(snapshot.I, 2)}</code>

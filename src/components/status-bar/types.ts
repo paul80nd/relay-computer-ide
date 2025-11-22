@@ -1,3 +1,4 @@
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import type { AssemblerResult } from "../../assembler";
 
 export type StatusBarProps = {

@@ -1,3 +1,5 @@
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+
 export const conf = {} as monaco.languages.LanguageConfiguration;
 
 export const language = {

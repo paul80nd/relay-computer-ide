@@ -1,4 +1,5 @@
 // Inspired by: https://github.com/microsoft/monaco-languages/blob/master/src/mips/mips.ts
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
 export const conf = {
   comments: {
