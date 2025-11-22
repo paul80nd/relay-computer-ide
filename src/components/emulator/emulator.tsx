@@ -8,14 +8,14 @@ import {
   Popover,
   PopoverTrigger,
   PopoverSurface,
-  Badge,
 } from '@fluentui/react-components';
 import { CaretLeft16Filled, CaretRight16Filled, Settings16Regular } from '@fluentui/react-icons';
 import type { EmulatorProps } from './types';
 import { Section, SectionContent, SectionFooter } from '../shared';
 import { toBin, toDec, toHex } from './fmt';
+import EmulatorDiagram from './emu-diagram';
 
-type Snapshot = {
+export type Snapshot = {
   A: number;
   B: number;
   C: number;
@@ -46,24 +46,6 @@ const useStyles = makeStyles({
     display: 'flex',
     gap: tokens.spacingHorizontalSNudge,
   },
-  table: {
-    flexGrow: 1,
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderSpacing: 0,
-    borderCollapse: 'collapse',
-  },
-  th: {
-    textAlign: 'center',
-    fontSize: tokens.fontSizeBase200,
-    fontWeight: tokens.fontWeightMedium,
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-    backgroundColor: tokens.colorNeutralBackground2,
-    color: tokens.colorNeutralForeground2,
-  },
-  td: {
-    textAlign: 'center',
-    backgroundColor: tokens.colorNeutralBackground1,
-  },
   code: {
     fontFamily: 'Menlo, Monaco, "Courier New", monospace',
     fontWeight: tokens.fontWeightRegular,
@@ -71,7 +53,6 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground2,
     lineHeight: tokens.lineHeightBase200,
   },
-  dot: { fontSize: '16px' },
   controlsRow: {
     display: 'flex',
     flexGrow: 1,
@@ -119,110 +100,6 @@ const useStyles = makeStyles({
   status: {
     fontSize: tokens.fontSizeBase200,
     color: tokens.colorNeutralForeground3,
-  },
-  dgBus: {
-    borderRight: `3px solid ${tokens.colorBrandStroke2}`,
-  },
-  dgLink: {
-    borderTop: `2px solid ${tokens.colorBrandStroke2}`,
-  },
-  dgLinkU: {
-    borderBottom: `2px solid ${tokens.colorBrandStroke2}`,
-  },
-  dgR8V: {
-    margin: '1px 0',
-    borderLeft: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-    padding: `${tokens.spacingHorizontalXXS} ${tokens.spacingHorizontalM}`,
-    borderTopLeftRadius: tokens.borderRadiusMedium,
-    borderBottomLeftRadius: tokens.borderRadiusMedium,
-    backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'pointer',
-  },
-  dgR16V: {
-    margin: '1px 0',
-    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-    padding: `${tokens.spacingVerticalXXS} ${tokens.spacingHorizontalM}`,
-    borderTopRightRadius: tokens.borderRadiusMedium,
-    borderBottomRightRadius: tokens.borderRadiusMedium,
-    alignContent: 'center',
-    backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'pointer',
-  },
-  dgRLab: {
-    margin: '1px 0',
-    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-    alignContent: 'center',
-    fontSize: tokens.fontSizeBase200,
-    fontWeight: tokens.fontWeightMedium,
-    color: tokens.colorNeutralForeground2,
-  },
-  dgR8E: {
-    margin: '1px 0',
-    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderTopRightRadius: tokens.borderRadiusMedium,
-    borderBottomRightRadius: tokens.borderRadiusMedium,
-  },
-  dgPCV: {
-    borderLeft: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-    padding: `${tokens.spacingVerticalXXS} ${tokens.spacingHorizontalM}`,
-    borderTopLeftRadius: tokens.borderRadiusMedium,
-    borderBottomLeftRadius: tokens.borderRadiusMedium,
-    alignContent: 'center',
-    backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'pointer',
-  },
-  dgPCLab: {
-    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderTopRightRadius: tokens.borderRadiusMedium,
-    borderBottomRightRadius: tokens.borderRadiusMedium,
-    alignContent: 'center',
-    fontSize: tokens.fontSizeBase200,
-    fontWeight: tokens.fontWeightMedium,
-    color: tokens.colorNeutralForeground2,
-  },
-  dgAILab: {
-    fontSize: tokens.fontSizeBase200,
-    fontWeight: tokens.fontWeightMedium,
-    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderLeft: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderTopRightRadius: tokens.borderRadiusMedium,
-    borderTopLeftRadius: tokens.borderRadiusMedium,
-    alignContent: 'center',
-    color: tokens.colorNeutralForeground2,
-  },
-  dgAIBL: {
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderLeft: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderBottomLeftRadius: tokens.borderRadiusMedium,
-    alignContent: 'center',
-    backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'pointer',
-  },
-  dgAIBM: {
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-    alignContent: 'center',
-    backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'pointer',
-  },
-  dgAIBR: {
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderBottomRightRadius: tokens.borderRadiusMedium,
-    alignContent: 'center',
-    backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'pointer',
   },
 });
 
@@ -593,303 +470,11 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
   const canRun = !!(assembly?.didAssemble && assembly.bytes && assembly.bytes.length > 2);
 
-  const reg8 = (label: string, v: number, from: number, to: number) => (
-    <>
-      <Tooltip
-        withArrow
-        appearance='inverted'
-        relationship='label'
-        positioning='after'
-        content={
-          <div>
-            <small>Register {label}</small>
-            <br />
-            <code>
-              Hex: {toHex(v, 2)}
-              <br />
-              Bin: {toBin(v, 2)}
-              <br />
-              Dec: {toDec(v)}
-            </code>
-          </div>
-        }
-      >
-        <div className={classes.dgR8V} style={{ gridColumn: '3 / 3', gridRow: `${from} / ${to}` }}>
-          <code className={classes.code}>{toHex(v, 2)}</code>
-        </div>
-      </Tooltip>
-      <div className={classes.dgRLab} style={{ gridColumn: '4 / 5', gridRow: `${from} / ${to}` }}></div>
-      <div className={classes.dgRLab} style={{ gridColumn: '5 / 6', gridRow: `${from} / ${to}` }}>
-        {label}
-      </div>
-      <div className={classes.dgR8E} style={{ gridColumn: '6 / 7', gridRow: `${from} / ${to}` }}></div>
-    </>
-  );
-
-  const reg16L = (label: string, v: number, from: number, to: number) => (
-    <>
-      <Tooltip
-        withArrow
-        appearance='inverted'
-        relationship='label'
-        positioning='after'
-        content={
-          <div>
-            <small>Register {label}</small>
-            <br />
-            <code>
-              Hex: {toHex(v, 2)}
-              <br />
-              Bin: {toBin(v, 2)}
-              <br />
-              Dec: {toDec(v)}
-            </code>
-          </div>
-        }
-      >
-        <div className={classes.dgR8V} style={{ gridColumn: '3 / 3', gridRow: `${from} / ${to}` }}>
-          <code className={classes.code}>{toHex(v, 2)}</code>
-        </div>
-      </Tooltip>
-      <div className={classes.dgRLab} style={{ gridColumn: '4 / 5', gridRow: `${from} / ${to}` }}>
-        {label}
-      </div>
-    </>
-  );
-
-  const reg16R = (label: string, v: number, from: number, to: number) => (
-    <>
-      <div className={classes.dgRLab} style={{ gridColumn: '5 / 6', gridRow: `${from} / ${to}` }}>
-        {label}
-      </div>
-      <Tooltip
-        withArrow
-        appearance='inverted'
-        relationship='label'
-        positioning='after'
-        content={
-          <div>
-            <small>Register {label}</small>
-            <br />
-            <code>
-              Hex: {toHex(v, 4)}
-              <br />
-              Bin: {toBin(v, 4)}
-              <br />
-              Dec: {toDec(v)}
-            </code>
-          </div>
-        }
-      >
-        <div className={classes.dgR16V} style={{ gridColumn: '6 / 7', gridRow: `${from} / ${to}` }}>
-          <code className={classes.code}>{toHex(v, 4)}</code>
-        </div>
-      </Tooltip>
-    </>
-  );
-
   return (
     <Section title='Emulator'>
       <SectionContent>
         <div className={classes.content}>
-          {/* Diagram */}
-          <div
-            className='diagram'
-            style={{
-              flexGrow: 1,
-              display: 'grid',
-              gridTemplateColumns: '3px 12px auto 1fr 1fr auto 12px 3px 12px 1fr 1fr 1fr',
-              gridTemplateRows: 'repeat(20, 1fr)',
-              textAlign: 'center',
-            }}
-          >
-            {/* Data Bus */}
-            <div className={classes.dgBus} style={{ gridColumn: '1 / 1', gridRow: '2 / 20' }}></div>
-            {/* Data Links */}
-            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '2 / 2' }}></div>
-            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '4 / 4' }}></div>
-            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '6 / 6' }}></div>
-            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '8 / 8' }}></div>
-            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '10 / 10' }}></div>
-            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '12 / 12' }}></div>
-            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '14 / 14' }}></div>
-            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '16 / 16' }}></div>
-            <div className={classes.dgLink} style={{ gridColumn: '2 / 2', gridRow: '18 / 18' }}></div>
-            <div className={classes.dgLinkU} style={{ gridColumn: '2 / 2', gridRow: '19 / 19' }}></div>
-            {/* Register A/B/C/D */}
-            {reg8('A', snapshot.A, 1, 3)}
-            {reg8('B', snapshot.B, 3, 5)}
-            {reg8('C', snapshot.C, 5, 7)}
-            {reg8('D', snapshot.D, 7, 9)}
-            {/* Register M1/M2/M */}
-            {reg16L('M1', (snapshot.M >> 8) & 0xff, 9, 11)}
-            {reg16L('M2', snapshot.M & 0xff, 11, 13)}
-            {reg16R('M', snapshot.M, 9, 13)}
-            {/* Register X/Y/XY */}
-            {reg16L('X', (snapshot.XY >> 8) & 0xff, 13, 15)}
-            {reg16L('Y', snapshot.XY & 0xff, 15, 17)}
-            {reg16R('XY', snapshot.XY, 13, 17)}
-            {/* Register J1/J2/J */}
-            {reg16L('J1', (snapshot.J >> 8) & 0xff, 17, 19)}
-            {reg16L('J2', snapshot.J & 0xff, 19, 21)}
-            {reg16R('J', snapshot.J, 17, 21)}
-            {/* ALU Links */}
-            <div className={classes.dgLink} style={{ gridColumn: '7 / 8', gridRow: '4 / 4' }}></div>
-            <div className={classes.dgLinkU} style={{ gridColumn: '7 / 8', gridRow: '5 / 5' }}></div>
-            <div className={classes.dgBus} style={{ gridColumn: '8 / 9', gridRow: '4 / 6' }}></div>
-            <div className={classes.dgLink} style={{ gridColumn: '9 / 10', gridRow: '5 / 5' }}></div>
-            {/* Links */}
-            <div className={classes.dgLink} style={{ gridColumn: '7 / 8', gridRow: '11 / 12' }}></div>
-            <div className={classes.dgLink} style={{ gridColumn: '7 / 8', gridRow: '15 / 16' }}></div>
-            <div className={classes.dgLinkU} style={{ gridColumn: '7 / 8', gridRow: '18 / 19' }}></div>
-            {/* Addr Bus */}
-            <div className={classes.dgBus} style={{ gridColumn: '8 / 9', gridRow: '11 / 19' }}></div>
-            {/* Links */}
-            <div className={classes.dgLinkU} style={{ gridColumn: '9 / 10', gridRow: '18 / 19' }}></div>
-
-            {/* Primary Switches */}
-            <Tooltip
-              withArrow
-              appearance='inverted'
-              relationship='label'
-              content={
-                <div>
-                  <small>Primary Switches</small>
-                  <br />
-                  <code>
-                    Hex: {toHex(snapshot.PS, 2)}
-                    <br />
-                    Bin: {toBin(snapshot.PS, 2)}
-                    <br />
-                    Dec: {toDec(snapshot.PS)}
-                  </code>
-                </div>
-              }
-            >
-              <div className={classes.dgPCV} style={{ gridColumn: '10 / 12', gridRow: '15 / 17' }}>
-                <code className={classes.code}>{toHex(snapshot.PS, 2)}</code>
-              </div>
-            </Tooltip>
-            <div className={classes.dgPCLab} style={{ gridColumn: '12 / 13', gridRow: '15 / 17' }}>
-              PS
-            </div>
-
-            {/* Program Counter */}
-            <Tooltip
-              withArrow
-              appearance='inverted'
-              relationship='label'
-              content={
-                <div>
-                  <small>Program Counter</small>
-                  <br />
-                  <code>
-                    Hex: {toHex(snapshot.PC, 4)}
-                    <br />
-                    Bin: {toBin(snapshot.PC, 4)}
-                    <br />
-                    Dec: {toDec(snapshot.PC)}
-                  </code>
-                </div>
-              }
-            >
-              <div className={classes.dgPCV} style={{ gridColumn: '10 / 12', gridRow: '18 / 20' }}>
-                <code className={classes.code}>{toHex(snapshot.PC, 4)}</code>
-              </div>
-            </Tooltip>
-            <div className={classes.dgPCLab} style={{ gridColumn: '12 / 13', gridRow: '18 / 20' }}>
-              PC
-            </div>
-
-            {/* ALU */}
-            <div className={classes.dgAILab} style={{ gridColumn: '10 / 13', gridRow: '2 / 4' }}>
-              ALU
-            </div>
-            <Tooltip
-              withArrow
-              appearance='inverted'
-              relationship='label'
-              content={
-                <div>
-                  <small>Sign Flag</small>
-                  <br />
-                  <code>{snapshot.FS ? 'SET' : 'CLEAR'} </code>
-                </div>
-              }
-            >
-              <div className={classes.dgAIBL} style={{ textAlign: 'right', gridColumn: '10 / 11', gridRow: '4 / 7' }}>
-                <Badge shape='circular' color='brand' appearance={snapshot.FS ? 'filled' : 'outline'}>
-                  S
-                </Badge>
-              </div>
-            </Tooltip>
-            <Tooltip
-              withArrow
-              appearance='inverted'
-              relationship='label'
-              content={
-                <div>
-                  <small>Carry Flag</small>
-                  <br />
-                  <code>{snapshot.FC ? 'SET' : 'CLEAR'} </code>
-                </div>
-              }
-            >
-              <div className={classes.dgAIBM} style={{ gridColumn: '11 / 12', gridRow: '4 / 7' }}>
-                <Badge shape='circular' color='brand' appearance={snapshot.FC ? 'filled' : 'outline'}>
-                  C
-                </Badge>
-              </div>
-            </Tooltip>
-            <Tooltip
-              withArrow
-              appearance='inverted'
-              relationship='label'
-              content={
-                <div>
-                  <small>Zero Flag</small>
-                  <br />
-                  <code>{snapshot.FZ ? 'SET' : 'CLEAR'} </code>
-                </div>
-              }
-            >
-              <div className={classes.dgAIBR} style={{ textAlign: 'left', gridColumn: '12 / 13', gridRow: '4 / 7' }}>
-                <Badge shape='circular' color='brand' appearance={snapshot.FZ ? 'filled' : 'outline'}>
-                  Z
-                </Badge>
-              </div>
-            </Tooltip>
-
-            {/* Instruction */}
-            <div className={classes.dgAILab} style={{ gridColumn: '10 / 13', gridRow: '9 / 11' }}>
-              Instruction
-            </div>
-            <Tooltip
-              withArrow
-              appearance='inverted'
-              relationship='label'
-              content={
-                <div>
-                  <small>Instruction</small>
-                  <br />
-                  <code>
-                    Hex: {toHex(snapshot.I, 2)}
-                    <br />
-                    Bin: {toBin(snapshot.I, 2)}
-                  </code>
-                </div>
-              }
-            >
-              <div className={classes.dgAIBL} style={{ textAlign: 'right', gridColumn: '10 / 11', gridRow: '11 / 13' }}>
-                <code className={classes.code}>{toHex(snapshot.I, 2)}</code>
-              </div>
-            </Tooltip>
-            <div className={classes.dgAIBR} style={{ paddingLeft: '3px', gridColumn: '11 / 13', gridRow: '11 / 13' }}>
-              <Badge size='small' shape='rounded' color='brand' appearance='outline'>
-                {snapshot.CLS}
-              </Badge>
-            </div>
-          </div>
+          <EmulatorDiagram snapshot={snapshot} />
 
           <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalXS }}>
             <div className={classes.controlsRow}>
