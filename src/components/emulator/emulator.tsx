@@ -247,6 +247,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
   const iprRef = useRef<number>(parseInt(localStorage.getItem('emu_ipr') || '1') || 1);
 
   // UI state that we render
+  const [running, setRunning] = useState(false);
   const [memoryOffset, setMemoryOffset] = useState(0);
   const [snapshot, setSnapshot] = useState(() => snap(regsRef.current));
   const [ipr, setIprUi] = useState(iprRef.current);
@@ -538,11 +539,12 @@ export default function Emulator({ assembly }: EmulatorProps) {
       stillRun = step();
       if (!stillRun || !runningRef.current) break;
     }
-    if (stillRun) {
+    if (stillRun && runningRef.current) {
       // schedule next slice
       setTimeout(runLoop, 1);
     } else {
       runningRef.current = false;
+      setRunning(false);
     }
     // Commit a snapshot for UI
     setSnapshot(snap(regsRef.current));
@@ -551,11 +553,13 @@ export default function Emulator({ assembly }: EmulatorProps) {
   const run = useCallback(() => {
     if (runningRef.current) return;
     runningRef.current = true;
+    setRunning(true);
     runLoop();
   }, [runLoop]);
 
   const stop = useCallback(() => {
     runningRef.current = false;
+    setRunning(false);
   }, []);
 
   const flipBit = useCallback((pos: number) => {
@@ -890,7 +894,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
           <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalXS }}>
             <div className={classes.controlsRow}>
-              {runningRef.current ? (
+              {running ? (
                 <Button size='small' appearance='primary' onClick={stop} style={{ minWidth: 0, flexGrow: 1 }}>
                   Stop
                 </Button>
