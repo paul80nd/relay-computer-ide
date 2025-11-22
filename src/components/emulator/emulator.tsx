@@ -135,6 +135,21 @@ export default function Emulator({ assembly }: EmulatorProps) {
   const [ipr, setIprState] = useState(iprRef.current);
   const [statusText, setStatusText] = useState('Ready');
 
+  const rafRef = useRef<number | null>(null);
+  const commitSnapshot = useCallback(() => {
+    if (rafRef.current !== null) return; // already scheduled
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      setSnapshot(snap(regsRef.current));
+    });
+  }, []);
+  useEffect(
+    () => () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    },
+    []
+  );
+
   function snap(r: typeof regsRef.current) {
     return {
       A: r.A,
@@ -245,7 +260,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
     r.PS = 0;
     r.cycles = 0;
     setStatusText('Ready');
-    setSnapshot(snap(r));
+    commitSnapshot();
   }, []);
 
   const load = useCallback(
@@ -258,7 +273,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
           memoryRef.current[(offset + i) & 0x7fff] = prog[i] & 0xff;
         }
         regsRef.current.PC = offset & 0xffff;
-        setSnapshot(snap(regsRef.current));
+        commitSnapshot();
       }
     },
     [reset]
@@ -423,7 +438,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
       setRunning(false);
     }
     // Commit a snapshot for UI
-    setSnapshot(snap(regsRef.current));
+    commitSnapshot();
   }, [step]);
 
   const run = useCallback(() => {
@@ -440,15 +455,15 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
   const flipBit = useCallback((pos: number) => {
     regsRef.current.PS = regsRef.current.PS ^ (1 << pos);
-    setSnapshot(snap(regsRef.current));
+    commitSnapshot();
   }, []);
 
   // Render helpers
   const rows = useMemo(() => [...Array(8).keys()], []);
   const cols = useMemo(() => [...Array(16).keys()], []);
 
-  const prevOffset = () => setMemoryOffset(o => Math.max(0, o - 128));
-  const nextOffset = () => setMemoryOffset(o => Math.min(32640, o + 128));
+  const prevOffset = useCallback(() => setMemoryOffset(o => Math.max(0, o - 128)), []);
+  const nextOffset = useCallback(() => setMemoryOffset(o => Math.min(32640, o + 128)), []);
 
   // Auto-load when assembly succeeds
   useEffect(() => {
@@ -492,7 +507,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
                 style={{ minWidth: 0, flexGrow: 1 }}
                 onClick={() => {
                   const r = step();
-                  setSnapshot(snap(regsRef.current));
+                  commitSnapshot();
                   if (!r) runningRef.current = false;
                 }}
                 disabled={!canRun}
