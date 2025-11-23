@@ -1,5 +1,5 @@
 // Inspired by: https://github.com/microsoft/monaco-languages/blob/master/src/mips/mips.ts
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import type { languages } from 'monaco-editor';
 
 export const conf = {
   comments: {
@@ -22,7 +22,7 @@ export const conf = {
   wordPattern: /(-?\d*\.\d\w*)|([a-zA-Z_][\w]*)/,
   //    "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)"
 
-} as monaco.languages.LanguageConfiguration;
+} as languages.LanguageConfiguration;
 
 export const language = {
   defaultToken: '',
@@ -109,4 +109,4 @@ export const language = {
       [/"/, { token: 'string.quote', bracket: '@close', next: '@pop' }]
     ]
   }
-} as monaco.languages.IMonarchLanguage;
+} as languages.IMonarchLanguage;

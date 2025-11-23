@@ -1,6 +1,6 @@
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import type { languages } from 'monaco-editor';
 
-export const conf = {} as monaco.languages.LanguageConfiguration;
+export const conf = {} as languages.LanguageConfiguration;
 
 export const language = {
   defaultToken: '',
@@ -26,4 +26,4 @@ export const language = {
       [/.*/, 'comment']
     ]
   }
-} as monaco.languages.IMonarchLanguage;
+} as languages.IMonarchLanguage;
