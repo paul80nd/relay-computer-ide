@@ -1,6 +1,6 @@
 // TypeScript / TSX
 import { makeStyles, tokens, Text } from '@fluentui/react-components';
-import * as monaco from 'monaco-editor';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import { Dismiss12Filled, ErrorCircle16Regular, Warning16Regular, Info16Regular } from '@fluentui/react-icons';
 import { useMemo } from 'react';
 

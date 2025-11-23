@@ -1,5 +1,7 @@
-import * as monaco from 'monaco-editor';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+import { lsp } from 'monaco-editor';
+
 import type { AssemblerResult } from './assembler';
 import * as rcasmLang from './basic-languages/rcasm';
 import * as rcdsmLang from './basic-languages/rcdsm';
@@ -24,8 +26,8 @@ monaco.languages.setMonarchTokensProvider("rcdsm", rcdsmLang.language);
 // Load the RCASM LSP worker
 const worker = new Worker("/lsp/rcasm/server.js", { type: "module" });
 worker.postMessage({ type: 'browser/boot', mode: 'foreground' });
-const s = monaco.lsp.createTransportToWorker(worker);//.log();
-new monaco.lsp.MonacoLspClient(s);
+const s = lsp.createTransportToWorker(worker);//.log();
+new lsp.MonacoLspClient(s);
 
 // Global assembly cache - needed for code lens providers
 let currentAssembly: AssemblerResult | undefined;

@@ -1,4 +1,4 @@
-import * as monaco from 'monaco-editor';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 
 export type OnPositionChange = (e: monaco.editor.ICursorPositionChangedEvent) => void;
 

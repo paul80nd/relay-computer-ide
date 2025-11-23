@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import * as monaco from 'monaco-editor';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import type { EditorProps } from './types';
 import { EditorApi } from './api.ts';
 import { useCommandBus } from '../../hooks/useCommandBus.ts';
