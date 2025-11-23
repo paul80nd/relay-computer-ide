@@ -11,7 +11,7 @@ import Emulator from './components/emulator';
 import Export from './components/export';
 import Examples from './components/examples';
 import StatusBar from './components/status-bar';
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import * as monaco from 'monaco-editor';
 import type { StatusBarValidation } from './components/status-bar';
 import { appCommands, editorCommands, outputCommands, panelCommands } from './commands';
 import type { IEditorApi } from './components/editor';

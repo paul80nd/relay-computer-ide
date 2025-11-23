@@ -1,20 +1,31 @@
 import * as monaco from 'monaco-editor';
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-import rcasmWorker from 'monaco-editor/esm/vs/language/rcasm/rcasm.worker?worker';
 import type { AssemblerResult } from './assembler';
+import * as rcasmLang from './basic-languages/rcasm';
+import * as rcdsmLang from './basic-languages/rcdsm';
 
 self.MonacoEnvironment = {
   getWorker(_: unknown, label: string) {
-    if (label === 'rcasm') {
-      console.log('rcasm coming up');
-      return new rcasmWorker();
-    }
+    console.log(`Requesting worker for: ${label}`);
     return new editorWorker();
   }
 };
 
-monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true);
+// Set up RC languages
+monaco.languages.register({ id: 'rcasm' });
+monaco.languages.register({ id: 'rcdsm' });
 
+// Set up RC language basics
+monaco.languages.setLanguageConfiguration('rcasm', rcasmLang.conf);
+monaco.languages.setMonarchTokensProvider("rcasm", rcasmLang.language);
+monaco.languages.setLanguageConfiguration('rcdsm', rcdsmLang.conf);
+monaco.languages.setMonarchTokensProvider("rcdsm", rcdsmLang.language);
+
+// Load the RCASM LSP worker
+const worker = new Worker("/lsp/rcasm/server.js", { type: "module" });
+worker.postMessage({ type: 'browser/boot', mode: 'foreground' });
+const s = monaco.lsp.createTransportToWorker(worker);//.log();
+new monaco.lsp.MonacoLspClient(s);
 
 // Global assembly cache - needed for code lens providers
 let currentAssembly: AssemblerResult | undefined;
@@ -33,23 +44,17 @@ monaco.languages.registerCodeLensProvider("rcdsm", {
     model.getLinesContent().forEach((v, idx) => {
       if (token.isCancellationRequested) return { lenses: [], dispose: () => { } }
       const addr = v.substring(0, 4)
-      const label = labels![addr];
-      if (label) {
-        labelLenses.push({
-          range: {
-            startLineNumber: idx + 1,
-            startColumn: 1,
-            endLineNumber: idx + 1,
-            endColumn: 1,
-          },
-          id: `${addr}:${label.name}`,
-          command: {
-            id: jumpToSourceCommandId ?? '',
-            title: label.name,
-            arguments: [addr]
-          },
-        });
-      }
+      const label = labels?.[addr];
+      if (!label) return;
+      labelLenses.push({
+        range: new monaco.Range(idx+1,1,idx+1,1),
+        id: `${addr}:${label.name}`,
+        command: {
+          id: jumpToSourceCommandId ?? '',
+          title: label.name,
+          arguments: [addr]
+        },
+      });
     });
 
     return { lenses: labelLenses, dispose: () => { }, };

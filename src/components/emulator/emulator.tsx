@@ -468,7 +468,6 @@ export default function Emulator({ assembly }: EmulatorProps) {
   // Auto-load when assembly succeeds
   useEffect(() => {
     if (assembly?.didAssemble && assembly.bytes && assembly.bytes.length > 2) {
-      console.log('Emulator loading assembled program');
       // Optional: stop any running loop before loading
       runningRef.current = false;
       // Reset then load program
@@ -542,7 +541,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
               {[7, 6, 5, 4, 3, 2, 1, 0].map(bit => {
                 const on = !!(snapshot.PS & (1 << bit));
                 return (
-                  <Tooltip relationship='label' content={`Primary switch ${bit}`} withArrow appearance='inverted'>
+                  <Tooltip key={bit} relationship='label' content={`Primary switch ${bit}`} withArrow appearance='inverted'>
                     <button
                       key={bit}
                       className={`${classes.switchBtn} ${on ? classes.switchActive : ''}`}
