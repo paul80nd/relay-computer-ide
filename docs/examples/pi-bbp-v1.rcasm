@@ -1,0 +1,628 @@
+; *****************************************************************************************
+;  Calculation of Pi to 20 decimal places
+;
+;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
+;  Expected run time: 12h35m15s at default clock speed. Version v1.0
+;
+;                  ◯◯
+;                ┌───╮  ┏         ╭                                          ╮  ┓
+;       ┳━┳  ━━   ╲     ┃    1    │    4          2          1          1    │  ┃
+;       ┃ ┃  ━━   ╱     ┃  ─────  │  ─────  ━━  ─────  ━━  ─────  ━━  ─────  │  ┃
+;                ╰───╯  ┃  16 ^k  │  8k +1      8k +4      8k +5      8k +6  │  ┃
+;                 k=0   ┗         ╰                                          ╯  ┛
+;
+;  Result is correct to 17 hex places (by calculating to 19hp over 16 iterations of BBP)
+;  which when converted to decimal provides 20dp result. Target of program is to produce:
+;
+;    32 43 f6 a8 88 5a 30 8d 31     (pi)       [9 byte Big Endian Q4.68]
+;
+;  After each BBP iteration the value of Pi will build up in psum as follows with accuracy
+;  to at least n hex digits following n iterations. Remaining digits are partial results.
+;
+;    39 31 8d 30 5a 88 a8 f6 43 32  (psum)     [10 byte Little Endian Q4.76]
+;
+;  In each BBP iteration the fractions are calculated first (as shifted reciprocals) to
+;  required precision - i.e. no more than 1/16^k right shift would throw away:
+;  (example values from 7th iteration at k=6)
+;
+;    53 f0 72 0a 5e 4e 01           (fra = 4/49 >> 24)      [7 byte LE]
+;    d7 89 9d d8 89 9d 00           (frb = 2/52 >> 24)      [7 byte LE]
+;    e3 ad ec 73 48 4d 00           (frc = 1/53 >> 24)      [7 byte LE]
+;    bd 84 f6 12 da 4b 00           (frd = 1/54 >> 24)      [7 byte LE]
+;
+;  Long addition is then performed for frb, frc and frd accumulating into fra (with frb,
+;  frc and frd negated via two's complement to effect subtraction through addition):
+;
+;    db 33 f2 aa b1 17 00           (fra = fra-frb-frc-frd) [7 byte LE]
+;
+;  Finally the result of fra is added to psum completing the BBP iteration.
+;
+; *****************************************************************************************
+
+        jmp start       ; jump to start of program (keep zero page free for major variables)
+
+; ***************************************************************
+;  Major variables of Pi calculation ...
+;
+;  We keep these early (and aligned) in the zero page of memory
+;  to ease viewing in the computer and emulator. Aligns & orgs
+;  can be removed to shorten the assembled output.
+; ***************************************************************
+
+        org 0x07
+pi:     !fill 9,0xaa    ; final result of Pi [9 byte Big Endian Q4.68] (area marked with 0xaa for visibility)
+psum:   !fill 10,0      ; intermediate sum of Pi [10 byte Little Endian Q4.76]
+
+        !align 16       ; expected final psum value (used purely for sight check - can be deleted without impact)
+psexp:  !byte 0x39, 0x31, 0x8d, 0x30, 0x5a, 0x88, 0xa8, 0xf6, 0x43, 0x32
+
+        !align 16
+fra:    !fill 11,0      ; first BBP fraction and iteration accumulator [max 10 byte LE + 1 overflow]
+        !align 16
+frb:    !fill 10,0      ; second BBP fraction
+        !align 16
+frc:    !fill 10,0      ; third BBP fraction
+        !align 16
+frd:    !fill 10,0      ; fourth BBP fraction
+
+; ***************************************************************
+;  Calculation plan ... array of the parameters for BBP fractions
+; ***************************************************************
+
+; We hold all the required iteration values in the following table.
+; This trades memory for execution time and can be used because we
+; are limited, by design, to calculate no more than 20 dp of Pi.
+
+; The calculation plan is also used as a parameter array to the
+; BBP fraction function via zero page pointer arithmetic:
+;   bbp_fraction(dv,fsz,fopts) => cplan + (k * CPLAN_SIZE)
+
+!let CPLAN_SIZE = 3     ; Byte size of each cplan entry
+
+cplan:
+;    ╔═════╤═════╤═══════╤═════╤════╤════════════════════════════════╤═══════╗
+;    ║  8k │ fsz │ fopts │ ssz │  k │ resulting psum                 │ rp †  ║
+;    ╟─────┼─────┼───────┼─────┼────┼────────────────────────────────┼───────╢
+!byte    0 ,   9 ,  0x01 ;  10 │  0 │ 3.2 22 22 22 22 22 22 22 22 23 │  1 hp ║
+!byte    8 ,   9 ,  0x00 ;   9 │  1 │ 3.2 43 44 34 43 44 34 43 44 36 │  3 hp ║
+!byte   16 ,   8 ,  0x01 ;   9 │  2 │ 3.2 43 f1 23 b1 08 69 82 7c c9 │  4 hp ║
+!byte   24 ,   8 ,  0x00 ;   8 │  3 │ 3.2 43 f6 73 e9 cc 66 c0 8c b2 │  5 hp ║
+!byte   32 ,   7 ,  0x01 ;   8 │  4 │ 3.2 43 f6 a6 59 b3 45 66 9c 6c │  6 hp ║
+!byte   40 ,   7 ,  0x00 ;   7 │  5 │ 3.2 43 f6 a8 6f 7e fe e1 06 65 │  7 hp ║
+!byte   48 ,   6 ,  0x01 ;   7 │  6 │ 3.2 43 f6 a8 87 30 a9 d3 3a 40 │  8 hp ║
+!byte   56 ,   6 ,  0x00 ;   6 │  7 │ 3.2 43 f6 a8 88 4b c1 32 73 1d │  9 hp ║
+!byte   64 ,   5 ,  0x01 ;   6 │  8 │ 3.2 43 f6 a8 88 59 78 11 ce be │ 10 hp ║
+!byte   72 ,   5 ,  0x00 ;   5 │  9 │ 3.2 43 f6 a8 88 5a 27 21 32 01 │ 11 hp ║
+!byte   80 ,   4 ,  0x01 ;   5 │ 10 │ 3.2 43 f6 a8 88 5a 30 0f b2 d4 │ 13 hp ║
+!byte   88 ,   4 ,  0x00 ;   4 │ 11 │ 3.2 43 f6 a8 88 5a 30 86 8f bb │ 14 hp ║
+!byte   96 ,   3 ,  0x01 ;   4 │ 12 │ 3.2 43 f6 a8 88 5a 30 8c d6 5d │ 14 hp ║
+!byte  104 ,   3 ,  0x00 ;   3 │ 13 │ 3.2 43 f6 a8 88 5a 30 8d 2c 51 │ 15 hp ║
+!byte  112 ,   2 ,  0x01 ;   3 │ 14 │ 3.2 43 f6 a8 88 5a 30 8d 30 f8 │ 16 hp ║
+!byte  120 ,   2 ,  0x00 ;   2 │ 15 │ 3.2 43 f6 a8 88 5a 30 8d 31 39 │ 18 hp ║
+;    ╚═════╧═════╧═══════╧═════╧════╧════════════════════════════════╧═══════╝
+; † result precision (hexadecimal places) compared to known result of Pi in hex.
+
+; k      The BBP iteration counter (pre-assembly only as loop is unrolled)
+; 8k/dv  BBP fraction divisor (representing 8k at start of each iteration)
+; fsz    BBP fraction byte size (decreases every even iteration)
+; fopts  BBP fraction option flags (0x01 shifts reciprocals << 4)
+; ssz    BBP sum byte size (decreases every odd iteration)
+
+; Ensure assembly so far has not exceeded zero page
+!if (* > 0xff) { !error "Exceeded Zero Page!" }
+
+; ***************************************************************
+;  Start of main program ... core Pi calculation follows ...
+; ***************************************************************
+
+start:  ; Perform the 16 BBP iterations as an unrolled k loop
+        !for k in range(16) {
+
+            ; The calculation plan provides a parameter array to the BBP fraction
+            ; function which is de-referenced by zero page pointer arithmetic:
+            ;   bbp_fraction(dv,fsz,fopts) => cplan + (k * CPLAN_SIZE)
+            !let parr = cplan + (k * CPLAN_SIZE)
+
+            ; BBP sum byte size (decreases every odd iteration)
+            !let ssz = 10 - ( ( k + ( k % 2 )) / 2)
+
+            ; Calculate the BBP four fractions
+
+            !if (k == 0) {
+
+                ; In the first iteration we 'cheat' for speed and write
+                ; the literal 4/1 and 2/4 values in to memory
+
+                ldi m,0x40              ; fra = 4 (Q4.76)
+                mov b,m2
+                ldi m,fra+9
+                str b
+
+                ldi m,frb+9             ; frb = 2/4 = 0.5 (Q4.76)
+                ldi b,8
+                str b
+
+            } else {
+
+                ; Otherwise we calculate as normal
+
+                ldi m,fra§parr          ; fra = (4 / 8k+1)
+                jsr bbp_fraction::vA
+
+                ldi m,frb§parr          ; frb = (2 / 8k+4)
+                jsr bbp_fraction::vB
+
+            }
+
+            ldi m,frc§parr          ; frc = (1 / 8k+5)
+            jsr bbp_fraction::vC
+
+            ldi m,frd§parr          ; frd = (1 / 8k+6)
+            jsr bbp_fraction::vD
+
+            ; Calulate fra = fra - frb - frc - frd
+
+            ldi m,frb§fra           ; fra -= frb
+            ldi b,ssz
+            jsr long_subtract
+
+            ldi m,frc§fra           ; fra -= frc
+            ldi b,ssz
+            jsr long_subtract
+
+            ldi m,frd§fra           ; fra -= frd
+            ldi b,ssz
+            jsr long_subtract
+
+            ; Calculate psum = psum + fra
+
+            ldi m,fra§psum          ; psum += fra
+            ldi b,ssz
+            jsr long_add
+        }
+
+        ; BBP iterations are now complete and we have Pi to 19hp LE in psum!
+        ; Last step is to copy and truncate to 17hp then convert to BE
+
+        ldi m,pi§psum+1         ; Copy 9 bytes of psum to pi ignoring first LE byte
+        ldi b,9
+        jsr copy
+
+        ldi m,pi                ; Convert pi LE to BE
+        ldi b,9
+        jsr reverse
+
+        ; Fin - mission accomplished
+
+        ldi m,pi                ; Position on start of result
+        hlt
+
+; ***************************************************************
+;  End of main program ... subroutines follow ...
+;  Most have separate examples available with demo & comments
+; ***************************************************************
+
+; ***************************************************************
+;  Purpose:   Copy block of memory within zero page
+;
+;  Inputs:    M1 = Location of target block start (low byte)
+;             M2 = Location of source block start (low byte)
+;              B = Number of bytes to copy
+;
+;  Clobbered: ABCD and M
+; ***************************************************************
+copy: {
+        not             ; set up loop counter in D
+        mov b,a
+        inc d
+        mov b,m1        ; capture target in M1
+        clr m1
+
+  loop: ldr a           ; copy byte (B is tgt, M2 is src)
+        mov c,m2
+        mov m2,b
+        str a
+
+        mov b,d         ; bump loop - exit when 0
+        inc d
+        beq done
+
+        mov b,c         ; bump src (C is src, M2 is tgt)
+        inc
+        mov b,m2        ; swap src and tgt
+        mov m2,a
+        inc             ; bump tgt
+        mov b,a
+        jmp loop
+
+  done: rts
+}
+
+; ***************************************************************
+;  Purpose:   Byte-by-byte endian conversion (reverse bytes)
+;
+;  Inputs:    M = Location of value start
+;             B = Length of value in bytes
+;
+;  Notes:     Value will be converted in-place and must be
+;             within single memory page.
+;
+;  Clobbered: ABCD and M
+; ***************************************************************
+reverse: {
+
+        ; Set up first and last byte pointers (A and D)
+        mov a,m2        ; A is just M2
+        mov c,m2        ; D is M2+C-1
+        add d
+        ldi b,-1
+        mov c,d
+        add d
+
+        ; Registers are in the following state
+        ;  A = low address of first byte
+        ;  D = low address of last byte
+        ;  M = address of first byte
+        ; XY = return address
+
+        ; On entry to the loop M is pointing at 1st of pair.
+        ; M2 = A and D is low address of 2nd of pair.
+        ; We now just need to swap them via B and C registers.
+  loop: ldr b
+        mov m2,d
+        ldr c
+        str b
+        mov m2,a
+        str c
+
+        ; We now need to increment A and decrement D
+        mov b,a
+        inc a
+        ldi b,-1
+        mov c,d
+        add d
+
+        ; We now take A from D however this needs a bit of
+        ; juggling to keep in registers
+        mov c,d         ; take A and D to ALU
+        mov b,a
+        not d           ; negate B via D
+        mov b,d
+        inc d
+        mov b,d
+        add d           ; subtract
+        mov d,c         ; restore D
+
+        ; If result is less than or equal to 0 we're done
+        ; Even swaps set sign flag and odds zero flag hence ble.
+        ble rtn
+
+        ; Otherwise we're going for another loop so set M2 = A
+        mov m2,a
+        jmp loop
+
+        ; Jump to return address held in XY register
+   rtn: rts
+}
+
+; ***************************************************************
+;  Purpose:   Byte-by-byte long addition: (A) = (A) + (B)
+;
+;  Inputs:    M1 = Zero page location of addend value (B)
+;             M2 = Zero page location of augend value (A)
+;              B = Number of bytes in addend value (B)
+;
+;  Notes:     Values must be in little-endian order.
+;             Length of augend must be at least length of addend.
+;
+;  Clobbered: ABCD, M and XY
+; ***************************************************************
+long_add: {
+
+        ; Because we'll be using XY as a general register we write the
+        ; return address directly in to the jump instruction at rtn.
+        ; That also means a bit of juggling to prepare our registers.
+        mov c,x         ; Capture return address in CD
+        mov d,y
+        mov xy,m        ; Move M params into indexer
+        ldi m,rtn+1     ; Set return address from CD
+        str c
+        ldi m,rtn+2
+        str d
+        mov c,x         ; Set end address of addend in D
+        add d
+        clr m1          ; clear M1 = zero page
+
+        ; Although register XY is typically used for indexing memory
+        ; here we cheat a little and use it for tracking two locations.
+        ; This does mean though the addresses must be in the same page.
+
+        ; Registers are now in the following state
+        ;  Y = augend zero page address
+        ;  X = addend zero page address
+        ;  D = zp address after addend
+        ; M1 = zero page
+
+        ; add two bytes together
+loop:   mov m2,x        ; C <- addend byte (m1x)
+        ldr c
+        mov m2,y        ; B <- augend byte (m1y)
+        ldr b
+        add             ; A = B + C
+        str a           ; A -> augend byte (m1x)
+        bcs carry       ; If add caused carry ripple it through augend
+
+        ; increment x and y pointers
+cont:   ixy             ; Y++ (augend)
+        mov b,x         ; X++ (addend)
+        inc
+        mov x,a
+
+        ; compare with target
+        mov c,d
+        mov b,a
+        cmp
+        bne loop
+
+        ; Jump to return address (set earlier)
+rtn:    jmp *
+
+carry:  ; For the carry scenario we need to add 1 to the byte. It's
+        ; possible though that could cause a carry in that byte and
+        ; so on so we iterate here until no carry.
+
+        mov b,m2        ; increment m2 (to point at next byte in augend)
+        inc
+        mov m2,a
+
+        ldr b           ; increment augend byte (m1y)
+        inc
+        str a
+
+        bcs carry       ; Go again if caused carry
+        jmp cont        ; Otherwise done and can continue
+}
+
+; ***************************************************************
+;  Purpose:   Byte-by-byte long subtraction (A) = (A) - (B)
+;
+;  Inputs:    M1 = Zero page location of subtrahend value (B)
+;             M2 = Zero page location of minuend value (A)
+;              B = Number of bytes in values (B)
+;
+;  Notes:     Length of minuend must be the same as subtrahend.
+;             Byte following minuend will mutate with carry bit.
+;
+;  Clobbered: ABCD, M and XY
+; ***************************************************************
+long_subtract: {
+
+        ; Prepare registers and set return address
+        mov c,x         ; Capture return address in CD
+        mov d,y
+        mov xy,m        ; Move M params into indexer
+        ldi m,rtn+1     ; Set return address from CD
+        str c
+        ldi m,rtn+2
+        str d
+        mov c,x         ; Set end address of subtrahend in D
+        add d
+        clr m1          ; clear M1 = zero page
+
+        ; Registers are now in the following state
+        ;  Y = minuend zero page address
+        ;  X = subtrahend zero page address
+        ;  D = zp address after subtrahend
+        ; M1 = zero page
+
+        ; To simplify the main loop we'll be using ones-complement.
+        ; Therefore to give a correct minuend we increment it by one now.
+        mov m2,y        ; B <- minuend byte (m1y)
+        ldr b
+        inc
+        str a           ; A -> minuend byte (m1x)
+        bcs carry1      ; If inc caused carry ripple it through minuend
+
+loop:   ; Main loop of byte-by-byte subtraction
+
+        ; Take 1s complement of subtrahend
+        mov m2,x        ; B <- subtrahend byte (m1x)
+        ldr b
+        not             ; A = ~B
+        mov c,a         ; C = A
+
+        ; Add two bytes together
+        mov m2,y        ; B <- minuend byte (m1y)
+        ldr b
+        add             ; A = B + C
+        str a           ; A -> minuend byte (m1x)
+
+        ; Branch if addition caused carry
+        bcs carry2
+
+        ; increment x and y pointers
+ cont:  ixy             ; Y++ (minuend)
+        mov b,x         ; X++ (subtrahend)
+        inc
+        mov x,a
+
+        ; compare with target
+        mov c,d
+        mov b,a
+        cmp
+        bne loop
+
+        ; Jump to return address (set earlier)
+rtn:    jmp *
+
+carry1: ; Handles a carry following the initial increment
+
+        mov b,m2        ; Incement m2 (to point at next byte in minuend)
+        inc
+        mov m2,a
+
+        ldr b           ; Increment minuend byte (m1y)
+        inc
+        str a
+
+        bcs carry1      ; Go again if caused carry
+        jmp loop        ; Otherwise done and can enter main loop
+
+carry2: ; Handles a carry following a byte-to-byte-addition
+        ; This is very similar to the carry above and could be a
+        ; subroutine but we're using the XY register.
+        ; We could use the same trick at 'rtn' but this way trades
+        ; memory against additional instructions to load the return addresses.
+
+        mov b,m2        ; increment m2 (to point at next byte in minuend)
+        inc
+        mov m2,a
+
+        ldr b           ; increment minuend byte (m1x)
+        inc
+        str a
+
+        bcs carry2      ; Go again if caused carry
+        jmp cont        ; Otherwise done and can continue
+}
+
+; ***************************************************************
+;  Purpose:   Byte-by-byte BBP fraction (restoring division)
+;
+;  Inputs:    M1 = Address to store result (zero page)
+;             M2 = Address of paramter array (zero page)
+;                  byte 0: divisor value dv (max 127)
+;                  byte 1: byte precision / result end address (M1+B)
+;                  byte 2: options flag -------s
+;                    s: Integral size:
+;                      0: 8-bit - Result is in form Q8.(B*8)
+;                      1: 4-bit - Result is in form Q4.((B*8)+4)
+;                      Effectively 4-bit result is 8-bit result << 4
+;
+;  Variants:  bbp_fraction::vA   calculates 4 / dv+1
+;             bbp_fraction::vB   calculates 2 / dv+4
+;             bbp_fraction::vC   calculates 1 / dv+5
+;             bbp_fraction::vD   calculates 1 / dv+6 (default)
+;
+;  Notes:     Resulting BBP fraction is little-endian
+;             Operates on the zero page so M1 + B must be in ZP.
+;
+;  Clobbered: ABCD, M and XY
+; ***************************************************************
+bbp_fraction: {
+
+        ; Define variant entry points. This might seem odd having them
+        ; here but they have knowledge of implementation so belong here.
+
+    vD: ldi a,1         ; Dividend = 1
+        ldi b,5         ; Set 5 to get -(V+6) at dv ones' complement
+        jmp init
+
+    vC: ldi a,1         ; Dividend = 1
+        ldi b,4         ; Set 4 to get -(V+5) at dv ones' complement
+        jmp init
+
+    vB: ldi a,2         ; Dividend = 2
+        ldi b,3         ; Set 3 to get -(V+4) at dv ones' complement
+        jmp init
+
+    vA: ldi a,4         ; Dividend = 4
+        ldi b,0         ; Set 0 to get -(V+1) at dv ones' complement
+                        ; deliberate fall through to init
+
+        ; Because we'll be using XY as a general register we write the
+        ; return address directly in to the jump instruction at rtn.
+
+  init: mov c,x         ; Capture return address in CD
+        mov d,y
+        mov xy,m        ; Preserve M in XY
+        ldi m,rtn+1     ; Set return address from CD
+        str c
+        ldi m,rtn+2
+        str d
+
+        ; The return address is now set with C and D spare
+        ; We now load the parameter array via ixy to bump Y
+
+        mov m2,y        ; Point M at parameter array
+        clr m1
+        ldr c           ; Load divisor, add with B and one's complement
+        add d
+        mov b,d
+        not d
+        mov c,x         ; Swap C = X (result location)
+        mov x,d         ;  and X = D (negated divisor)
+        ixy             ; Point to size parameter
+        mov m2,y
+        ldr b           ; Load size in to B
+        ixy             ; Point to options parameter
+        mov m2,y
+        mov y,c         ; Set end address in Y (C)
+        add d           ; Set result start location (C+B)
+        ldr c           ; Load options in to C
+        mov m2,d
+
+        ; Terms
+        ;   A = remainder (register A - ongoing)
+        ;   Q = quotient (register D - current byte)
+        ;   V = divisor (register X - stored negated)
+
+        ; Jump into initial byte loop depending on option in A
+        ; If we're nibble shifting we'll start at the 5th iteration
+        ; Otherwise we can skip the first byte leaving it as zero
+        ldi b,1              ; Test lsb of options
+        cmp d
+        clr d                ; D = 0
+        beq b_loop__4::_tst  ; 1/v >> 4  (first nibble 0)
+        jmp b_end            ; 1/v >> 8  (first byte 0)
+
+        ; Registers are now in the following state
+        ;  A = Initital dividend (1, 2 or 4)
+        ;  D = Initial quotient of 0 (Q)
+        ;  M = next result byte address (zero page)
+        ;  X = divisor value (-V)
+        ;  Y = first address of result (zero page)
+
+        ; ******* A loop - building up each byte of overall result
+a_loop: mov c,m2        ; decrement M (via M2--)
+        ldi b,-1
+        add d
+        mov m2,d
+        clr d           ; Set up next quotient (Q)
+
+        ; ******* B loop (unrolled) - building up each bit of each byte
+b_loop: !for i in range(8) {
+
+            ; Shift remainder and perform trial subtraction of V
+            ; If negative then C=0 and restore else C=1 and keep
+      _tst: mov b,a         ; A << 1 (via x2)
+            mov c,a
+            add a
+            mov b,a         ; A = A + -V
+            mov c,x
+            add
+            bmi _neg        ; Restore and set C to 0 if negative
+            ldi b,1         ; Otherwise keep result and set C to 1
+            mov c,b
+            jmp _set
+
+            ; If A - V was negative we restore the remainder and clear C
+      _neg: mov a,b
+            clr c
+
+            ; We can now shift Q left and apply the 1 or 0 in register C
+      _set: mov b,d         ; (Q << 1) + C
+            rol d
+            mov b,d
+            add d
+
+        }
+
+ b_end: str d           ; D now contains our complete byte so we'll store it in memory
+
+        mov b,m2        ; Check if on last byte (M2=Y)
+        mov c,y
+        eor d
+rtn:    beq *           ; Done if so
+        jmp a_loop      ; otherwise loop.
+}

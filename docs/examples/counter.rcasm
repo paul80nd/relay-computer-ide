@@ -1,0 +1,29 @@
+;******************************************************
+; Simple counter program for the relay computer
+;******************************************************
+
+; Set number to count to in data switches before running
+; Defaults to 8 if zero
+
+start2: lds a       ; get the desired max count
+        mov b,a
+        rol d       ; ALU inst to set condition codes
+        bne cntst2  ; ok if count not zero
+        ldi b,8     ; default to 8 if count not valid
+cntst2: not d       ; invert count
+        mov b,d     ; and
+        inc d       ; convert to negative number
+        clr a
+        clr c
+
+; initialization now complete
+
+loop2:  mov b,a     ; get displayed count
+        inc a       ; increment and display in A
+        mov c,a     ; also display in C
+        mov b,d     ; get loop counter
+        inc d       ; increment it
+        beq done    ; finished if zero
+        jmp loop2   ; go again
+done:   hlt         ; put new loop count in data switches
+        jmp start2  ; and RESTART to continue

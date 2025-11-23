@@ -1,0 +1,97 @@
+; ***************************************************
+;  Simple example of byte-by-byte long subtraction:
+;    (performed by 2s complement then long addition)
+;
+;    01 67 1d f9 67 1d f9 67 1d fa (sa)
+;  - 00 ba 2e 8b a2 e8 ba 2e 8b a2 (sb)
+;    ff 45 d1 74 5d 17 45 d1 74 5e (~sb+1)
+;  = 00 ac ef 6d c4 35 3f 38 92 58
+;
+;  Note: values are stored little endian
+;
+;  Expected duration: 3m30s at default clock speed
+; ***************************************************
+
+        ; Load zero page locations (X = sb, Y = sa)
+        ; Note we use the special '§' operator to pack two 8-bit
+        ; values into the 16-bit M register in the form M1§M2
+        ldi m,sb§sa     ; M1 = (sb), M2 = (sa)
+        mov xy,m        ; X = M1, Y = M2
+
+        ; Set end address of sb in D
+        ldi b,10        ; length of sb (10 bytes)
+        mov c,x         ; C = X = (sb)
+        add d
+        clr m1          ; clear M1 = zero page
+
+        ; Registers are now in the following state
+        ;  Y = sa zero page address
+        ;  X = sb zero page address
+        ;  D = zp address after subtrahend
+        ; M1 = zero page
+
+        ; To simplify the main loop we'll be using ones-complement.
+        ; Therefore to give a correct minuend we increment it by one now.
+        mov m2,y        ; B <- minuend byte (m1y)
+        ldr b
+        inc
+        str a           ; A -> minuend byte (m1x)
+
+        ; !!IMPORTANT!!
+        ; To keep this example simple we ignore the case where the increment above causes
+        ; a carry above but this would be needed in a real long subtraction routine
+
+loop:   ; Main loop of byte-by-byte subtraction
+
+        ; Take 1s complement of subtrahend
+        mov m2,x        ; B <- subtrahend byte (m1x)
+        ldr b
+        not             ; A = ~B
+        mov c,a         ; C = A
+
+        ; Add two bytes together
+        mov m2,y        ; B <- minuend byte (m1y)
+        ldr b
+        add             ; A = B + C
+        str a           ; A -> minuend byte (m1x)
+        bcs carry       ; If add caused carry ripple it through augend
+
+        ; increment x and y pointers
+cont:   ixy             ; Y++ (minuend)
+        mov b,x         ; X++ (subtrahend)
+        inc
+        mov x,a
+
+        ; compare with target
+        mov c,d
+        mov b,a
+        cmp
+        bne loop        ; loop if not done yet
+
+        ; complete
+done:   ldi m, sa       ; Point M to result
+        hlt             ; and halt
+
+carry:  ; For the carry scenario we need to add 1 to the byte. It's
+        ; possible though that could cause a carry in that byte and
+        ; so on so we iterate here until no carry.
+
+        mov b,m2        ; increment m2 (to point at next byte in minuend)
+        inc
+        mov m2,a
+
+        ldr b           ; increment minuend byte (m1y)
+        inc
+        str a
+
+        bcs carry       ; Go again if caused carry
+        jmp cont        ; Otherwise done and can continue
+
+
+; Initial values in memory (bytes are little-endian ordered)
+; Values are aligned to ease visibility in memory viewer
+
+        !align 16
+sa:     !byte 0xFA, 0x1D, 0x67, 0xF9, 0x1D, 0x67, 0xF9, 0x1D, 0x67, 0x01
+        !align 16
+sb:     !byte 0xA2, 0x8B, 0x2E, 0xBA, 0xE8, 0xA2, 0x8B, 0x2E, 0xBA, 0x00

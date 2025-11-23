@@ -1,0 +1,69 @@
+; ******************************************************
+; Memory test program
+; ******************************************************
+;
+; Set 256 byte block (00 - 7F) to test in data switches
+; before running. Program halts to allow entry of number
+; of locations to test (01-FF). Reset data switches with
+; number of locations to test, and press RESTART.
+
+ORG 0x8000
+
+start:  ldi m,0x55AA     ; load test pattern into M
+        mov xy,m         ; save it in XY
+        lds a            ; get memory block to test
+        mov b,a
+        not d            ; invert to check the msb
+        bmi blkset       ; ok if msb now set
+        clr a            ; default to zero if block not valid
+blkset: mov m1,a         ; set MSB of memory address
+        clr m2           ; set LSB of memory address
+        hlt              ; wait for test count
+
+; *****************************************************
+;
+; ENTER NUMBER OF LOCATIONS TO TEST
+; IN DATA SWITCHES WHEN MACHINE HALTS,
+; THEN RESTART
+;
+; *****************************************************
+
+        lds a            ; get the count
+        mov b,a
+        rol d            ; ALU inst to set condition codes
+        bne cntset       ; ok if count not zero
+        ldi b,8          ; default to 8 if count not valid
+ cntset: not d           ; invert count
+        mov b,d          ;    and
+        inc d            ; convert to negative number
+
+                         ; initialization now complete
+
+ loop:  mov c,x          ; get first test byte (AAH)
+        str c            ; write it [M]<-C
+        ldr b            ; read it back into B
+        eor a            ; compare
+        bne faila        ; any difference indicates error
+ goto5: mov c,y          ; get second test byte (55H)
+        str c            ; write it [M]<-C
+        ldr b            ; read it back into B
+        eor a            ; compare
+        bne fail5        ; any difference indicates error
+ next:  mov b,d          ; fetch the count
+        inc d            ; increment it
+        beq good         ; finished if zero
+        mov b,m2         ; fetch current memory location
+        inc a            ; increment it
+        mov m2,a         ; put it back in M for next iteration
+        jmp loop         ; go around again
+
+ faila: hlt              ; failed test pattern A
+                         ; note address of failure, then RESTART
+        jmp goto5        ; continue testing with pattern 5
+ fail5: hlt              ; failed test pattern 5
+                         ; note address of failure, then RESTART
+        jmp next         ; continue to increment steps
+ good:  hlt              ; all locations test OK if stopped here
+                         ; reset block to test in data switches
+                         ; and RESTART to continue testing
+        jmp start
