@@ -366,7 +366,7 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
       <Reg8 label='A' value={snapshot.A} styles={styles} rowCls={styles.posR1_3} />
       <Reg8 label='B' value={snapshot.B} styles={styles} rowCls={styles.posR3_5} />
       <Reg8 label='C' value={snapshot.C} styles={styles} rowCls={styles.posR5_7} />
-      <Reg8 label='C' value={snapshot.D} styles={styles} rowCls={styles.posR7_9} />
+      <Reg8 label='D' value={snapshot.D} styles={styles} rowCls={styles.posR7_9} />
       {/* Register M1/M2/M */}
       <Reg16L label='M1' value={mHi} styles={styles} rowCls={styles.posR9_11} />
       <Reg16L label='M2' value={mLo} styles={styles} rowCls={styles.posR11_13} />
