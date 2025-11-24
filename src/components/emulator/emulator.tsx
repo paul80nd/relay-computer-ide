@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Button,
   Tooltip,
@@ -9,11 +9,11 @@ import {
   PopoverTrigger,
   PopoverSurface,
 } from '@fluentui/react-components';
-import { CaretLeft16Filled, CaretRight16Filled, Settings16Regular } from '@fluentui/react-icons';
+import { Settings16Regular } from '@fluentui/react-icons';
 import type { EmulatorProps } from './types';
 import { Section, SectionContent, SectionFooter } from '../shared';
-import { toBin, toDec, toHex } from './fmt';
 import EmulatorDiagram from './emu-diagram';
+import EmulatorMemory from './emu-memory';
 
 export type Snapshot = {
   A: number;
@@ -46,13 +46,6 @@ const useStyles = makeStyles({
     display: 'flex',
     gap: tokens.spacingHorizontalSNudge,
   },
-  code: {
-    fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-    fontWeight: tokens.fontWeightRegular,
-    fontSize: tokens.fontSizeBase200,
-    color: tokens.colorNeutralForeground2,
-    lineHeight: tokens.lineHeightBase200,
-  },
   controlsRow: {
     display: 'flex',
     flexGrow: 1,
@@ -76,27 +69,6 @@ const useStyles = makeStyles({
     background: tokens.colorNeutralBackground1Hover,
     border: `1px solid ${tokens.colorBrandForeground2}`,
   },
-  memoryTable: {
-    flexGrow: 1,
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderSpacing: 0,
-    borderCollapse: 'collapse',
-  },
-  memTh: {
-    textAlign: 'center',
-    fontSize: tokens.fontSizeBase200,
-    fontWeight: tokens.fontWeightMedium,
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
-    backgroundColor: tokens.colorNeutralBackground2,
-    color: tokens.colorNeutralForeground2,
-  },
-  memTd: {
-    textAlign: 'center',
-    backgroundColor: tokens.colorNeutralBackground1,
-    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
-  },
-  pcMarker: { outline: `2px solid ${tokens.colorPaletteBlueBorderActive}` },
-  mMarker: { outline: `2px solid ${tokens.colorPaletteGreenBorder2}` },
   status: {
     fontSize: tokens.fontSizeBase200,
     color: tokens.colorNeutralForeground3,
@@ -458,10 +430,6 @@ export default function Emulator({ assembly }: EmulatorProps) {
     commitSnapshot();
   }, []);
 
-  // Render helpers
-  const rows = useMemo(() => [...Array(8).keys()], []);
-  const cols = useMemo(() => [...Array(16).keys()], []);
-
   const prevOffset = useCallback(() => setMemoryOffset(o => Math.max(0, o - 128)), []);
   const nextOffset = useCallback(() => setMemoryOffset(o => Math.min(32640, o + 128)), []);
 
@@ -541,7 +509,13 @@ export default function Emulator({ assembly }: EmulatorProps) {
               {[7, 6, 5, 4, 3, 2, 1, 0].map(bit => {
                 const on = !!(snapshot.PS & (1 << bit));
                 return (
-                  <Tooltip key={bit} relationship='label' content={`Primary switch ${bit}`} withArrow appearance='inverted'>
+                  <Tooltip
+                    key={bit}
+                    relationship='label'
+                    content={`Primary switch ${bit}`}
+                    withArrow
+                    appearance='inverted'
+                  >
                     <button
                       key={bit}
                       className={`${classes.switchBtn} ${on ? classes.switchActive : ''}`}
@@ -558,78 +532,14 @@ export default function Emulator({ assembly }: EmulatorProps) {
 
           {/* Memory table */}
           <div className={classes.tablesRow}>
-            <table className={classes.memoryTable}>
-              <thead>
-                <tr>
-                  <th className={classes.memTh} style={{ width: 24 }} colSpan={2}>
-                    <Button
-                      onClick={prevOffset}
-                      disabled={memoryOffset === 0}
-                      icon={<CaretLeft16Filled />}
-                      size='small'
-                      appearance='transparent'
-                      style={{ minWidth: 0, flexGrow: 1 }}
-                      aria-label='Previous page'
-                    />
-                  </th>
-                  <th className={classes.memTh} colSpan={12}>
-                    Memory (offset <code className={classes.code}>{toHex(memoryOffset, 4)}</code>)
-                  </th>
-                  <th className={classes.memTh} style={{ width: 24, textAlign: 'right' }} colSpan={2}>
-                    <Button
-                      disabled={memoryOffset >= 32640}
-                      onClick={nextOffset}
-                      icon={<CaretRight16Filled />}
-                      size='small'
-                      appearance='transparent'
-                      aria-label='Next page'
-                      style={{ minWidth: 0, flexGrow: 1 }}
-                    />
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map(r => (
-                  <tr key={r}>
-                    {cols.map(c => {
-                      const addr = memoryOffset + r * 16 + c;
-                      const v = memoryRef.current[addr] ?? 0;
-                      const isPC = (snapshot.PC & 0xffff) === addr;
-                      const isM = (snapshot.M & 0xffff) === addr;
-                      return (
-                        <td
-                          key={c}
-                          className={`${classes.memTd} ${isPC ? classes.pcMarker : ''} ${isM ? classes.mMarker : ''}`}
-                        >
-                          <Tooltip
-                            relationship='label'
-                            withArrow
-                            appearance='inverted'
-                            content={
-                              <div>
-                                <small>Memory Slot</small>
-                                <br />
-                                <code>
-                                  Address: {toHex(addr, 4)}
-                                  <br />
-                                  Hex: {toHex(v, 2)}
-                                  <br />
-                                  Bin: {toBin(v, 2)}
-                                  <br />
-                                  Dec: {toDec(v)}
-                                </code>
-                              </div>
-                            }
-                          >
-                            <code className={classes.code}>{toHex(v, 2)}</code>
-                          </Tooltip>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <EmulatorMemory
+              memory={memoryRef.current}
+              pc={snapshot.PC}
+              m={snapshot.M}
+              offset={memoryOffset}
+              onPrevPage={prevOffset}
+              onNextPage={nextOffset}
+            />
           </div>
         </div>
       </SectionContent>

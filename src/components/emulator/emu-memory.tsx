@@ -1,0 +1,125 @@
+import { useMemo } from 'react';
+import { Button, Tooltip, makeStyles, tokens } from '@fluentui/react-components';
+import { CaretLeft16Filled, CaretRight16Filled } from '@fluentui/react-icons';
+import { toBin, toDec, toHex } from './fmt';
+
+const useStyles = makeStyles({
+  code: {
+    fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+    fontWeight: tokens.fontWeightRegular,
+    fontSize: tokens.fontSizeBase200,
+    color: tokens.colorNeutralForeground2,
+    lineHeight: tokens.lineHeightBase200,
+  },
+  memoryTable: {
+    flexGrow: 1,
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderSpacing: 0,
+    borderCollapse: 'collapse',
+  },
+  memTh: {
+    textAlign: 'center',
+    fontSize: tokens.fontSizeBase200,
+    fontWeight: tokens.fontWeightMedium,
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    backgroundColor: tokens.colorNeutralBackground2,
+    color: tokens.colorNeutralForeground2,
+  },
+  memTd: {
+    textAlign: 'center',
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+  },
+  pcMarker: { outline: `2px solid ${tokens.colorPaletteBlueBorderActive}` },
+  mMarker: { outline: `2px solid ${tokens.colorPaletteGreenBorder2}` },
+});
+
+export type MemoryTableProps = {
+  memory: readonly number[];
+  pc: number;
+  m: number;
+  offset: number;
+  onPrevPage: () => void;
+  onNextPage: () => void;
+};
+
+export default function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage }: MemoryTableProps) {
+  const classes = useStyles();
+  const rows = useMemo(() => [...Array(8).keys()], []);
+  const cols = useMemo(() => [...Array(16).keys()], []);
+
+  return (
+    <table className={classes.memoryTable}>
+      <thead>
+        <tr>
+          <th className={classes.memTh} style={{ width: 24 }} colSpan={2}>
+            <Button
+              onClick={onPrevPage}
+              disabled={offset === 0}
+              icon={<CaretLeft16Filled />}
+              size='small'
+              appearance='transparent'
+              style={{ minWidth: 0, flexGrow: 1 }}
+              aria-label='Previous page'
+            />
+          </th>
+          <th className={classes.memTh} colSpan={12}>
+            Memory (offset <code className={classes.code}>{toHex(offset, 4)}</code>)
+          </th>
+          <th className={classes.memTh} style={{ width: 24, textAlign: 'right' }} colSpan={2}>
+            <Button
+              disabled={offset >= 32640}
+              onClick={onNextPage}
+              icon={<CaretRight16Filled />}
+              size='small'
+              appearance='transparent'
+              aria-label='Next page'
+              style={{ minWidth: 0, flexGrow: 1 }}
+            />
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(r => (
+          <tr key={r}>
+            {cols.map(c => {
+              const addr = offset + r * 16 + c;
+              const v = memory[addr] ?? 0;
+              const isPC = (pc & 0xffff) === addr;
+              const isM = (m & 0xffff) === addr;
+              return (
+                <td
+                  key={c}
+                  className={`${classes.memTd} ${isPC ? classes.pcMarker : ''} ${isM ? classes.mMarker : ''}`}
+                >
+                  <Tooltip
+                    relationship='label'
+                    withArrow
+                    appearance='inverted'
+                    content={
+                      <div>
+                        <small>Memory Slot</small>
+                        <br />
+                        <code>
+                          Address: {toHex(addr, 4)}
+                          <br />
+                          Hex: {toHex(v, 2)}
+                          <br />
+                          Bin: {toBin(v, 2)}
+                          <br />
+                          Dec: {toDec(v)}
+                        </code>
+                      </div>
+                    }
+                  >
+                    <code className={classes.code}>{toHex(v, 2)}</code>
+                  </Tooltip>
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
