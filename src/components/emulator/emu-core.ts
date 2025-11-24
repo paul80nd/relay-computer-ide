@@ -176,7 +176,7 @@ export class EmulatorCore {
     const mem = this.memory;
     const r = this.regs;
 
-    const instr = (r.I = mem[r.PC] ?? 0);
+    const instr = (r.I = mem[r.PC & 0x7fff] ?? 0);
 
     // SETAB 01rvvvvv
     if ((instr & 0xc0) === 0x40) {
