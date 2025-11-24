@@ -1,11 +1,7 @@
 // TypeScript
 import { EmulatorCore, Snapshot } from '../../../src/components/emulator/emu-core';
 import { ALU_TO_A, GOTO, HALT, LOAD_TO, MOV8, SETA, STORE_FROM } from './helpers/opcodes';
-
-function program(offset: number, bytes: number[]): Uint8Array {
-  const hdr = [offset & 0xff, (offset >> 8) & 0xff];
-  return new Uint8Array([...hdr, ...bytes.map(b => b & 0xff)]);
-}
+import { program } from './helpers/program';
 
 // capture a subset of the snapshot for readability
 function pick(s: Snapshot) {

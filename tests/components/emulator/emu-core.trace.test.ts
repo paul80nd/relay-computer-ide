@@ -1,23 +1,7 @@
 // TypeScript
 import { EmulatorCore, type StepTrace } from '../../../src/components/emulator/emu-core';
-
-// Helpers reused from previous tests
-const SETA = (v: number) => 0x40 | (v & 0x1f);
-const SETB = (v: number) => 0x60 | (v & 0x1f);
-const MOV8 = (d: number, s: number) => ((d & 0x7) << 3) | (s & 0x7);
-const ALU_TO_A = (f: number) => 0x80 | (f & 0x7);
-const LOAD_TO = (d: number) => 0x90 | (d & 0x3);
-const STORE_FROM = (s: number) => 0x98 | (s & 0x3);
-const GOTO = (opts: { d?: 0 | 1; s?: 0 | 1; c?: 0 | 1; z?: 0 | 1; n?: 0 | 1; x?: 0 | 1 }, hi: number, lo: number) => {
-  const { d = 0, s = 0, c = 0, z = 0, n = 0, x = 0 } = opts;
-  return 0xc0 | ((d & 1) << 5) | ((s & 1) << 4) | ((c & 1) << 3) | ((z & 1) << 2) | ((n & 1) << 1) | (x & 1);
-};
-const HALT = (r: 0 | 1 = 0) => 0xae | (r & 1);
-
-function program(offset: number, bytes: number[]): Uint8Array {
-  const hdr = [offset & 0xff, (offset >> 8) & 0xff];
-  return new Uint8Array([...hdr, ...bytes.map(b => b & 0xff)]);
-}
+import { ALU_TO_A, GOTO, HALT, LOAD_TO, MOV8, SETA, STORE_FROM } from './helpers/opcodes';
+import { program } from './helpers/program';
 
 describe('EmulatorCore trace hook', () => {
   test('captures per-step opcode, kind, cls, cyclesDelta and snapshots', () => {
@@ -32,8 +16,7 @@ describe('EmulatorCore trace hook', () => {
       STORE_FROM(1),           // +12
       LOAD_TO(0),              // +12
       ALU_TO_A(2),             // +8
-      GOTO({ d: 1, z: 1, x: 1 }, (tgt >> 8) & 0xff, tgt & 0xff), // +24, not taken (Z false)
-      (tgt >> 8) & 0xff, tgt & 0xff,
+      ...GOTO({ d: 1, z: 1, x: 1 }, (tgt >> 8) & 0xff, tgt & 0xff), // +24, not taken (Z false)
       HALT(),                  // +10, returns false
     ];
 

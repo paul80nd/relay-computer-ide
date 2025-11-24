@@ -1,12 +1,8 @@
 // TypeScript
 import { EmulatorCore, Snapshot } from '../../../src/components/emulator/emu-core';
+import { expectPC, expectRegs } from './helpers/asserts';
 import { ALU_TO_A, ALU_TO_D, GOTO, HALT, INCXY, LOAD_TO, MOV16, MOV8, SETA, SETB, STORE_FROM } from './helpers/opcodes';
-
-function program(offset: number, bytes: number[]): Uint8Array {
-  // Little-endian offset header, then program bytes
-  const hdr = [offset & 0xff, (offset >> 8) & 0xff];
-  return new Uint8Array([...hdr, ...bytes.map(b => b & 0xff)]);
-}
+import { padTo, program } from './helpers/program';
 
 describe('EmulatorCore - reset/load/step basics', () => {
   test('reset initializes registers, flags, cycles, memory version increments', () => {
@@ -18,19 +14,7 @@ describe('EmulatorCore - reset/load/step basics', () => {
     expect(core.getMemory()[0]).toBe(0);
     expect(core.getMemoryVersion()).toBeGreaterThanOrEqual(v0 + 1);
 
-    expect(snap.PC).toBe(0);
-    expect(snap.A).toBe(0);
-    expect(snap.B).toBe(0);
-    expect(snap.C).toBe(0);
-    expect(snap.D).toBe(0);
-    expect(snap.M).toBe(0);
-    expect(snap.XY).toBe(0);
-    expect(snap.J).toBe(0);
-    expect(snap.FZ).toBe(false);
-    expect(snap.FS).toBe(false);
-    expect(snap.FC).toBe(false);
-    expect(snap.PS).toBe(0);
-    expect(snap.cycles).toBe(0);
+    expectRegs(snap, { A: 0, B: 0, C: 0, D: 0, M: 0, XY: 0, J: 0, PC: 0, FZ: false, FS: false, FC: false, PS: 0, cycles: 0 });
   });
 
   test('load writes program at offset, wraps, sets PC, bumps version', () => {
@@ -58,7 +42,7 @@ describe('EmulatorCore - reset/load/step basics', () => {
     const offset = 0x0100;
     core.load(program(offset, [HALT()]));
     expect(core.step()).toBe(false);
-    expect(core.getSnapshot().PC).toBe((offset + 1) & 0xffff);
+    expectPC(core.getSnapshot(), (offset + 1) & 0xffff);
   });
 });
 
@@ -72,22 +56,17 @@ describe('Instruction behavior', () => {
     // Step 1
     expect(core.step()).toBe(true);
     let s1 = core.getSnapshot();
-    expect(s1.A).toBe(0x03);
-    expect(s1.B).toBe(0x00);
-    expect(s1.PC).toBe((start + 1) & 0xffff);
-    expect(s1.cycles).toBe(8);
+    expectRegs(s1, { A: 0x03, B: 0x00, PC: (start + 1) & 0xffff, cycles: 8 })
 
     // Step 2
     expect(core.step()).toBe(true);
     let s2 = core.getSnapshot();
-    expect(s2.B).toBe(0xff); // -1 as 8-bit
-    expect(s2.cycles).toBe(16);
+    expectRegs(s2, { B: 0xff, cycles: 16 }) // -1 as 8-bit
 
     // Step 3
     expect(core.step()).toBe(false);
     const s3 = core.getSnapshot();
-    expect(s3.PC).toBe((start + 3) & 0xffff);
-    expect(s3.cycles).toBe(26); // HALT counts 10 cycles in core
+    expectRegs(s3, { PC: (start + 3) & 0xffff, cycles: 26 })// HALT counts 10 cycles in core
   });
 
   test('MOV8 moves between regs and M/XY halves', () => {
@@ -118,17 +97,11 @@ describe('Instruction behavior', () => {
 
     expect(core.step()).toBe(true); // ALU f=1: B + C = 0xFF + 0x01 = 0x100
     let s = core.getSnapshot();
-    expect(s.A).toBe(0x00);
-    expect(s.FZ).toBe(true);
-    expect(s.FC).toBe(true);
-    expect(s.FS).toBe(false);
+    expectRegs(s, { A: 0x00, FZ: true, FC: true, FS: false })
 
     expect(core.step()).toBe(true); // ALU f=6: ~B
     s = core.getSnapshot();
-    expect(s.D).toBe(0x00); // ~0xff & 0xff = 0x00
-    expect(s.FZ).toBe(true);
-    expect(s.FC).toBe(false);
-    expect(s.FS).toBe(false);
+    expectRegs(s, { D: 0x00, FZ: true, FC: false, FS: false }) // ~0xff & 0xff = 0x00
 
     expect(core.step()).toBe(false); // HALT
   });
@@ -170,17 +143,9 @@ describe('Instruction behavior', () => {
     // Run 5 steps to move PC
     for (let i = 0; i < 5; i++) expect(core.step()).toBe(true);
     const s = core.getSnapshot();
-    expect(s.M).toBe(0x1234);
-    expect(s.XY).toBe(0x1235);
-    expect(s.PC).toBe(0x1236);
+    expectRegs(s, { M: 0x1234, XY: 0x1235 });
+    expectPC(s, 0x1236);
   });
-
-  function padTo(addrStart: number, currentLen: number, targetAddr: number): number[] {
-    const currentAddr = (addrStart + currentLen) & 0xffff;
-    let pad = (targetAddr - currentAddr) & 0xffff;
-    // We want the next byte written to be at targetAddr, so pad is correct as-is.
-    return new Array(pad).fill(0x00);
-  }
 
   test('GOTO: captures XY when x=1, writes M/J, and jumps when condition true', () => {
     const core = new EmulatorCore();
@@ -202,11 +167,11 @@ describe('Instruction behavior', () => {
     for (let i = 0; i < 4; i++) expect(core.step()).toBe(true);
 
     const s = core.getSnapshot();
-    expect(s.J).toBe(tgt);                         // d=1 -> J loaded
+    expect(s.J).toBe(tgt);  // d=1 -> J loaded
     expect(s.XY).toBe((start + progPrefix.length) & 0xffff);
-    expect(s.PC).toBe(tgt);                        // jumped
+    expectPC(s, tgt)        // jumped
 
-    expect(core.step()).toBe(false);               // HALT at target
+    expect(core.step()).toBe(false); // HALT at target
   });
 
   test('HALT with jump to PS sets PC to PS', () => {
@@ -222,7 +187,7 @@ describe('Instruction behavior', () => {
     expect(core.step()).toBe(false);
     const s = core.getSnapshot();
     expect(s.PS).toBe(0x0042);
-    expect(s.PC).toBe(0x0042); // jumped to PS
+    expectPC(s, 0x0042); // jumped to PS
   });
 
   test('MOV8 no-op (reg to same reg) still advances PC and cycles', () => {
