@@ -1,4 +1,4 @@
-import type { EmulatorCore } from '../../../src/components/emulator/emu-core';
+import type { EmulatorCore } from '../../../../src/components/emulator/emu-core';
 
 export type RunUntilOpts = {
   maxSteps?: number;            // hard cap

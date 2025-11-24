@@ -1,39 +1,12 @@
 // TypeScript
 import { EmulatorCore, Snapshot } from '../../../src/components/emulator/emu-core';
+import { ALU_TO_A, ALU_TO_D, GOTO, HALT, INCXY, LOAD_TO, MOV16, MOV8, SETA, SETB, STORE_FROM } from './helpers/opcodes';
 
 function program(offset: number, bytes: number[]): Uint8Array {
   // Little-endian offset header, then program bytes
   const hdr = [offset & 0xff, (offset >> 8) & 0xff];
   return new Uint8Array([...hdr, ...bytes.map(b => b & 0xff)]);
 }
-
-// Opcodes helpers based on current core:
-// - SETAB: 01 r vvvvv (r=1->B, r=0->A; v: if bit4 set, sign-extended nibble)
-const SETA = (v: number) => 0x40 | (v & 0x1f);
-const SETB = (v: number) => 0x60 | (v & 0x1f);
-// - MOV8: 00 ddd sss
-const MOV8 = (d: number, s: number) => ((d & 0x7) << 3) | (s & 0x7);
-// - ALU: 1000 r fff  (r=1 -> D, r=0 -> A; f = func index per aluFunc)
-const ALU_TO_A = (f: number) => 0x80 | (f & 0x7);
-const ALU_TO_D = (f: number) => 0x88 | (f & 0x7);
-// - LOAD: 100100dd
-const LOAD_TO = (d: number) => 0x90 | (d & 0x3);
-// - STORE: 100110ss
-const STORE_FROM = (s: number) => 0x98 | (s & 0x3);
-// - MOV16: 10100 d ss  (d=0 -> XY, d=1 -> PC; s: 0=M,1=XY,2=J,3=0)
-const MOV16 = (d: number, s: number) => 0xa0 | ((d & 0x1) << 2) | (s & 0x3);
-// - LDSW: 1010110d (d=1 -> D, d=0 -> A)
-const LDSW_TO = (toD: boolean) => 0xac | (toD ? 0x01 : 0x00);
-// - HALT: 1010111r (r=1 -> jump to PS, else stop)
-const HALT = (r: 0 | 1 = 0) => 0xae | (r & 0x01);
-// - INCXY: 10110000
-const INCXY = 0xb0;
-// - GOTO: 11 d s c z n x, then hi, then lo
-const GOTO = (opts: { d?: 0 | 1; s?: 0 | 1; c?: 0 | 1; z?: 0 | 1; n?: 0 | 1; x?: 0 | 1 }, hi: number, lo: number) => {
-  const { d = 0, s = 0, c = 0, z = 0, n = 0, x = 0 } = opts;
-  const op = 0xc0 | ((d & 1) << 5) | ((s & 1) << 4) | ((c & 1) << 3) | ((z & 1) << 2) | ((n & 1) << 1) | (x & 1);
-  return [op, hi & 0xff, lo & 0xff];
-};
 
 describe('EmulatorCore - reset/load/step basics', () => {
   test('reset initializes registers, flags, cycles, memory version increments', () => {

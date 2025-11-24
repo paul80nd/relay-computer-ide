@@ -1,9 +1,7 @@
 // TypeScript
 import { EmulatorCore } from '../../../src/components/emulator/emu-core';
-import { runUntil } from './run-utils';
-
-const SETA = (v: number) => 0x40 | (v & 0x1f);
-const HALT = (r: 0|1 = 0) => 0xae | (r & 1);
+import { HALT, SETA } from './helpers/opcodes';
+import { runUntil } from './helpers/run-utils';
 
 function program(offset: number, bytes: number[]): Uint8Array {
   const hdr = [offset & 0xff, (offset >> 8) & 0xff];

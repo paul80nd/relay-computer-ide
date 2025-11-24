@@ -250,7 +250,6 @@ export class EmulatorCore {
 
   // MOV8 00dddsss
   private execMOV8(op: number): ExecResult {
-    const r = this.regs;
     const d = (op & 0x38) >> 3;
     const s = op & 0x07;
     const v = d === s ? 0 : this.getMov8[s]();
@@ -303,7 +302,6 @@ export class EmulatorCore {
 
   // MOV16 10100dss
   private execMOV16(op: number): ExecResult {
-    const r = this.regs;
     const d = (op & 0x04) >> 2;
     const s = op & 0x03;
     const v = d === 0 && s === 1 ? 0 : this.getMov16[s]();

@@ -1,18 +1,6 @@
 // TypeScript
 import { EmulatorCore, Snapshot } from '../../../src/components/emulator/emu-core';
-
-// opcode helpers (reuse from your other test)
-const SETA = (v: number) => 0x40 | (v & 0x1f);
-const SETB = (v: number) => 0x60 | (v & 0x1f);
-const MOV8 = (d: number, s: number) => ((d & 0x7) << 3) | (s & 0x7);
-const ALU_TO_A = (f: number) => 0x80 | (f & 0x7);
-const LOAD_TO = (d: number) => 0x90 | (d & 0x3);
-const STORE_FROM = (s: number) => 0x98 | (s & 0x3);
-const GOTO = (opts: { d?: 0|1; s?: 0|1; c?: 0|1; z?: 0|1; n?: 0|1; x?: 0|1 }, hi: number, lo: number) => {
-  const { d=0, s=0, c=0, z=0, n=0, x=0 } = opts;
-  return 0xc0 | ((d&1)<<5) | ((s&1)<<4) | ((c&1)<<3) | ((z&1)<<2) | ((n&1)<<1) | (x&1);
-};
-const HALT = (r: 0|1 = 0) => 0xae | (r & 1);
+import { ALU_TO_A, GOTO, HALT, LOAD_TO, MOV8, SETA, STORE_FROM } from './helpers/opcodes';
 
 function program(offset: number, bytes: number[]): Uint8Array {
   const hdr = [offset & 0xff, (offset >> 8) & 0xff];
@@ -45,9 +33,7 @@ describe('EmulatorCore golden snapshots', () => {
       STORE_FROM(1),        // [M] <- B
       LOAD_TO(0),           // A <- [M]
       ALU_TO_A(2),          // B + 1 -> A
-      GOTO({ d:1, z:1, x:1 }, (tgt >> 8) & 0xff, tgt & 0xff),
-      (tgt >> 8) & 0xff,
-      tgt & 0xff,
+      ...GOTO({ d:1, z:1, x:1 }, (tgt >> 8) & 0xff, tgt & 0xff),
       HALT(),
       // pad up to target, place HALT at tgt
       ...new Array(((tgt - (start + 9)) & 0xffff)).fill(0x00),
