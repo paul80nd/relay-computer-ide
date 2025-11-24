@@ -450,6 +450,11 @@ export default function Emulator({ assembly }: EmulatorProps) {
     }
   }, [assembly, reset, load]);
 
+  const setMemoryOffsetClamped = useCallback((next: number) => {
+    const clamped = Math.max(0, Math.min(32640, Math.floor(next / 16) * 16));
+    setMemoryOffset(clamped);
+  }, []);
+
   const canRun = !!(assembly?.didAssemble && assembly.bytes && assembly.bytes.length > 2);
 
   return (
@@ -539,6 +544,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
               offset={memoryOffset}
               onPrevPage={prevOffset}
               onNextPage={nextOffset}
+              onSetOffset={setMemoryOffsetClamped}
             />
           </div>
         </div>

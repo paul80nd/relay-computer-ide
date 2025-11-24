@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
-import { Button, Tooltip, makeStyles, tokens } from '@fluentui/react-components';
+import { Button, Field, Input, Radio, RadioGroup, Tooltip, makeStyles, tokens } from '@fluentui/react-components';
 import { CaretLeft16Filled, CaretRight16Filled } from '@fluentui/react-icons';
 import { toBin, toDec, toHex } from './fmt';
 
@@ -42,6 +42,7 @@ export type MemoryTableProps = {
   offset: number;
   onPrevPage: () => void;
   onNextPage: () => void;
+  onSetOffset?: (next: number) => void;
 };
 
 type HoverAnchor = {
@@ -51,7 +52,29 @@ type HoverAnchor = {
   anchorEl: Element | null;
 };
 
-function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage }: MemoryTableProps) {
+type FollowMode = 'none' | 'pc' | 'm';
+
+const MEM_SIZE = 32768;
+const PAGE_SIZE = 128; // 0x0080
+const MAX_OFFSET = MEM_SIZE - PAGE_SIZE;
+
+function clampOffsetToPage(n: number) {
+  // Snap to page boundary (multiples of 128) and clamp to range
+  const snapped = Math.max(0, Math.min(MAX_OFFSET, n - (n % PAGE_SIZE)));
+  return snapped;
+}
+
+function pageForAddress(addr: number) {
+  // Center approximately, then snap to page boundary
+  const centeredStart = Math.max(0, addr - PAGE_SIZE / 2);
+  return clampOffsetToPage(centeredStart);
+}
+
+function isAddrVisible(addr: number, offset: number) {
+  return addr >= offset && addr < offset + PAGE_SIZE;
+}
+
+function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOffset }: MemoryTableProps) {
   const classes = useStyles();
   const rows = useMemo(() => [...Array(8).keys()], []);
   const cols = useMemo(() => [...Array(16).keys()], []);
@@ -72,6 +95,74 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage }: Memor
       setHover(h => ({ ...h, open: false, anchorEl: null }));
     }, 60); // small delay
   }, []);
+
+  // Go to address controls
+  const [gotoText, setGotoText] = useState('');
+  const parseAddr = (s: string): number | null => {
+    const t = s.trim();
+    if (!t) return null;
+    // Accept 0xHHHH, HHHH (hex), or decimal
+    const hexMatch = /^0x([0-9a-fA-F]+)$/.exec(t) || /^([0-9a-fA-F]+)h$/i.exec(t);
+    if (hexMatch) {
+      const n = parseInt(hexMatch[1], 16);
+      return Number.isFinite(n) ? Math.max(0, Math.min(MEM_SIZE - 1, n)) : null;
+    }
+    if (/^[0-9]+$/.test(t)) {
+      const n = parseInt(t, 10);
+      return Number.isFinite(n) ? Math.max(0, Math.min(MEM_SIZE - 1, n)) : null;
+    }
+    return null;
+  };
+
+  const setOffset = useCallback(
+    (next: number) => {
+      const clamped = clampOffsetToPage(next);
+      onSetOffset ? onSetOffset(clamped) : console.warn('onSetOffset not provided');
+    },
+    [onSetOffset]
+  );
+
+  const handleGoto = useCallback(() => {
+    const addr = parseAddr(gotoText);
+    if (addr == null) return;
+    setOffset(pageForAddress(addr));
+  }, [gotoText, setOffset]);
+
+  const handleGotoKey = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        handleGoto();
+      }
+    },
+    [handleGoto]
+  );
+
+  // Follow PC / M
+  const [followMode, setFollowMode] = useState<FollowMode>('none');
+
+  // When pc/m changes, adjust offset only if toggle is on AND address not visible
+  const lastPCRef = useRef<number>(pc);
+  const lastMRef = useRef<number>(m);
+
+  // PC follow
+  useMemo(() => {
+    if (!onSetOffset) return;
+    if (followMode === 'pc' && pc !== lastPCRef.current && !isAddrVisible(pc & 0xffff, offset)) {
+      setOffset(pageForAddress(pc & 0xffff));
+    }
+    lastPCRef.current = pc;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pc, followMode, offset, onSetOffset, setOffset]);
+
+  // M follow
+  useMemo(() => {
+    if (!onSetOffset) return;
+    if (followMode === 'm' && m !== lastMRef.current && !isAddrVisible(m & 0xffff, offset)) {
+      setOffset(pageForAddress(m & 0xffff));
+    }
+    lastMRef.current = m;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [m, followMode, offset, onSetOffset, setOffset]);
 
   return (
     <>
@@ -127,6 +218,35 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage }: Memor
             </tr>
           ))}
         </tbody>
+        <tfoot>
+          <th className={classes.memTh} colSpan={16} style={{ textAlign: 'right' }}>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
+              <Input
+                appearance='filled-darker'
+                size='small'
+                placeholder='Go to (e.g. 0x0200, 200h, 512)'
+                value={gotoText}
+                onChange={(_, data) => setGotoText(data.value)}
+                onKeyDown={handleGotoKey}
+                style={{ width: 220 }}
+              />
+              <Button size='small' onClick={handleGoto}>
+                Go
+              </Button>
+              <Field label='Follow' orientation='horizontal' size='small'>
+                <RadioGroup
+                  layout='horizontal'
+                  value={followMode}
+                  onChange={(_, data) => setFollowMode(data.value as FollowMode)}
+                >
+                  <Radio value='none' label='None' />
+                  <Radio value='pc' label='PC' />
+                  <Radio value='m' label='M' />
+                </RadioGroup>
+              </Field>
+            </div>
+          </th>
+        </tfoot>
       </table>
       <Tooltip
         visible={hover.open}
