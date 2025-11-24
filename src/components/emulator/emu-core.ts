@@ -53,13 +53,13 @@ export class EmulatorCore {
   private regs: Snapshot;
 
   // Cached decode/exec tables
-  private getMov8!: Array<() => number>;
-  private setMov8!: Array<(v: number) => void>;
-  private getMov16!: Array<() => number>;
-  private setMov16!: Array<(v: number) => void>;
-  private aluFunc!: Array<() => number>;
-  private loadReg!: Array<(v: number) => void>;
-  private saveReg!: Array<() => number>;
+  private getMov8: Array<() => number> = [];
+  private setMov8: Array<(v: number) => void> = [];
+  private getMov16: Array<() => number> = [];
+  private setMov16: Array<(v: number) => void> = [];
+  private aluFunc: Array<() => number> = [];
+  private loadReg: Array<(v: number) => void> = [];
+  private saveReg: Array<() => number> = [];
 
   constructor(size = 32768) {
     this.memory = new Uint8Array(size);
@@ -104,12 +104,13 @@ export class EmulatorCore {
       () => r.M & 0xffff,
       () => r.XY & 0xffff,
       () => r.J & 0xffff,
-      () => 0]
+      () => 0
+    ];
 
     // 16-bit destinations
     this.setMov16 = [
       (v: number) => (r.XY = v & 0xffff),
-      (v: number) => (r.PC = v & 0xffff)
+      (v: number) => (r.PC = v & 0xffff),
     ];
 
     // LOAD/STORE register select
@@ -362,7 +363,7 @@ export class EmulatorCore {
     const op = (r.I = this.memory[r.PC & 0x7fff] ?? 0);
     const kind = this.decode(op);
     r.CLS = KindToCls[kind];
-    switch (this.decode(op)) {
+    switch (kind) {
       case InstructionKind.SETAB: return this.execSETAB(op);
       case InstructionKind.MOV8: return this.execMOV8(op);
       case InstructionKind.ALU: return this.execALU(op);
@@ -373,8 +374,7 @@ export class EmulatorCore {
       case InstructionKind.HALT: return this.execHALT(op);
       case InstructionKind.INCXY: return this.execINCXY(op);
       case InstructionKind.GOTO: return this.execGOTO(op);
-      default:
-        return false;
+      default: return false;
     }
   }
 
