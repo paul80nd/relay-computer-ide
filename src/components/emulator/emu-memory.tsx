@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { Button, Tooltip, makeStyles, tokens } from '@fluentui/react-components';
 import { CaretLeft16Filled, CaretRight16Filled } from '@fluentui/react-icons';
 import { toBin, toDec, toHex } from './fmt';
@@ -43,7 +43,7 @@ export type MemoryTableProps = {
   onNextPage: () => void;
 };
 
-export default function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage }: MemoryTableProps) {
+function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage }: MemoryTableProps) {
   const classes = useStyles();
   const rows = useMemo(() => [...Array(8).keys()], []);
   const cols = useMemo(() => [...Array(16).keys()], []);
@@ -123,3 +123,10 @@ export default function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNe
     </table>
   );
 }
+
+export default memo(EmulatorMemory, (prev, next) => {
+  // Re-render only when visible slice or highlights change.
+  return (
+    prev.offset === next.offset && prev.pc === next.pc && prev.m === next.m && prev.memory === next.memory // same array ref
+  );
+});
