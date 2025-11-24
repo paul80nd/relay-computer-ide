@@ -1,7 +1,7 @@
 import { Tooltip, makeStyles, tokens, Badge } from '@fluentui/react-components';
 import { toBin, toDec, toHex } from './fmt';
-import type { Snapshot } from './emulator';
 import { memo } from 'react';
+import type { Snapshot } from './emu-core';
 
 const useStyles = makeStyles({
   root: {
