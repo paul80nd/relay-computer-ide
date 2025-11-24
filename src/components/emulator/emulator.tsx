@@ -88,13 +88,20 @@ export default function Emulator({ assembly }: EmulatorProps) {
     });
   }, []);
 
+  /** Un-mounting clean up */
   useEffect(
     () => () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      runningRef.current = false;
     },
     []
   );
 
+  /** Instructions-per-refresh handling */
   const setIpr = useCallback((n: number) => {
     const clamped = Math.max(1, Math.min(32, Math.floor(n)));
     iprRef.current = clamped;
@@ -102,6 +109,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
     localStorage.setItem('emu_ipr', String(clamped));
   }, []);
 
+  /** Set current status from number of cycles emulated */
   const setStatusFromCycles = (cycles: number) => {
     const d = Math.floor(cycles / 12);
     const h = Math.floor(d / 3600);
@@ -110,6 +118,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
     setStatusText(`${cycles} cycles, ${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s runtime`);
   };
 
+  /** Reset emulator state (and reload asembled code if available) */
   const reset = useCallback(() => {
     runningRef.current = false; // ensure stopped
     setRunning(false);
@@ -129,42 +138,67 @@ export default function Emulator({ assembly }: EmulatorProps) {
     commitSnapshot();
   }, [assembly, commitSnapshot]);
 
+  /** Single step the emulator */
   const step = useCallback((): boolean => {
     const cont = coreRef.current.step();
     // snapshot + status are committed via commitSnapshot batching in runLoop or when Step button is clicked
     return cont;
   }, []);
 
+  /** Emulator run loop */
+  const timeoutRef = useRef<number | null>(null);
   const runLoop = useCallback(() => {
     if (!runningRef.current) return;
+
     let stillRun = true;
     for (let i = 0; i < iprRef.current; i++) {
       stillRun = coreRef.current.step();
       if (!stillRun || !runningRef.current) break;
     }
+
     if (stillRun && runningRef.current) {
       // schedule next slice
-      setTimeout(runLoop, 1);
+      timeoutRef.current = setTimeout(runLoop, 1);
     } else {
       runningRef.current = false;
       setRunning(false);
+      timeoutRef.current = null;
     }
     // Commit a snapshot for UI
     commitSnapshot();
   }, [commitSnapshot]);
 
+  /** Check if core emulator is loaded */
+  const isCoreLoaded = useCallback(() => {
+    const snap = coreRef.current.getSnapshot();
+    const mem = coreRef.current.getMemory();
+    // Treat "loaded" as a non-undefined byte at PC (or any simple sentinel you prefer)
+    return mem[snap.PC] !== undefined;
+  }, []);
+
+  /** Start the emulator running */
   const run = useCallback(() => {
     if (runningRef.current) return;
+    // Prevent a no-op run if core isn't loaded yet
+    if (!isCoreLoaded()) {
+      // If assembly is available, force a reset+reload once more, then bail; user can click Run again
+      if (assembly?.didAssemble && assembly.bytes && assembly.bytes.length > 2) {
+        reset();
+      }
+      return;
+    }
     runningRef.current = true;
     setRunning(true);
     runLoop();
-  }, [runLoop]);
+  }, [assembly, isCoreLoaded, reset, runLoop]);
 
+  /** Stop the emulator at the current instruction */
   const stop = useCallback(() => {
     runningRef.current = false;
     setRunning(false);
   }, []);
 
+  /** Flip a bit of the primary switches control */
   const flipBit = useCallback(
     (pos: number) => {
       coreRef.current.flipPrimarySwitchBit(pos);
@@ -173,27 +207,31 @@ export default function Emulator({ assembly }: EmulatorProps) {
     [commitSnapshot]
   );
 
+  /** Move current memory page back */
   const prevOffset = useCallback(() => setMemoryOffset(o => Math.max(0, o - 128)), []);
+  /** Move current memory page forward */
   const nextOffset = useCallback(() => setMemoryOffset(o => Math.min(32640, o + 128)), []);
 
-  // Auto-load when assembly succeeds
+  /** Auto-load when assembly succeeds */
   useEffect(() => {
+    // Stop and re-initialize on assembly change or mount
+    runningRef.current = false;
     if (assembly?.didAssemble && assembly.bytes && assembly.bytes.length > 2) {
-      runningRef.current = false;
-      // Reset will also reload the program when assembly is available
-      reset();
-      setStatusText(`Program loaded (${assembly.bytes.length - 2} bytes)`);
+      reset(); // this will also reload and set status
     } else if (assembly && !assembly.didAssemble) {
-      runningRef.current = false;
       setStatusText('Assembly failed');
+    } else {
+      setStatusText('Ready');
     }
   }, [assembly, reset]);
 
+  /** Clamp memory offset to 128-byte pages */
   const setMemoryOffsetClamped = useCallback((next: number) => {
     const clamped = Math.max(0, Math.min(32640, Math.floor(next / 16) * 16));
     setMemoryOffset(clamped);
   }, []);
 
+  /** If the emulator is in a state where it can be run */
   const canRun = !!(assembly?.didAssemble && assembly.bytes && assembly.bytes.length > 2);
 
   return (

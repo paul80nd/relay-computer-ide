@@ -139,7 +139,7 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
 
   // Follow PC / M
   const [toolbarChecked, setToolbarChecked] = useState<Record<string, string[]>>({
-    follow: ['pc'], // default selection
+    follow: ['none'], // default selection
   });
   const followMode = (toolbarChecked.follow?.[0] as FollowMode) ?? 'none';
 
