@@ -16,6 +16,8 @@ export type Snapshot = {
   cycles: number;
 };
 
+type ExecResult = boolean; // true to continue, false to stop
+
 export class EmulatorCore {
   private memory: Uint8Array;
   private memVersion = 0;
@@ -138,10 +140,6 @@ export class EmulatorCore {
     });
   }
 
-  private countCycles(n: number) {
-    this.regs.cycles += n;
-  }
-
   reset(): void {
     this.memory.fill(0);
     this.memVersion++; // memory content changed
@@ -177,7 +175,11 @@ export class EmulatorCore {
     this.regs.PC = offset & 0xffff;
   }
 
-  step(): boolean {
+  // Small helpers
+  private advPC(n: number) { this.regs.PC = (this.regs.PC + n) & 0xffff; }
+  private tick(n: number) { this.regs.cycles += n; }
+
+  step(): ExecResult {
     const mem = this.memory;
     const r = this.regs;
 
@@ -189,8 +191,8 @@ export class EmulatorCore {
       const isB = (instr & 0x20) === 0x20;
       const v = (instr & 0x10) === 0x10 ? (instr & 0x0f) + 0xf0 : instr & 0x0f;
       if (isB) r.B = v & 0xff; else r.A = v & 0xff;
-      r.PC = (r.PC + 1) & 0xffff;
-      this.countCycles(8);
+      this.advPC(1);
+      this.tick(8);
       return true;
     }
 
@@ -201,8 +203,8 @@ export class EmulatorCore {
       const s = instr & 0x07;
       const v = d === s ? 0 : this.getMov8[s]();
       this.setMov8[d](v);
-      r.PC = (r.PC + 1) & 0xffff;
-      this.countCycles(8);
+      this.advPC(1);
+      this.tick(8);
       return true;
     }
 
@@ -217,8 +219,8 @@ export class EmulatorCore {
       r.FS = (v & 0x80) === 0x80;
       const res = v & 0xff;
       if (toD) r.D = res; else r.A = res;
-      r.PC = (r.PC + 1) & 0xffff;
-      this.countCycles(8);
+      this.advPC(1);
+      this.tick(8);
       return true;
     }
 
@@ -227,9 +229,9 @@ export class EmulatorCore {
       r.CLS = 'LOAD';
       const d = instr & 0x03;
       const v = mem[r.M & 0x7fff];
-      r.PC = (r.PC + 1) & 0xffff;
+      this.advPC(1);
       this.loadReg[d](v);
-      this.countCycles(12);
+      this.tick(12);
       return true;
     }
 
@@ -238,10 +240,10 @@ export class EmulatorCore {
       r.CLS = 'STORE';
       const s = instr & 0x03;
       const v = this.saveReg[s]();
-      r.PC = (r.PC + 1) & 0xffff;
+      this.advPC(1);
       mem[r.M & 0x7fff] = v & 0xff;
       this.memVersion++; // memory changed
-      this.countCycles(12);
+      this.tick(12);
       return true;
     }
 
@@ -251,8 +253,8 @@ export class EmulatorCore {
       const d = (instr & 0x04) >> 2;
       const s = instr & 0x03;
       const v = d === 0 && s === 1 ? 0 : this.getMov16[s]();
-      r.PC = (r.PC + 1) & 0xffff;
-      this.countCycles(10);
+      this.advPC(1);
+      this.tick(10);
       this.setMov16[d](v);
       return true;
     }
@@ -262,8 +264,8 @@ export class EmulatorCore {
       r.CLS = 'MISC';
       const toD = (instr & 0x01) === 0x01;
       if (toD) r.D = r.PS & 0xff; else r.A = r.PS & 0xff;
-      r.PC = (r.PC + 1) & 0xffff;
-      this.countCycles(10);
+      this.advPC(1);
+      this.tick(10);
       return true;
     }
 
@@ -271,8 +273,8 @@ export class EmulatorCore {
     if ((instr & 0xfe) === 0xae) {
       r.CLS = 'MISC';
       const doJump = (instr & 0x01) === 0x01;
-      r.PC = (r.PC + 1) & 0xffff;
-      this.countCycles(10);
+      this.advPC(1);
+      this.tick(10);
       if (doJump) r.PC = r.PS & 0xffff;
       return false;
     }
@@ -281,8 +283,8 @@ export class EmulatorCore {
     if ((instr & 0xff) === 0xb0) {
       r.CLS = 'INCXY';
       r.XY = (r.XY + 1) & 0xffff;
-      r.PC = (r.PC + 1) & 0xffff;
-      this.countCycles(14);
+      this.advPC(1);
+      this.tick(14);
       return true;
     }
 
@@ -296,22 +298,22 @@ export class EmulatorCore {
       const n = (instr & 0x02) === 0x02;
       const x = (instr & 0x01) === 0x01;
 
-      r.PC = (r.PC + 1) & 0xffff;
+      this.advPC(1);
       let tgt = (mem[r.PC & 0x7fff] << 8) & 0xff00;
 
-      r.PC = (r.PC + 1) & 0xffff;
+      this.advPC(1);
       tgt |= mem[r.PC & 0x7fff];
 
       if (d) r.J = tgt & 0xffff;
       else r.M = tgt & 0xffff;
 
-      r.PC = (r.PC + 1) & 0xffff;
+      this.advPC(1);
       if (x) r.XY = r.PC & 0xffff;
 
       const jmp = (s && r.FS) || (c && r.FC) || (z && r.FZ) || (n && !r.FZ);
       if (jmp) r.PC = tgt & 0xffff;
 
-      this.countCycles(24);
+      this.tick(24);
       return true;
     }
 
