@@ -33,6 +33,20 @@ type InstructionKind = typeof InstructionKind[keyof typeof InstructionKind];
 
 type ExecResult = boolean; // true to continue, false to stop
 
+const KindToCls: Record<InstructionKind, string> = {
+  [InstructionKind.SETAB]: 'SETAB',
+  [InstructionKind.MOV8]: 'MOV8',
+  [InstructionKind.ALU]: 'ALU',
+  [InstructionKind.LOAD]: 'LOAD',
+  [InstructionKind.STORE]: 'STORE',
+  [InstructionKind.MOV16]: 'MOV16',
+  [InstructionKind.LDSW]: 'MISC',
+  [InstructionKind.HALT]: 'MISC',
+  [InstructionKind.INCXY]: 'INCXY',
+  [InstructionKind.GOTO]: 'GOTO',
+  [InstructionKind.UNKNOWN]: '???',
+};
+
 export class EmulatorCore {
   private memory: Uint8Array;
   private memVersion = 0;
@@ -211,7 +225,6 @@ export class EmulatorCore {
   // SETAB 01rvvvvv
   private execSETAB(op: number): ExecResult {
     const r = this.regs;
-    r.CLS = 'SETAB';
     const isB = (op & 0x20) === 0x20;
     const v = (op & 0x10) === 0x10 ? (op & 0x0f) + 0xf0 : op & 0x0f;
     if (isB) r.B = v & 0xff; else r.A = v & 0xff;
@@ -223,7 +236,6 @@ export class EmulatorCore {
   // MOV8 00dddsss
   private execMOV8(op: number): ExecResult {
     const r = this.regs;
-    r.CLS = 'MOV8';
     const d = (op & 0x38) >> 3;
     const s = op & 0x07;
     const v = d === s ? 0 : this.getMov8[s]();
@@ -236,7 +248,6 @@ export class EmulatorCore {
   // ALU 1000rfff
   private execALU(op: number): ExecResult {
     const r = this.regs;
-    r.CLS = 'ALU';
     const toD = (op & 0x08) === 0x08;
     const f = op & 0x07;
     const v = this.aluFunc[f]();
@@ -254,7 +265,6 @@ export class EmulatorCore {
   private execLOAD(op: number): ExecResult {
     const r = this.regs;
     const mem = this.memory;
-    r.CLS = 'LOAD';
     const d = op & 0x03;
     const v = mem[r.M & 0x7fff];
     this.advPC(1);
@@ -267,7 +277,6 @@ export class EmulatorCore {
   private execSTORE(op: number): ExecResult {
     const r = this.regs;
     const mem = this.memory;
-    r.CLS = 'STORE';
     const s = op & 0x03;
     const v = this.saveReg[s]();
     this.advPC(1);
@@ -280,7 +289,6 @@ export class EmulatorCore {
   // MOV16 10100dss
   private execMOV16(op: number): ExecResult {
     const r = this.regs;
-    r.CLS = 'MOV16';
     const d = (op & 0x04) >> 2;
     const s = op & 0x03;
     const v = d === 0 && s === 1 ? 0 : this.getMov16[s]();
@@ -293,7 +301,6 @@ export class EmulatorCore {
   // LDSW 1010110d
   private execLDSW(op: number): ExecResult {
     const r = this.regs;
-    r.CLS = 'MISC';
     const toD = (op & 0x01) === 0x01;
     if (toD) r.D = r.PS & 0xff; else r.A = r.PS & 0xff;
     this.advPC(1);
@@ -304,7 +311,6 @@ export class EmulatorCore {
   // HALT 1010111r
   private execHALT(op: number): ExecResult {
     const r = this.regs;
-    r.CLS = 'MISC';
     const doJump = (op & 0x01) === 0x01;
     this.advPC(1);
     this.tick(10);
@@ -315,7 +321,6 @@ export class EmulatorCore {
   // INCXY 10110000
   private execINCXY(_op: number): ExecResult {
     const r = this.regs;
-    r.CLS = 'INCXY';
     r.XY = (r.XY + 1) & 0xffff;
     this.advPC(1);
     this.tick(14);
@@ -326,7 +331,6 @@ export class EmulatorCore {
   private execGOTO(op: number): ExecResult {
     const r = this.regs;
     const mem = this.memory;
-    r.CLS = 'GOTO';
     const d = (op & 0x20) === 0x20;
     const s = (op & 0x10) === 0x10;
     const c = (op & 0x08) === 0x08;
@@ -356,6 +360,8 @@ export class EmulatorCore {
   step(): ExecResult {
     const r = this.regs;
     const op = (r.I = this.memory[r.PC & 0x7fff] ?? 0);
+    const kind = this.decode(op);
+    r.CLS = KindToCls[kind];
     switch (this.decode(op)) {
       case InstructionKind.SETAB: return this.execSETAB(op);
       case InstructionKind.MOV8: return this.execMOV8(op);
@@ -368,7 +374,6 @@ export class EmulatorCore {
       case InstructionKind.INCXY: return this.execINCXY(op);
       case InstructionKind.GOTO: return this.execGOTO(op);
       default:
-        r.CLS = '???';
         return false;
     }
   }
