@@ -47,8 +47,16 @@ const useStyles = makeStyles({
     borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
     cursor: 'default',
   },
-  pcMarker: { outline: `2px solid ${tokens.colorPaletteBlueBorderActive}` },
-  mMarker: { outline: `2px solid ${tokens.colorPaletteGreenBorder2}` },
+  pcMarker: { backgroundColor: tokens.colorBrandBackground, outline: `1px solid ${tokens.colorBrandStroke1}` },
+  mMarker: { backgroundColor: tokens.colorStatusSuccessBackground3, outline: `1px solid ${tokens.colorStatusSuccessBorderActive}` },
+  pcAndMMarker: {
+    backgroundImage: `linear-gradient(135deg,
+      ${tokens.colorBrandBackground} 0%,
+      ${tokens.colorBrandBackground} 50%,
+      ${tokens.colorStatusSuccessBackground3} 50%,
+      ${tokens.colorStatusSuccessBackground3} 100%)`,
+      outline: '1px solid lightGray'
+  },
   toolbarItem: { color: tokens.colorNeutralForeground3, padding: '0 .4rem', minWidth: '2rem', marginRight: '.2rem' },
 });
 
@@ -214,7 +222,7 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
                 return (
                   <td
                     key={c}
-                    className={`${styles.memTd} ${isPC ? styles.pcMarker : ''} ${isM ? styles.mMarker : ''}`}
+                    className={`${styles.memTd} ${isM && isPC ? styles.pcAndMMarker : isM ? styles.mMarker : isPC ? styles.pcMarker : ''}`}
                     onClick={() => setCurrentAddr(addr)}
                     role='gridcell'
                   >
@@ -234,7 +242,6 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
               onCheckedValueChange={onFollowCheckedChange}
               style={{ justifyContent: 'space-between', padding: 0 }}
             >
-
               {/* Left group: jump to memory location */}
               <ToolbarGroup role='presentation'>
                 <Popover withArrow trapFocus open={gotoOpen} onOpenChange={(_, data) => setGotoOpen(data.open)}>
@@ -294,7 +301,7 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
                         <>
                           <code className={styles.code}>{toHex(currentAddr, 4)}</code>
                           {' : '}
-                         <code className={styles.code}>{toHex(currentValue ?? 0, 2)}</code>
+                          <code className={styles.code}>{toHex(currentValue ?? 0, 2)}</code>
                         </>
                       )}
                     </Caption1>
