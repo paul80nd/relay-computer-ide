@@ -64,7 +64,8 @@ const useStyles = makeStyles({
 });
 
 export type MemoryTableProps = {
-  memory: readonly number[];
+  version: number;
+  memory: Uint8Array;
   pc: number;
   m: number;
   offset: number;
@@ -375,6 +376,6 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
 export default memo(EmulatorMemory, (prev, next) => {
   // Re-render only when visible slice or highlights change.
   return (
-    prev.offset === next.offset && prev.pc === next.pc && prev.m === next.m && prev.memory === next.memory // same array ref
+    prev.offset === next.offset && prev.pc === next.pc && prev.m === next.m && prev.memory === next.memory && prev.version === next.version // same array ref
   );
 });

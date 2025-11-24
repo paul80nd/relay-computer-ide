@@ -72,6 +72,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
   const [snapshot, setSnapshot] = useState<Snapshot>(() => coreRef.current.getSnapshot());
   const [ipr, setIprState] = useState(iprRef.current);
   const [statusText, setStatusText] = useState('Ready');
+  const [memVersion, setMemVersion] = useState(0);
 
   const rafRef = useRef<number | null>(null);
   const commitSnapshot = useCallback(() => {
@@ -80,6 +81,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
       rafRef.current = null;
       const snap = coreRef.current.getSnapshot();
       setSnapshot(snap);
+      setMemVersion(coreRef.current.getMemoryVersion());
 
       // Only auto-update status while running
       if (runningRef.current) {
@@ -315,6 +317,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
           {/* Memory table */}
           <div className={classes.tablesRow}>
             <EmulatorMemory
+              version={memVersion}
               memory={coreRef.current.getMemory()}
               pc={snapshot.PC}
               m={snapshot.M}

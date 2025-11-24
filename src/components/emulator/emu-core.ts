@@ -17,11 +17,12 @@ export type Snapshot = {
 };
 
 export class EmulatorCore {
-  private memory: number[];
+  private memory: Uint8Array;
+  private memVersion = 0;
   private regs: Snapshot;
 
   constructor(size = 32768) {
-    this.memory = new Array(size);
+    this.memory = new Uint8Array(size);
     this.regs = {
       A: 0,
       B: 0,
@@ -41,8 +42,12 @@ export class EmulatorCore {
     };
   }
 
-  getMemory(): ReadonlyArray<number | undefined> {
-    return this.memory.slice();
+  getMemory(): Readonly<Uint8Array> {
+    return this.memory;
+  }
+
+  getMemoryVersion(): number {
+    return this.memVersion;
   }
 
   getSnapshot(): Readonly<Snapshot> {
@@ -71,7 +76,8 @@ export class EmulatorCore {
   }
 
   reset(): void {
-    this.memory = new Array(32768);
+    this.memory.fill(0);
+    this.memVersion++; // memory content changed
     const r = this.regs;
     r.A = r.B = r.C = r.D = 0;
     r.I = r.PC = 0;
@@ -86,14 +92,21 @@ export class EmulatorCore {
     this.reset();
 
     const offset = (values[0] + (values[1] << 8)) & 0xffff;
-    const prog = values.slice(2);
+    const progLen = values.length - 2;
+    const memSize = this.memory.length;
+    const start = offset & 0x7fff;
 
-    for (let i = 0; i < prog.length; i++) {
-      const addr = (offset + i) & 0x7fff; // memory is 32K (of full address space)
-      this.memory[(offset + i) & 0x7fff] = prog[i] & 0xff;
-      this.memory[addr] = prog[i] & 0xff;
+    if (start + progLen <= memSize) {
+      // single contiguous copy
+      this.memory.set(values.subarray(2), start);
+    } else {
+      // wrap-around copy
+      const first = memSize - start;
+      this.memory.set(values.subarray(2, 2 + first), start);
+      this.memory.set(values.subarray(2 + first), 0);
     }
 
+    this.memVersion++; // program bytes written
     this.regs.PC = offset & 0xffff;
   }
 
@@ -210,7 +223,7 @@ export class EmulatorCore {
     if ((instr & 0xfc) === 0x90) {
       r.CLS = 'LOAD';
       const d = instr & 0x03;
-      const v = mem[r.M & 0x7fff] ?? 0;
+      const v = mem[r.M & 0x7fff];
       r.PC = (r.PC + 1) & 0xffff;
       this.loadReg[d](v);
       this.countCycles(12);
@@ -224,6 +237,7 @@ export class EmulatorCore {
       const v = this.saveReg[s]();
       r.PC = (r.PC + 1) & 0xffff;
       mem[r.M & 0x7fff] = v & 0xff;
+      this.memVersion++; // memory changed
       this.countCycles(12);
       return true;
     }
@@ -281,10 +295,10 @@ export class EmulatorCore {
       const x = (instr & 0x01) === 0x01;
 
       r.PC = (r.PC + 1) & 0xffff;
-      let tgt = ((mem[r.PC] ?? 0) << 8) & 0xff00;
+      let tgt = (mem[r.PC & 0x7fff] << 8) & 0xff00;
 
       r.PC = (r.PC + 1) & 0xffff;
-      tgt += (mem[r.PC] ?? 0) & 0x00ff;
+      tgt |= mem[r.PC & 0x7fff];
 
       if (d) r.J = tgt & 0xffff;
       else r.M = tgt & 0xffff;
