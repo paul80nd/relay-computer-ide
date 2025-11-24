@@ -41,13 +41,13 @@ export class EmulatorCore {
     };
   }
 
-  getMemory(): number[] {
-    return this.memory;
+  getMemory(): ReadonlyArray<number | undefined> {
+    return this.memory.slice();
   }
 
-  getSnapshot(): Snapshot {
+  getSnapshot(): Readonly<Snapshot> {
     const r = this.regs;
-    return {
+    return Object.freeze({
       A: r.A,
       B: r.B,
       C: r.C,
@@ -63,7 +63,7 @@ export class EmulatorCore {
       PS: r.PS,
       CLS: r.CLS,
       cycles: r.cycles,
-    };
+    });
   }
 
   private countCycles(n: number) {
@@ -84,11 +84,16 @@ export class EmulatorCore {
   load(values: Uint8Array): void {
     if (values.length <= 2) return;
     this.reset();
-    const offset = values[0] + (values[1] << 8);
+
+    const offset = (values[0] + (values[1] << 8)) & 0xffff;
     const prog = values.slice(2);
+
     for (let i = 0; i < prog.length; i++) {
+      const addr = (offset + i) & 0x7fff; // memory is 32K (of full address space)
       this.memory[(offset + i) & 0x7fff] = prog[i] & 0xff;
+      this.memory[addr] = prog[i] & 0xff;
     }
+
     this.regs.PC = offset & 0xffff;
   }
 
@@ -300,6 +305,7 @@ export class EmulatorCore {
 
   // Direct accessors used by UI switches
   flipPrimarySwitchBit(pos: number) {
-    this.regs.PS = this.regs.PS ^ (1 << pos);
+    const bit = Math.max(0, Math.min(7, pos | 0));
+    this.regs.PS = this.regs.PS ^ (1 << bit);
   }
 }
