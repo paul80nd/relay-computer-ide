@@ -62,13 +62,6 @@ export type MemoryTableProps = {
   onSetOffset?: (next: number) => void;
 };
 
-type HoverAnchor = {
-  open: boolean;
-  addr: number;
-  value: number;
-  anchorEl: Element | null;
-};
-
 type FollowMode = 'none' | 'pc' | 'm';
 
 const MEM_SIZE = 32768;
@@ -95,22 +88,9 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
   const rows = useMemo(() => [...Array(8).keys()], []);
   const cols = useMemo(() => [...Array(16).keys()], []);
 
-  // Re-use single hover instance (rather than 128 per table)
-  const [hover, setHover] = useState<HoverAnchor>({ open: false, addr: 0, value: 0, anchorEl: null });
-  const closeTimer = useRef<number | null>(null);
-  const handleEnter = useCallback((addr: number, value: number, e: React.MouseEvent<HTMLTableCellElement>) => {
-    if (closeTimer.current) {
-      clearTimeout(closeTimer.current);
-      closeTimer.current = null;
-    }
-    setHover({ open: true, addr, value, anchorEl: e.currentTarget });
-  }, []);
-  const handleLeave = useCallback(() => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = window.setTimeout(() => {
-      setHover(h => ({ ...h, open: false, anchorEl: null }));
-    }, 60); // small delay
-  }, []);
+  // Current selected address (tracked memory location)
+  const [currentAddr, setCurrentAddr] = useState<number | undefined>(undefined);
+  const currentValue = currentAddr ? memory[currentAddr] ?? 0 : undefined;
 
   // Go to address controls
   const [gotoText, setGotoText] = useState('');
@@ -235,8 +215,8 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
                   <td
                     key={c}
                     className={`${styles.memTd} ${isPC ? styles.pcMarker : ''} ${isM ? styles.mMarker : ''}`}
-                    onMouseEnter={e => handleEnter(addr, v, e)}
-                    onMouseLeave={handleLeave}
+                    onClick={() => setCurrentAddr(addr)}
+                    role='gridcell'
                   >
                     <code className={styles.code}>{toHex(v, 2)}</code>
                   </td>
@@ -254,11 +234,13 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
               onCheckedValueChange={onFollowCheckedChange}
               style={{ justifyContent: 'space-between', padding: 0 }}
             >
+
+              {/* Left group: jump to memory location */}
               <ToolbarGroup role='presentation'>
-                <Popover withArrow trapFocus open={gotoOpen}  onOpenChange={(_, data) => setGotoOpen(data.open)}>
+                <Popover withArrow trapFocus open={gotoOpen} onOpenChange={(_, data) => setGotoOpen(data.open)}>
                   <PopoverTrigger disableButtonEnhancement>
                     <ToolbarButton className={styles.toolbarItem} appearance='subtle'>
-                      <Caption1> Jump to Address...</Caption1>
+                      <Caption1> Goto...</Caption1>
                     </ToolbarButton>
                   </PopoverTrigger>
                   <PopoverSurface>
@@ -277,6 +259,50 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
                   </PopoverSurface>
                 </Popover>
               </ToolbarGroup>
+
+              {/* Middle group: current tracked memory location */}
+              <ToolbarGroup role='presentation'>
+                <Tooltip
+                  withArrow
+                  relationship='description'
+                  positioning='above'
+                  content={
+                    currentAddr ? (
+                      <div>
+                        <small>Tracked Memory</small>
+                        <br />
+                        <code>
+                          Address: {toHex(currentAddr, 4)}
+                          <br />
+                          Hex: {toHex(currentValue ?? 0, 2)}
+                          <br />
+                          Bin: {toBin(currentValue ?? 0, 2)}
+                          <br />
+                          Dec: {toDec(currentValue ?? 0)}
+                        </code>
+                      </div>
+                    ) : (
+                      <div>Select a memory location in the table to track that value.</div>
+                    )
+                  }
+                >
+                  <ToolbarButton className={styles.toolbarItem} appearance='transparent'>
+                    <Caption1>
+                      {currentAddr == null ? (
+                        '---- : --'
+                      ) : (
+                        <>
+                          <code className={styles.code}>{toHex(currentAddr, 4)}</code>
+                          {' : '}
+                         <code className={styles.code}>{toHex(currentValue ?? 0, 2)}</code>
+                        </>
+                      )}
+                    </Caption1>
+                  </ToolbarButton>
+                </Tooltip>
+              </ToolbarGroup>
+
+              {/* Right group: follow mode */}
               <ToolbarGroup>
                 Follow:
                 <ToolbarRadioGroup aria-label='Follow mode'>
@@ -327,32 +353,6 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
           </th>
         </tfoot>
       </table>
-      <Tooltip
-        visible={hover.open}
-        positioning={{ target: hover.anchorEl as Element | null, align: 'center', position: 'above' }}
-        withArrow
-        appearance='inverted'
-        relationship='label'
-        onVisibleChange={(_, data) => {
-          // allow Escape to close
-          if (!data.visible) setHover(h => ({ ...h, open: false, anchorEl: null }));
-        }}
-        content={
-          <div>
-            <small>Memory Slot</small>
-            <br />
-            <code>
-              Address: {toHex(hover.addr, 4)}
-              <br />
-              Hex: {toHex(hover.value, 2)}
-              <br />
-              Bin: {toBin(hover.value, 2)}
-              <br />
-              Dec: {toDec(hover.value)}
-            </code>
-          </div>
-        }
-      />
     </>
   );
 }
