@@ -236,4 +236,56 @@ describe('Instruction behavior', () => {
     expect(core.step()).toBe(false);               // HALT at target
   });
 
+  test('HALT with jump to PS sets PC to PS', () => {
+    const core = new EmulatorCore();
+    // We'll use PS = 0x0042 by toggling bits 1,6:
+    core.reset();
+    const start = 0x0200;
+    const prog = [HALT(1)]; // HALT with jump
+    core.load(program(start, prog));
+    core.flipPrimarySwitchBit(1);
+    core.flipPrimarySwitchBit(6);
+    // PS now equals (1<<1) | (1<<6) = 0x42
+    expect(core.step()).toBe(false);
+    const s = core.getSnapshot();
+    expect(s.PS).toBe(0x0042);
+    expect(s.PC).toBe(0x0042); // jumped to PS
+  });
+
+  test('MOV8 no-op (reg to same reg) still advances PC and cycles', () => {
+    const core = new EmulatorCore();
+    const start = 0x0100;
+    // MOV A <- A (d=0,s=0) then HALT
+    core.load(program(start, [MOV8(0, 0), HALT()]));
+    expect(core.step()).toBe(true);
+    const s1 = core.getSnapshot();
+    expect(s1.PC).toBe(start + 1);
+    expect(s1.CLS).toBe('MOV8');
+    expect(s1.cycles).toBe(8);
+    expect(core.step()).toBe(false);
+  });
+
+  test('STORE/LOAD at address wrap boundary 0x7FFF', () => {
+    const core = new EmulatorCore();
+    const start = 0x0000;
+    // Set B=0x2A; set M=0x7FFF via GOTO load of target; STORE B -> [M]; LOAD A <- [M]; HALT
+    const tgt = 0x7fff;
+    const bytes = [
+      SETB(0x0a),                           // B=0x0A (10)
+      ...GOTO({ d: 0 }, 0x7f, 0xff),         // M <- 0x7FFF
+      STORE_FROM(1),                        // [M] <- B
+      LOAD_TO(0),                           // A <- [M]
+      HALT(),
+    ];
+    core.load(program(start, bytes));
+    expect(core.step()).toBe(true); // SETB
+    expect(core.step()).toBe(true); // GOTO write M
+    expect(core.getSnapshot().M).toBe(0x7fff);
+    expect(core.step()).toBe(true); // STORE
+    expect(core.step()).toBe(true); // LOAD
+    const s = core.getSnapshot();
+    expect(s.A).toBe(0x0a);
+    expect(core.step()).toBe(false); // HALT
+  });
+
 });

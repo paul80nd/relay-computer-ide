@@ -47,10 +47,23 @@ const KindToCls: Record<InstructionKind, string> = {
   [InstructionKind.UNKNOWN]: '???',
 };
 
+export type StepTrace = {
+  pc: number;
+  op: number;
+  kind: number; // InstructionKind
+  cls: string;
+  cyclesDelta: number;
+  before: Snapshot;
+  after: Snapshot;
+};
+
+type TraceFn = (t: StepTrace) => void;
+
 export class EmulatorCore {
   private memory: Uint8Array;
   private memVersion = 0;
   private regs: Snapshot;
+  private trace?: TraceFn;
 
   // Cached decode/exec tables
   private getMov8: Array<() => number> = [];
@@ -61,8 +74,9 @@ export class EmulatorCore {
   private loadReg: Array<(v: number) => void> = [];
   private saveReg: Array<() => number> = [];
 
-  constructor(size = 32768) {
+  constructor(size = 32768, trace?: TraceFn) {
     this.memory = new Uint8Array(size);
+    this.trace = trace;
     this.regs = {
       A: 0, B: 0, C: 0, D: 0,
       I: 0, PC: 0, M: 0, XY: 0, J: 0,
@@ -360,22 +374,43 @@ export class EmulatorCore {
 
   step(): ExecResult {
     const r = this.regs;
+    const pc0 = r.PC;
+    const cy0 = r.cycles;
+    const before = this.getSnapshot(); // frozen value object
+
     const op = (r.I = this.memory[r.PC & 0x7fff] ?? 0);
     const kind = this.decode(op);
     r.CLS = KindToCls[kind];
+
+    let cont: boolean;
     switch (kind) {
-      case InstructionKind.SETAB: return this.execSETAB(op);
-      case InstructionKind.MOV8: return this.execMOV8(op);
-      case InstructionKind.ALU: return this.execALU(op);
-      case InstructionKind.LOAD: return this.execLOAD(op);
-      case InstructionKind.STORE: return this.execSTORE(op);
-      case InstructionKind.MOV16: return this.execMOV16(op);
-      case InstructionKind.LDSW: return this.execLDSW(op);
-      case InstructionKind.HALT: return this.execHALT(op);
-      case InstructionKind.INCXY: return this.execINCXY(op);
-      case InstructionKind.GOTO: return this.execGOTO(op);
-      default: return false;
+      case InstructionKind.SETAB: cont = this.execSETAB(op); break;
+      case InstructionKind.MOV8: cont = this.execMOV8(op); break;
+      case InstructionKind.ALU: cont = this.execALU(op); break;
+      case InstructionKind.LOAD: cont = this.execLOAD(op); break;
+      case InstructionKind.STORE: cont = this.execSTORE(op); break;
+      case InstructionKind.MOV16: cont = this.execMOV16(op); break;
+      case InstructionKind.LDSW: cont = this.execLDSW(op); break;
+      case InstructionKind.HALT: cont = this.execHALT(op); break;
+      case InstructionKind.INCXY: cont = this.execINCXY(op); break;
+      case InstructionKind.GOTO: cont = this.execGOTO(op); break;
+      default: cont = false;
     }
+
+    if (this.trace) {
+      const after = this.getSnapshot();
+      this.trace({
+        pc: pc0,
+        op,
+        kind,
+        cls: r.CLS,
+        cyclesDelta: after.cycles - cy0,
+        before,
+        after,
+      });
+    }
+
+    return cont;
   }
 
   // Direct accessors used by UI switches
