@@ -16,6 +16,21 @@ export type Snapshot = {
   cycles: number;
 };
 
+const InstructionKind = {
+  SETAB: 0,
+  MOV8: 1,
+  ALU: 2,
+  LOAD: 3,
+  STORE: 4,
+  MOV16: 5,
+  LDSW: 6,
+  HALT: 7,
+  INCXY: 8,
+  GOTO: 9,
+  UNKNOWN: 10,
+} as const;
+type InstructionKind = typeof InstructionKind[keyof typeof InstructionKind];
+
 type ExecResult = boolean; // true to continue, false to stop
 
 export class EmulatorCore {
@@ -179,146 +194,183 @@ export class EmulatorCore {
   private advPC(n: number) { this.regs.PC = (this.regs.PC + n) & 0xffff; }
   private tick(n: number) { this.regs.cycles += n; }
 
-  step(): ExecResult {
-    const mem = this.memory;
+  private decode(op: number): InstructionKind {
+    if ((op & 0xc0) === 0x40) return InstructionKind.SETAB; // 01------
+    if ((op & 0xc0) === 0x00) return InstructionKind.MOV8;  // 00------
+    if ((op & 0xf0) === 0x80) return InstructionKind.ALU;   // 1000----
+    if ((op & 0xfc) === 0x90) return InstructionKind.LOAD;  // 100100--
+    if ((op & 0xfc) === 0x98) return InstructionKind.STORE; // 100110--
+    if ((op & 0xf8) === 0xa0) return InstructionKind.MOV16; // 101000--
+    if ((op & 0xfe) === 0xac) return InstructionKind.LDSW;  // 1010110-
+    if ((op & 0xfe) === 0xae) return InstructionKind.HALT;  // 1010111-
+    if ((op & 0xff) === 0xb0) return InstructionKind.INCXY; // 10110000
+    if ((op & 0xc0) === 0xc0) return InstructionKind.GOTO;  // 11------
+    return InstructionKind.UNKNOWN;
+  }
+
+  // SETAB 01rvvvvv
+  private execSETAB(op: number): ExecResult {
     const r = this.regs;
+    r.CLS = 'SETAB';
+    const isB = (op & 0x20) === 0x20;
+    const v = (op & 0x10) === 0x10 ? (op & 0x0f) + 0xf0 : op & 0x0f;
+    if (isB) r.B = v & 0xff; else r.A = v & 0xff;
+    this.advPC(1);
+    this.tick(8);
+    return true;
+  }
 
-    const instr = (r.I = mem[r.PC & 0x7fff] ?? 0);
+  // MOV8 00dddsss
+  private execMOV8(op: number): ExecResult {
+    const r = this.regs;
+    r.CLS = 'MOV8';
+    const d = (op & 0x38) >> 3;
+    const s = op & 0x07;
+    const v = d === s ? 0 : this.getMov8[s]();
+    this.setMov8[d](v);
+    this.advPC(1);
+    this.tick(8);
+    return true;
+  }
 
-    // SETAB 01rvvvvv
-    if ((instr & 0xc0) === 0x40) {
-      r.CLS = 'SETAB';
-      const isB = (instr & 0x20) === 0x20;
-      const v = (instr & 0x10) === 0x10 ? (instr & 0x0f) + 0xf0 : instr & 0x0f;
-      if (isB) r.B = v & 0xff; else r.A = v & 0xff;
-      this.advPC(1);
-      this.tick(8);
-      return true;
-    }
+  // ALU 1000rfff
+  private execALU(op: number): ExecResult {
+    const r = this.regs;
+    r.CLS = 'ALU';
+    const toD = (op & 0x08) === 0x08;
+    const f = op & 0x07;
+    const v = this.aluFunc[f]();
+    r.FZ = (v & 0xff) === 0;
+    r.FC = (v & 0x100) === 0x100;
+    r.FS = (v & 0x80) === 0x80;
+    const res = v & 0xff;
+    if (toD) r.D = res; else r.A = res;
+    this.advPC(1);
+    this.tick(8);
+    return true;
+  }
 
-    // MOV8 00dddsss
-    if ((instr & 0xc0) === 0x00) {
-      r.CLS = 'MOV8';
-      const d = (instr & 0x38) >> 3;
-      const s = instr & 0x07;
-      const v = d === s ? 0 : this.getMov8[s]();
-      this.setMov8[d](v);
-      this.advPC(1);
-      this.tick(8);
-      return true;
-    }
+  // LOAD 100100dd
+  private execLOAD(op: number): ExecResult {
+    const r = this.regs;
+    const mem = this.memory;
+    r.CLS = 'LOAD';
+    const d = op & 0x03;
+    const v = mem[r.M & 0x7fff];
+    this.advPC(1);
+    this.loadReg[d](v);
+    this.tick(12);
+    return true;
+  }
 
-    // ALU 1000rfff
-    if ((instr & 0xf0) === 0x80) {
-      r.CLS = 'ALU';
-      const toD = (instr & 0x08) === 0x08;
-      const f = instr & 0x07;
-      const v = this.aluFunc[f]();
-      r.FZ = (v & 0xff) === 0;
-      r.FC = (v & 0x100) === 0x100;
-      r.FS = (v & 0x80) === 0x80;
-      const res = v & 0xff;
-      if (toD) r.D = res; else r.A = res;
-      this.advPC(1);
-      this.tick(8);
-      return true;
-    }
+  // STORE 100110ss
+  private execSTORE(op: number): ExecResult {
+    const r = this.regs;
+    const mem = this.memory;
+    r.CLS = 'STORE';
+    const s = op & 0x03;
+    const v = this.saveReg[s]();
+    this.advPC(1);
+    mem[r.M & 0x7fff] = v & 0xff;
+    this.memVersion++; // memory changed
+    this.tick(12);
+    return true;
+  }
 
-    // LOAD 100100dd
-    if ((instr & 0xfc) === 0x90) {
-      r.CLS = 'LOAD';
-      const d = instr & 0x03;
-      const v = mem[r.M & 0x7fff];
-      this.advPC(1);
-      this.loadReg[d](v);
-      this.tick(12);
-      return true;
-    }
+  // MOV16 10100dss
+  private execMOV16(op: number): ExecResult {
+    const r = this.regs;
+    r.CLS = 'MOV16';
+    const d = (op & 0x04) >> 2;
+    const s = op & 0x03;
+    const v = d === 0 && s === 1 ? 0 : this.getMov16[s]();
+    this.advPC(1);
+    this.tick(10);
+    this.setMov16[d](v);
+    return true;
+  }
 
-    // STORE 100110ss
-    if ((instr & 0xfc) === 0x98) {
-      r.CLS = 'STORE';
-      const s = instr & 0x03;
-      const v = this.saveReg[s]();
-      this.advPC(1);
-      mem[r.M & 0x7fff] = v & 0xff;
-      this.memVersion++; // memory changed
-      this.tick(12);
-      return true;
-    }
+  // LDSW 1010110d
+  private execLDSW(op: number): ExecResult {
+    const r = this.regs;
+    r.CLS = 'MISC';
+    const toD = (op & 0x01) === 0x01;
+    if (toD) r.D = r.PS & 0xff; else r.A = r.PS & 0xff;
+    this.advPC(1);
+    this.tick(10);
+    return true;
+  }
 
-    // MOV16 10100dss
-    if ((instr & 0xf8) === 0xa0) {
-      r.CLS = 'MOV16';
-      const d = (instr & 0x04) >> 2;
-      const s = instr & 0x03;
-      const v = d === 0 && s === 1 ? 0 : this.getMov16[s]();
-      this.advPC(1);
-      this.tick(10);
-      this.setMov16[d](v);
-      return true;
-    }
-
-    // LDSW 1010110d
-    if ((instr & 0xfe) === 0xac) {
-      r.CLS = 'MISC';
-      const toD = (instr & 0x01) === 0x01;
-      if (toD) r.D = r.PS & 0xff; else r.A = r.PS & 0xff;
-      this.advPC(1);
-      this.tick(10);
-      return true;
-    }
-
-    // HALT 1010111r
-    if ((instr & 0xfe) === 0xae) {
-      r.CLS = 'MISC';
-      const doJump = (instr & 0x01) === 0x01;
-      this.advPC(1);
-      this.tick(10);
-      if (doJump) r.PC = r.PS & 0xffff;
-      return false;
-    }
-
-    // INCXY 10110000
-    if ((instr & 0xff) === 0xb0) {
-      r.CLS = 'INCXY';
-      r.XY = (r.XY + 1) & 0xffff;
-      this.advPC(1);
-      this.tick(14);
-      return true;
-    }
-
-    // GOTO 11dscznx
-    if ((instr & 0xc0) === 0xc0) {
-      r.CLS = 'GOTO';
-      const d = (instr & 0x20) === 0x20;
-      const s = (instr & 0x10) === 0x10;
-      const c = (instr & 0x08) === 0x08;
-      const z = (instr & 0x04) === 0x04;
-      const n = (instr & 0x02) === 0x02;
-      const x = (instr & 0x01) === 0x01;
-
-      this.advPC(1);
-      let tgt = (mem[r.PC & 0x7fff] << 8) & 0xff00;
-
-      this.advPC(1);
-      tgt |= mem[r.PC & 0x7fff];
-
-      if (d) r.J = tgt & 0xffff;
-      else r.M = tgt & 0xffff;
-
-      this.advPC(1);
-      if (x) r.XY = r.PC & 0xffff;
-
-      const jmp = (s && r.FS) || (c && r.FC) || (z && r.FZ) || (n && !r.FZ);
-      if (jmp) r.PC = tgt & 0xffff;
-
-      this.tick(24);
-      return true;
-    }
-
-    r.CLS = '???';
+  // HALT 1010111r
+  private execHALT(op: number): ExecResult {
+    const r = this.regs;
+    r.CLS = 'MISC';
+    const doJump = (op & 0x01) === 0x01;
+    this.advPC(1);
+    this.tick(10);
+    if (doJump) r.PC = r.PS & 0xffff;
     return false;
+  }
+
+  // INCXY 10110000
+  private execINCXY(_op: number): ExecResult {
+    const r = this.regs;
+    r.CLS = 'INCXY';
+    r.XY = (r.XY + 1) & 0xffff;
+    this.advPC(1);
+    this.tick(14);
+    return true;
+  }
+
+  // GOTO 11dscznx
+  private execGOTO(op: number): ExecResult {
+    const r = this.regs;
+    const mem = this.memory;
+    r.CLS = 'GOTO';
+    const d = (op & 0x20) === 0x20;
+    const s = (op & 0x10) === 0x10;
+    const c = (op & 0x08) === 0x08;
+    const z = (op & 0x04) === 0x04;
+    const n = (op & 0x02) === 0x02;
+    const x = (op & 0x01) === 0x01;
+
+    this.advPC(1);
+    let tgt = (mem[r.PC & 0x7fff] << 8) & 0xff00;
+
+    this.advPC(1);
+    tgt |= mem[r.PC & 0x7fff];
+
+    if (d) r.J = tgt & 0xffff;
+    else r.M = tgt & 0xffff;
+
+    this.advPC(1);
+    if (x) r.XY = r.PC & 0xffff;
+
+    const jmp = (s && r.FS) || (c && r.FC) || (z && r.FZ) || (n && !r.FZ);
+    if (jmp) r.PC = tgt & 0xffff;
+
+    this.tick(24);
+    return true;
+  }
+
+  step(): ExecResult {
+    const r = this.regs;
+    const op = (r.I = this.memory[r.PC & 0x7fff] ?? 0);
+    switch (this.decode(op)) {
+      case InstructionKind.SETAB: return this.execSETAB(op);
+      case InstructionKind.MOV8: return this.execMOV8(op);
+      case InstructionKind.ALU: return this.execALU(op);
+      case InstructionKind.LOAD: return this.execLOAD(op);
+      case InstructionKind.STORE: return this.execSTORE(op);
+      case InstructionKind.MOV16: return this.execMOV16(op);
+      case InstructionKind.LDSW: return this.execLDSW(op);
+      case InstructionKind.HALT: return this.execHALT(op);
+      case InstructionKind.INCXY: return this.execINCXY(op);
+      case InstructionKind.GOTO: return this.execGOTO(op);
+      default:
+        r.CLS = '???';
+        return false;
+    }
   }
 
   // Direct accessors used by UI switches
