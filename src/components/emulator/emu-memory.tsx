@@ -1,5 +1,21 @@
-import { memo, useCallback, useMemo, useRef, useState } from 'react';
-import { Button, Field, Input, Radio, RadioGroup, Tooltip, makeStyles, tokens } from '@fluentui/react-components';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Button,
+  Caption1,
+  Input,
+  Popover,
+  PopoverSurface,
+  PopoverTrigger,
+  Toolbar,
+  ToolbarButton,
+  ToolbarGroup,
+  ToolbarRadioButton,
+  ToolbarRadioGroup,
+  Tooltip,
+  makeStyles,
+  tokens,
+  type ToolbarProps,
+} from '@fluentui/react-components';
 import { CaretLeft16Filled, CaretRight16Filled } from '@fluentui/react-icons';
 import { toBin, toDec, toHex } from './fmt';
 
@@ -33,6 +49,7 @@ const useStyles = makeStyles({
   },
   pcMarker: { outline: `2px solid ${tokens.colorPaletteBlueBorderActive}` },
   mMarker: { outline: `2px solid ${tokens.colorPaletteGreenBorder2}` },
+  toolbarItem: { color: tokens.colorNeutralForeground3, padding: '0 .4rem', minWidth: '2rem', marginRight: '.2rem' },
 });
 
 export type MemoryTableProps = {
@@ -60,8 +77,7 @@ const MAX_OFFSET = MEM_SIZE - PAGE_SIZE;
 
 function clampOffsetToPage(n: number) {
   // Snap to page boundary (multiples of 128) and clamp to range
-  const snapped = Math.max(0, Math.min(MAX_OFFSET, n - (n % PAGE_SIZE)));
-  return snapped;
+  return Math.max(0, Math.min(MAX_OFFSET, n - (n % PAGE_SIZE)));
 }
 
 function pageForAddress(addr: number) {
@@ -75,7 +91,7 @@ function isAddrVisible(addr: number, offset: number) {
 }
 
 function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOffset }: MemoryTableProps) {
-  const classes = useStyles();
+  const styles = useStyles();
   const rows = useMemo(() => [...Array(8).keys()], []);
   const cols = useMemo(() => [...Array(16).keys()], []);
 
@@ -98,6 +114,7 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
 
   // Go to address controls
   const [gotoText, setGotoText] = useState('');
+  const [gotoOpen, setGotoOpen] = useState<boolean>(false);
   const parseAddr = (s: string): number | null => {
     const t = s.trim();
     if (!t) return null;
@@ -114,17 +131,12 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
     return null;
   };
 
-  const setOffset = useCallback(
-    (next: number) => {
-      const clamped = clampOffsetToPage(next);
-      onSetOffset ? onSetOffset(clamped) : console.warn('onSetOffset not provided');
-    },
-    [onSetOffset]
-  );
+  const setOffset = useCallback((next: number) => onSetOffset?.(clampOffsetToPage(next)), [onSetOffset]);
 
   const handleGoto = useCallback(() => {
     const addr = parseAddr(gotoText);
     if (addr == null) return;
+    setGotoOpen(false);
     setOffset(pageForAddress(addr));
   }, [gotoText, setOffset]);
 
@@ -138,7 +150,15 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
   );
 
   // Follow PC / M
-  const [followMode, setFollowMode] = useState<FollowMode>('none');
+  const [toolbarChecked, setToolbarChecked] = useState<Record<string, string[]>>({
+    follow: ['pc'], // default selection
+  });
+  const followMode = (toolbarChecked.follow?.[0] as FollowMode) ?? 'none';
+
+  const onFollowCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+    // Expect name === 'follow'
+    setToolbarChecked(prev => ({ ...prev, [name]: checkedItems }));
+  };
 
   // When pc/m changes, adjust offset only if toggle is on AND address not visible
   const lastPCRef = useRef<number>(pc);
@@ -164,12 +184,19 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [m, followMode, offset, onSetOffset, setOffset]);
 
+  // snap immediately when user switches follow mode
+  useEffect(() => {
+    if (!onSetOffset) return;
+    if (followMode === 'pc') setOffset(pageForAddress(pc & 0xffff));
+    else if (followMode === 'm') setOffset(pageForAddress(m & 0xffff));
+  }, [followMode, pc, m, onSetOffset, setOffset]);
+
   return (
     <>
-      <table className={classes.memoryTable}>
+      <table className={styles.memoryTable}>
         <thead>
           <tr>
-            <th className={classes.memTh} style={{ width: 24 }} colSpan={2}>
+            <th className={styles.memTh} style={{ width: 24 }} colSpan={2}>
               <Button
                 onClick={onPrevPage}
                 disabled={offset === 0}
@@ -180,10 +207,10 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
                 aria-label='Previous page'
               />
             </th>
-            <th className={classes.memTh} colSpan={12}>
-              Memory (offset <code className={classes.code}>{toHex(offset, 4)}</code>)
+            <th className={styles.memTh} colSpan={12}>
+              Memory (offset <code className={styles.code}>{toHex(offset, 4)}</code>)
             </th>
-            <th className={classes.memTh} style={{ width: 24, textAlign: 'right' }} colSpan={2}>
+            <th className={styles.memTh} style={{ width: 24, textAlign: 'right' }} colSpan={2}>
               <Button
                 disabled={offset >= 32640}
                 onClick={onNextPage}
@@ -207,11 +234,11 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
                 return (
                   <td
                     key={c}
-                    className={`${classes.memTd} ${isPC ? classes.pcMarker : ''} ${isM ? classes.mMarker : ''}`}
+                    className={`${styles.memTd} ${isPC ? styles.pcMarker : ''} ${isM ? styles.mMarker : ''}`}
                     onMouseEnter={e => handleEnter(addr, v, e)}
                     onMouseLeave={handleLeave}
                   >
-                    <code className={classes.code}>{toHex(v, 2)}</code>
+                    <code className={styles.code}>{toHex(v, 2)}</code>
                   </td>
                 );
               })}
@@ -219,32 +246,84 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
           ))}
         </tbody>
         <tfoot>
-          <th className={classes.memTh} colSpan={16} style={{ textAlign: 'right' }}>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
-              <Input
-                appearance='filled-darker'
-                size='small'
-                placeholder='Go to (e.g. 0x0200, 200h, 512)'
-                value={gotoText}
-                onChange={(_, data) => setGotoText(data.value)}
-                onKeyDown={handleGotoKey}
-                style={{ width: 220 }}
-              />
-              <Button size='small' onClick={handleGoto}>
-                Go
-              </Button>
-              <Field label='Follow' orientation='horizontal' size='small'>
-                <RadioGroup
-                  layout='horizontal'
-                  value={followMode}
-                  onChange={(_, data) => setFollowMode(data.value as FollowMode)}
-                >
-                  <Radio value='none' label='None' />
-                  <Radio value='pc' label='PC' />
-                  <Radio value='m' label='M' />
-                </RadioGroup>
-              </Field>
-            </div>
+          <th className={styles.memTh} colSpan={16} style={{ padding: '4px 2px' }}>
+            <Toolbar
+              size='small'
+              aria-label='Follow options'
+              checkedValues={toolbarChecked}
+              onCheckedValueChange={onFollowCheckedChange}
+              style={{ justifyContent: 'space-between', padding: 0 }}
+            >
+              <ToolbarGroup role='presentation'>
+                <Popover withArrow trapFocus open={gotoOpen}  onOpenChange={(_, data) => setGotoOpen(data.open)}>
+                  <PopoverTrigger disableButtonEnhancement>
+                    <ToolbarButton className={styles.toolbarItem} appearance='subtle'>
+                      <Caption1> Jump to Address...</Caption1>
+                    </ToolbarButton>
+                  </PopoverTrigger>
+                  <PopoverSurface>
+                    <Input
+                      appearance='filled-darker'
+                      size='small'
+                      placeholder='Go to (e.g. 0x0200, 200h, 512)'
+                      value={gotoText}
+                      onChange={(_, data) => setGotoText(data.value)}
+                      onKeyDown={handleGotoKey}
+                      style={{ width: 220 }}
+                    />
+                    <Button size='small' onClick={handleGoto}>
+                      Go
+                    </Button>
+                  </PopoverSurface>
+                </Popover>
+              </ToolbarGroup>
+              <ToolbarGroup>
+                Follow:
+                <ToolbarRadioGroup aria-label='Follow mode'>
+                  <ToolbarRadioButton
+                    name='follow'
+                    value='none'
+                    appearance='subtle'
+                    size='small'
+                    className={styles.toolbarItem}
+                  >
+                    Off
+                  </ToolbarRadioButton>
+                  <Tooltip
+                    content='Follow position of Program Counter'
+                    relationship='description'
+                    positioning='above-end'
+                    withArrow
+                  >
+                    <ToolbarRadioButton
+                      name='follow'
+                      value='pc'
+                      appearance='subtle'
+                      size='small'
+                      className={styles.toolbarItem}
+                    >
+                      PC
+                    </ToolbarRadioButton>
+                  </Tooltip>
+                  <Tooltip
+                    content='Follow M register target'
+                    relationship='description'
+                    positioning='above-end'
+                    withArrow
+                  >
+                    <ToolbarRadioButton
+                      name='follow'
+                      value='m'
+                      appearance='subtle'
+                      size='small'
+                      className={styles.toolbarItem}
+                    >
+                      M
+                    </ToolbarRadioButton>
+                  </Tooltip>
+                </ToolbarRadioGroup>
+              </ToolbarGroup>
+            </Toolbar>
           </th>
         </tfoot>
       </table>
