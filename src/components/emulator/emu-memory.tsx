@@ -48,14 +48,17 @@ const useStyles = makeStyles({
     cursor: 'default',
   },
   pcMarker: { backgroundColor: tokens.colorBrandBackground, outline: `1px solid ${tokens.colorBrandStroke1}` },
-  mMarker: { backgroundColor: tokens.colorStatusSuccessBackground3, outline: `1px solid ${tokens.colorStatusSuccessBorderActive}` },
+  mMarker: {
+    backgroundColor: tokens.colorStatusSuccessBackground3,
+    outline: `1px solid ${tokens.colorStatusSuccessBorderActive}`,
+  },
   pcAndMMarker: {
     backgroundImage: `linear-gradient(135deg,
       ${tokens.colorBrandBackground} 0%,
       ${tokens.colorBrandBackground} 50%,
       ${tokens.colorStatusSuccessBackground3} 50%,
       ${tokens.colorStatusSuccessBackground3} 100%)`,
-      outline: '1px solid lightGray'
+    outline: '1px solid lightGray',
   },
   toolbarItem: { color: tokens.colorNeutralForeground3, padding: '0 .4rem', minWidth: '2rem', marginRight: '.2rem' },
 });
@@ -153,24 +156,25 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
   const lastMRef = useRef<number>(m);
 
   // PC follow
-  useMemo(() => {
+  useEffect(() => {
     if (!onSetOffset) return;
     if (followMode === 'pc' && pc !== lastPCRef.current && !isAddrVisible(pc & 0xffff, offset)) {
       setOffset(pageForAddress(pc & 0xffff));
     }
     lastPCRef.current = pc;
+    // We intentionally include only the values we read.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pc, followMode, offset, onSetOffset, setOffset]);
+  }, [pc, followMode, offset, onSetOffset]);
 
   // M follow
-  useMemo(() => {
+  useEffect(() => {
     if (!onSetOffset) return;
     if (followMode === 'm' && m !== lastMRef.current && !isAddrVisible(m & 0xffff, offset)) {
       setOffset(pageForAddress(m & 0xffff));
     }
     lastMRef.current = m;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [m, followMode, offset, onSetOffset, setOffset]);
+  }, [m, followMode, offset, onSetOffset]);
 
   // snap immediately when user switches follow mode
   useEffect(() => {
@@ -222,7 +226,9 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
                 return (
                   <td
                     key={c}
-                    className={`${styles.memTd} ${isM && isPC ? styles.pcAndMMarker : isM ? styles.mMarker : isPC ? styles.pcMarker : ''}`}
+                    className={`${styles.memTd} ${
+                      isM && isPC ? styles.pcAndMMarker : isM ? styles.mMarker : isPC ? styles.pcMarker : ''
+                    }`}
                     onClick={() => setCurrentAddr(addr)}
                     role='gridcell'
                   >
@@ -234,130 +240,132 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
           ))}
         </tbody>
         <tfoot>
-          <th className={styles.memTh} colSpan={16} style={{ padding: '4px 2px' }}>
-            <Toolbar
-              size='small'
-              aria-label='Follow options'
-              checkedValues={toolbarChecked}
-              onCheckedValueChange={onFollowCheckedChange}
-              style={{ justifyContent: 'space-between', padding: 0 }}
-            >
-              {/* Left group: jump to memory location */}
-              <ToolbarGroup role='presentation'>
-                <Popover withArrow trapFocus open={gotoOpen} onOpenChange={(_, data) => setGotoOpen(data.open)}>
-                  <PopoverTrigger disableButtonEnhancement>
-                    <ToolbarButton className={styles.toolbarItem} appearance='subtle'>
-                      <Caption1> Goto...</Caption1>
-                    </ToolbarButton>
-                  </PopoverTrigger>
-                  <PopoverSurface>
-                    <Input
-                      appearance='filled-darker'
-                      size='small'
-                      placeholder='Go to (e.g. 0x0200, 200h, 512)'
-                      value={gotoText}
-                      onChange={(_, data) => setGotoText(data.value)}
-                      onKeyDown={handleGotoKey}
-                      style={{ width: 220 }}
-                    />
-                    <Button size='small' onClick={handleGoto}>
-                      Go
-                    </Button>
-                  </PopoverSurface>
-                </Popover>
-              </ToolbarGroup>
+          <tr>
+            <td className={styles.memTh} colSpan={16} style={{ padding: '4px 2px' }}>
+              <Toolbar
+                size='small'
+                aria-label='Follow options'
+                checkedValues={toolbarChecked}
+                onCheckedValueChange={onFollowCheckedChange}
+                style={{ justifyContent: 'space-between', padding: 0 }}
+              >
+                {/* Left group: jump to memory location */}
+                <ToolbarGroup role='presentation'>
+                  <Popover withArrow trapFocus open={gotoOpen} onOpenChange={(_, data) => setGotoOpen(data.open)}>
+                    <PopoverTrigger disableButtonEnhancement>
+                      <ToolbarButton className={styles.toolbarItem} appearance='subtle'>
+                        <Caption1> Goto...</Caption1>
+                      </ToolbarButton>
+                    </PopoverTrigger>
+                    <PopoverSurface>
+                      <Input
+                        appearance='filled-darker'
+                        size='small'
+                        placeholder='Go to (e.g. 0x0200, 200h, 512)'
+                        value={gotoText}
+                        onChange={(_, data) => setGotoText(data.value)}
+                        onKeyDown={handleGotoKey}
+                        style={{ width: 220 }}
+                      />
+                      <Button size='small' onClick={handleGoto}>
+                        Go
+                      </Button>
+                    </PopoverSurface>
+                  </Popover>
+                </ToolbarGroup>
 
-              {/* Middle group: current tracked memory location */}
-              <ToolbarGroup role='presentation'>
-                <Tooltip
-                  withArrow
-                  relationship='description'
-                  positioning='above'
-                  content={
-                    currentAddr ? (
-                      <div>
-                        <small>Tracked Memory</small>
-                        <br />
-                        <code>
-                          Address: {toHex(currentAddr, 4)}
+                {/* Middle group: current tracked memory location */}
+                <ToolbarGroup role='presentation'>
+                  <Tooltip
+                    withArrow
+                    relationship='description'
+                    positioning='above'
+                    content={
+                      currentAddr ? (
+                        <div>
+                          <small>Tracked Memory</small>
                           <br />
-                          Hex: {toHex(currentValue ?? 0, 2)}
-                          <br />
-                          Bin: {toBin(currentValue ?? 0, 2)}
-                          <br />
-                          Dec: {toDec(currentValue ?? 0)}
-                        </code>
-                      </div>
-                    ) : (
-                      <div>Select a memory location in the table to track that value.</div>
-                    )
-                  }
-                >
-                  <ToolbarButton className={styles.toolbarItem} appearance='transparent'>
-                    <Caption1>
-                      {currentAddr == null ? (
-                        '---- : --'
+                          <code>
+                            Address: {toHex(currentAddr, 4)}
+                            <br />
+                            Hex: {toHex(currentValue ?? 0, 2)}
+                            <br />
+                            Bin: {toBin(currentValue ?? 0, 2)}
+                            <br />
+                            Dec: {toDec(currentValue ?? 0)}
+                          </code>
+                        </div>
                       ) : (
-                        <>
-                          <code className={styles.code}>{toHex(currentAddr, 4)}</code>
-                          {' : '}
-                          <code className={styles.code}>{toHex(currentValue ?? 0, 2)}</code>
-                        </>
-                      )}
-                    </Caption1>
-                  </ToolbarButton>
-                </Tooltip>
-              </ToolbarGroup>
+                        <div>Select a memory location in the table to track that value.</div>
+                      )
+                    }
+                  >
+                    <ToolbarButton className={styles.toolbarItem} appearance='transparent'>
+                      <Caption1>
+                        {currentAddr == null ? (
+                          '---- : --'
+                        ) : (
+                          <>
+                            <code className={styles.code}>{toHex(currentAddr, 4)}</code>
+                            {' : '}
+                            <code className={styles.code}>{toHex(currentValue ?? 0, 2)}</code>
+                          </>
+                        )}
+                      </Caption1>
+                    </ToolbarButton>
+                  </Tooltip>
+                </ToolbarGroup>
 
-              {/* Right group: follow mode */}
-              <ToolbarGroup>
-                Follow:
-                <ToolbarRadioGroup aria-label='Follow mode'>
-                  <ToolbarRadioButton
-                    name='follow'
-                    value='none'
-                    appearance='subtle'
-                    size='small'
-                    className={styles.toolbarItem}
-                  >
-                    Off
-                  </ToolbarRadioButton>
-                  <Tooltip
-                    content='Follow position of Program Counter'
-                    relationship='description'
-                    positioning='above-end'
-                    withArrow
-                  >
+                {/* Right group: follow mode */}
+                <ToolbarGroup>
+                  Follow:
+                  <ToolbarRadioGroup aria-label='Follow mode'>
                     <ToolbarRadioButton
                       name='follow'
-                      value='pc'
+                      value='none'
                       appearance='subtle'
                       size='small'
                       className={styles.toolbarItem}
                     >
-                      PC
+                      Off
                     </ToolbarRadioButton>
-                  </Tooltip>
-                  <Tooltip
-                    content='Follow M register target'
-                    relationship='description'
-                    positioning='above-end'
-                    withArrow
-                  >
-                    <ToolbarRadioButton
-                      name='follow'
-                      value='m'
-                      appearance='subtle'
-                      size='small'
-                      className={styles.toolbarItem}
+                    <Tooltip
+                      content='Follow position of Program Counter'
+                      relationship='description'
+                      positioning='above-end'
+                      withArrow
                     >
-                      M
-                    </ToolbarRadioButton>
-                  </Tooltip>
-                </ToolbarRadioGroup>
-              </ToolbarGroup>
-            </Toolbar>
-          </th>
+                      <ToolbarRadioButton
+                        name='follow'
+                        value='pc'
+                        appearance='subtle'
+                        size='small'
+                        className={styles.toolbarItem}
+                      >
+                        PC
+                      </ToolbarRadioButton>
+                    </Tooltip>
+                    <Tooltip
+                      content='Follow M register target'
+                      relationship='description'
+                      positioning='above-end'
+                      withArrow
+                    >
+                      <ToolbarRadioButton
+                        name='follow'
+                        value='m'
+                        appearance='subtle'
+                        size='small'
+                        className={styles.toolbarItem}
+                      >
+                        M
+                      </ToolbarRadioButton>
+                    </Tooltip>
+                  </ToolbarRadioGroup>
+                </ToolbarGroup>
+              </Toolbar>
+            </td>
+          </tr>
         </tfoot>
       </table>
     </>
