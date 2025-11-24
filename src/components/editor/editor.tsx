@@ -34,7 +34,7 @@ const useStyles = makeStyles({
     minWidth: '320px',
     textAlign: 'center',
   },
-   hint: {
+  hint: {
     marginTop: '6px',
     color: tokens.colorNeutralForeground3,
     fontSize: '12px',

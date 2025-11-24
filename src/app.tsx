@@ -315,7 +315,7 @@ export const App = () => {
             )}
             <Panel order={2} id='middle'>
               <PanelGroup direction='vertical' autoSaveId='layout-vertical'>
-                <Panel id='editor' minSize={33} order={1}>
+                <Panel id='editor' minSize={33} order={1} data-tabster='{"uncontrolled": {}}'>
                   <Editor
                     initialCode={code}
                     onCodeChange={onCodeChange}
