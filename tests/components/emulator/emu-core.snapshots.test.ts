@@ -1,0 +1,92 @@
+// TypeScript
+import { EmulatorCore, Snapshot } from '../../../src/components/emulator/emu-core';
+
+// opcode helpers (reuse from your other test)
+const SETA = (v: number) => 0x40 | (v & 0x1f);
+const SETB = (v: number) => 0x60 | (v & 0x1f);
+const MOV8 = (d: number, s: number) => ((d & 0x7) << 3) | (s & 0x7);
+const ALU_TO_A = (f: number) => 0x80 | (f & 0x7);
+const LOAD_TO = (d: number) => 0x90 | (d & 0x3);
+const STORE_FROM = (s: number) => 0x98 | (s & 0x3);
+const GOTO = (opts: { d?: 0|1; s?: 0|1; c?: 0|1; z?: 0|1; n?: 0|1; x?: 0|1 }, hi: number, lo: number) => {
+  const { d=0, s=0, c=0, z=0, n=0, x=0 } = opts;
+  return 0xc0 | ((d&1)<<5) | ((s&1)<<4) | ((c&1)<<3) | ((z&1)<<2) | ((n&1)<<1) | (x&1);
+};
+const HALT = (r: 0|1 = 0) => 0xae | (r & 1);
+
+function program(offset: number, bytes: number[]): Uint8Array {
+  const hdr = [offset & 0xff, (offset >> 8) & 0xff];
+  return new Uint8Array([...hdr, ...bytes.map(b => b & 0xff)]);
+}
+
+// capture a subset of the snapshot for readability
+function pick(s: Snapshot) {
+  const { PC, A, B, C, D, M, XY, J, FZ, FS, FC, PS, CLS, cycles } = s;
+  return { PC, A, B, C, D, M, XY, J, FZ, FS, FC, PS, CLS, cycles };
+}
+
+describe('EmulatorCore golden snapshots', () => {
+  test('tiny program step-by-step stays stable', () => {
+    const start = 0x0100;
+    const tgt = 0x0120;
+
+    // Program:
+    // 0100: SETA +5            -> A=5
+    // 0101: MOV B <- A         -> B=5
+    // 0102: STORE [M] <- B     -> mem[M] = 5  (M initially 0)
+    // 0103: LOAD A <- [M]      -> A=5         (checks mem path)
+    // 0104: ALU_TO_A(2) (B+1)  -> A=6, flags: Z=false,S=false,C=false (B=5)
+    // 0105: GOTO d=1 z=1 x=1 tgt -> J=tgt, XY=capture; Z=false so no jump
+    // 0108: HALT               -> stop
+    // 0120: HALT               -> jump target (will not be hit in this run)
+    const bytes = [
+      SETA(0x05),
+      MOV8(1, 0),           // B <- A
+      STORE_FROM(1),        // [M] <- B
+      LOAD_TO(0),           // A <- [M]
+      ALU_TO_A(2),          // B + 1 -> A
+      GOTO({ d:1, z:1, x:1 }, (tgt >> 8) & 0xff, tgt & 0xff),
+      (tgt >> 8) & 0xff,
+      tgt & 0xff,
+      HALT(),
+      // pad up to target, place HALT at tgt
+      ...new Array(((tgt - (start + 9)) & 0xffff)).fill(0x00),
+      HALT(),
+    ];
+
+    const core = new EmulatorCore();
+    core.load(program(start, bytes));
+
+    const steps: any[] = [];
+
+    function stepAndRecord() {
+      const cont = core.step();
+      steps.push(pick(core.getSnapshot()));
+      return cont;
+    }
+
+    // Step through until the HALT at 0x0108
+    while (stepAndRecord()) {
+      // loop
+    }
+
+    // Expected sequence:
+    // After SETA, MOV, STORE, LOAD, ALU, GOTO (no jump), HALT
+    expect(steps).toEqual([
+      // SETA
+      expect.objectContaining({ PC: 0x0101, A: 0x05, B: 0x00, CLS: 'SETAB', cycles: 8 }),
+      // MOV B <- A
+      expect.objectContaining({ PC: 0x0102, A: 0x05, B: 0x05, CLS: 'MOV8', cycles: 16 }),
+      // STORE [M] <- B
+      expect.objectContaining({ PC: 0x0103, CLS: 'STORE', cycles: 28 }),
+      // LOAD A <- [M]
+      expect.objectContaining({ PC: 0x0104, A: 0x05, CLS: 'LOAD', cycles: 40 }),
+      // ALU B+1 -> A
+      expect.objectContaining({ PC: 0x0105, A: 0x06, FZ: false, FS: false, FC: false, CLS: 'ALU', cycles: 48 }),
+      // GOTO (no jump because Z=false), captures XY, writes J
+      expect.objectContaining({ PC: 0x0108, J: tgt, XY: 0x0108, CLS: 'GOTO', cycles: 72 }),
+      // HALT
+      expect.objectContaining({ PC: 0x0109, CLS: 'MISC', cycles: 82 }),
+    ]);
+  });
+});
