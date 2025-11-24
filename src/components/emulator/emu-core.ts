@@ -21,25 +21,92 @@ export class EmulatorCore {
   private memVersion = 0;
   private regs: Snapshot;
 
+  // Cached decode/exec tables
+  private getMov8!: Array<() => number>;
+  private setMov8!: Array<(v: number) => void>;
+  private getMov16!: Array<() => number>;
+  private setMov16!: Array<(v: number) => void>;
+  private aluFunc!: Array<() => number>;
+  private loadReg!: Array<(v: number) => void>;
+  private saveReg!: Array<() => number>;
+
   constructor(size = 32768) {
     this.memory = new Uint8Array(size);
     this.regs = {
-      A: 0,
-      B: 0,
-      C: 0,
-      D: 0,
-      I: 0,
-      PC: 0,
-      M: 0,
-      XY: 0,
-      J: 0,
-      FZ: false,
-      FS: false,
-      FC: false,
-      PS: 0,
-      CLS: 'MOV8',
-      cycles: 0,
+      A: 0, B: 0, C: 0, D: 0,
+      I: 0, PC: 0, M: 0, XY: 0, J: 0,
+      FZ: false, FS: false, FC: false,
+      PS: 0, CLS: 'MOV8', cycles: 0,
     };
+    this.initDecodeTables();
+  }
+
+  private initDecodeTables() {
+    const r = this.regs;
+
+    // 8-bit sources
+    this.getMov8 = [
+      () => r.A,
+      () => r.B,
+      () => r.C,
+      () => r.D,
+      () => (r.M & 0xff00) >> 8,  // M.hi (M1)
+      () => r.M & 0x00ff,         // M.lo (M2)
+      () => (r.XY & 0xff00) >> 8, // XY.hi (X)
+      () => r.XY & 0x00ff,        // XY.lo (Y)
+    ];
+
+    // 8-bit destinations
+    this.setMov8 = [
+      (v: number) => (r.A = v & 0xff),
+      (v: number) => (r.B = v & 0xff),
+      (v: number) => (r.C = v & 0xff),
+      (v: number) => (r.D = v & 0xff),
+      (v: number) => (r.M = (r.M & 0x00ff) | ((v & 0xff) << 8)),    // M.hi (M1)
+      (v: number) => (r.M = (r.M & 0xff00) | (v & 0xff)),           // M.lo (M2)
+      (v: number) => (r.XY = (r.XY & 0x00ff) | ((v & 0xff) << 8)),  // XY.hi (X)
+      (v: number) => (r.XY = (r.XY & 0xff00) | (v & 0xff)),         // XY.lo (Y)
+    ];
+
+    // 16-bit sources
+    this.getMov16 = [
+      () => r.M & 0xffff,
+      () => r.XY & 0xffff,
+      () => r.J & 0xffff,
+      () => 0]
+
+    // 16-bit destinations
+    this.setMov16 = [
+      (v: number) => (r.XY = v & 0xffff),
+      (v: number) => (r.PC = v & 0xffff)
+    ];
+
+    // LOAD/STORE register select
+    this.loadReg = [
+      (v: number) => (r.A = v & 0xff),
+      (v: number) => (r.B = v & 0xff),
+      (v: number) => (r.C = v & 0xff),
+      (v: number) => (r.D = v & 0xff),
+    ];
+    this.saveReg = [
+      () => r.A & 0xff,
+      () => r.B & 0xff,
+      () => r.C & 0xff,
+      () => r.D & 0xff,
+      () => 0
+    ];
+
+    // ALU functions
+    this.aluFunc = [
+      () => 0,
+      () => r.B + r.C,
+      () => r.B + 1,
+      () => r.B & r.C,
+      () => r.B | r.C,
+      () => r.B ^ r.C,
+      () => ~r.B & 0xff,
+      () => ((r.B & 0x80) === 0x80 ? (r.B << 1) + 1 : r.B << 1),
+    ];
   }
 
   getMemory(): Readonly<Uint8Array> {
@@ -110,68 +177,6 @@ export class EmulatorCore {
     this.regs.PC = offset & 0xffff;
   }
 
-  // Decoders and helpers (moved from component)
-  private get getMov8() {
-    const r = this.regs;
-    return [
-      () => r.A,
-      () => r.B,
-      () => r.C,
-      () => r.D,
-      () => (r.M & 0xff00) >> 8,
-      () => r.M & 0x00ff,
-      () => (r.XY & 0xff00) >> 8,
-      () => r.XY & 0x00ff,
-    ] as Array<() => number>;
-  }
-  private get setMov8() {
-    const r = this.regs;
-    return [
-      (v: number) => (r.A = v & 0xff),
-      (v: number) => (r.B = v & 0xff),
-      (v: number) => (r.C = v & 0xff),
-      (v: number) => (r.D = v & 0xff),
-      (v: number) => (r.M = (r.M & 0x00ff) | ((v & 0xff) << 8)),
-      (v: number) => (r.M = (r.M & 0xff00) | (v & 0xff)),
-      (v: number) => (r.XY = (r.XY & 0x00ff) | ((v & 0xff) << 8)),
-      (v: number) => (r.XY = (r.XY & 0xff00) | (v & 0xff)),
-    ] as Array<(v: number) => void>;
-  }
-  private get loadReg() {
-    const r = this.regs;
-    return [
-      (v: number) => (r.A = v & 0xff),
-      (v: number) => (r.B = v & 0xff),
-      (v: number) => (r.C = v & 0xff),
-      (v: number) => (r.D = v & 0xff),
-    ] as Array<(v: number) => void>;
-  }
-  private get saveReg() {
-    const r = this.regs;
-    return [() => r.A & 0xff, () => r.B & 0xff, () => r.C & 0xff, () => r.D & 0xff, () => 0] as Array<() => number>;
-  }
-  private get getMov16() {
-    const r = this.regs;
-    return [() => r.M & 0xffff, () => r.XY & 0xffff, () => r.J & 0xffff, () => 0] as Array<() => number>;
-  }
-  private get setMov16() {
-    const r = this.regs;
-    return [(v: number) => (r.XY = v & 0xffff), (v: number) => (r.PC = v & 0xffff)] as Array<(v: number) => void>;
-  }
-  private get aluFunc() {
-    const r = this.regs;
-    return [
-      () => 0,
-      () => r.B + r.C,
-      () => r.B + 1,
-      () => r.B & r.C,
-      () => r.B | r.C,
-      () => r.B ^ r.C,
-      () => ~r.B & 0xff,
-      () => ((r.B & 0x80) === 0x80 ? (r.B << 1) + 1 : r.B << 1),
-    ] as Array<() => number>;
-  }
-
   step(): boolean {
     const mem = this.memory;
     const r = this.regs;
@@ -183,8 +188,7 @@ export class EmulatorCore {
       r.CLS = 'SETAB';
       const isB = (instr & 0x20) === 0x20;
       const v = (instr & 0x10) === 0x10 ? (instr & 0x0f) + 0xf0 : instr & 0x0f;
-      if (isB) r.B = v & 0xff;
-      else r.A = v & 0xff;
+      if (isB) r.B = v & 0xff; else r.A = v & 0xff;
       r.PC = (r.PC + 1) & 0xffff;
       this.countCycles(8);
       return true;
@@ -212,8 +216,7 @@ export class EmulatorCore {
       r.FC = (v & 0x100) === 0x100;
       r.FS = (v & 0x80) === 0x80;
       const res = v & 0xff;
-      if (toD) r.D = res;
-      else r.A = res;
+      if (toD) r.D = res; else r.A = res;
       r.PC = (r.PC + 1) & 0xffff;
       this.countCycles(8);
       return true;
@@ -258,8 +261,7 @@ export class EmulatorCore {
     if ((instr & 0xfe) === 0xac) {
       r.CLS = 'MISC';
       const toD = (instr & 0x01) === 0x01;
-      if (toD) r.D = r.PS & 0xff;
-      else r.A = r.PS & 0xff;
+      if (toD) r.D = r.PS & 0xff; else r.A = r.PS & 0xff;
       r.PC = (r.PC + 1) & 0xffff;
       this.countCycles(10);
       return true;
