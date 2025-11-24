@@ -291,9 +291,9 @@ function AppToolbarMenu(
           </MenuList>
         </MenuPopover>
       </Menu>
-      <Menu hasCheckmarks>
+      {/* <Menu hasCheckmarks>
         <MenuTrigger>
-          <ToolbarButton className={styles.menuTrigger} appearance='transparent' disabled>
+          <ToolbarButton className={styles.menuTrigger} appearance='transparent'>
             Run
           </ToolbarButton>
         </MenuTrigger>
@@ -328,7 +328,7 @@ function AppToolbarMenu(
             <MenuItem disabled>Remove All Breakpoints</MenuItem>
           </MenuList>
         </MenuPopover>
-      </Menu>
+      </Menu> */}
       <Menu hasCheckmarks>
         <MenuTrigger>
           <ToolbarButton className={styles.menuTrigger} appearance='transparent'>
