@@ -1,4 +1,4 @@
-export function program(offset: number, bytes: number[]): Uint8Array {
+export function program(offset: number, ...bytes: number[]): Uint8Array {
   const hdr = [offset & 0xff, (offset >> 8) & 0xff];
   return new Uint8Array([...hdr, ...bytes.map(b => b & 0xff)]);
 }

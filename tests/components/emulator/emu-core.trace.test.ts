@@ -1,6 +1,6 @@
 // TypeScript
 import { EmulatorCore, type StepTrace } from '../../../src/components/emulator/emu-core';
-import { ALU_TO_A, GOTO, HALT, LOAD_TO, MOV8, SETA, STORE_FROM } from './helpers/opcodes';
+import { ALU, GOTO, HALT, LOAD, MOV8, SETA, STORE } from './helpers/opcodes';
 import { program } from './helpers/program';
 
 describe('EmulatorCore trace hook', () => {
@@ -11,16 +11,16 @@ describe('EmulatorCore trace hook', () => {
     const start = 0x0100;
     const tgt = 0x0108;
     const bytes = [
-      SETA(0x05),              // cycles +8
-      MOV8(1, 0),              // +8
-      STORE_FROM(1),           // +12
-      LOAD_TO(0),              // +12
-      ALU_TO_A(2),             // +8
-      ...GOTO({ d: 1, z: 1, x: 1 }, (tgt >> 8) & 0xff, tgt & 0xff), // +24, not taken (Z false)
-      HALT(),                  // +10, returns false
+      SETA(0x05),         // cycles +8
+      MOV8(1, 0),         // +8
+      STORE(1),           // +12
+      LOAD(0),            // +12
+      ALU(2),             // +8
+      ...GOTO({ d: 1, z: 1, x: 1 }, tgt), // +24, not taken (Z false)
+      HALT,             // +10, returns false
     ];
 
-    core.load(program(start, bytes));
+    core.load(program(start, ...bytes));
 
     // Execute until HALT
     while (core.step()) { /* no-op */ }
@@ -29,34 +29,24 @@ describe('EmulatorCore trace hook', () => {
     expect(trace.length).toBe(7);
 
     // Check first step
-    expect(trace[0].pc).toBe(start);
-    expect(trace[0].op).toBe(bytes[0]);
-    expect(trace[0].cls).toBe('SETAB');
-    expect(trace[0].cyclesDelta).toBe(8);
-    expect(trace[0].after.PC).toBe(start + 1);
-    expect(trace[0].after.A).toBe(0x05);
+    expect(trace[0]).toMatchObject({ pc: start, op: bytes[0], cls: 'SETAB', cyclesDelta: 8 })
+    expect(trace[0].after).toMatchObject({ PC: start + 1, A: 5 })
 
     // Check MOV8 step updates B
-    expect(trace[1].cls).toBe('MOV8');
-    expect(trace[1].cyclesDelta).toBe(8);
+    expect(trace[1]).toMatchObject({ cls: 'MOV8', cyclesDelta: 8 })
     expect(trace[1].after.B).toBe(0x05);
 
     // STORE then LOAD sequence
-    expect(trace[2].cls).toBe('STORE');
-    expect(trace[2].cyclesDelta).toBe(12);
-    expect(trace[3].cls).toBe('LOAD');
-    expect(trace[3].cyclesDelta).toBe(12);
+    expect(trace[2]).toMatchObject({ cls: 'STORE', cyclesDelta: 12 })
+    expect(trace[3]).toMatchObject({ cls: 'LOAD', cyclesDelta: 12 })
     expect(trace[3].after.A).toBe(0x05);
 
     // ALU B+1 -> A
-    expect(trace[4].cls).toBe('ALU');
-    expect(trace[4].cyclesDelta).toBe(8);
-    expect(trace[4].after.A).toBe(0x06);
-    expect(trace[4].after.FZ).toBe(false);
+    expect(trace[4]).toMatchObject({ cls: 'ALU', cyclesDelta: 8 })
+    expect(trace[4].after).toMatchObject({ A: 6, FZ: false })
 
     // GOTO not taken, J set, XY captured to PC after read
-    expect(trace[5].cls).toBe('GOTO');
-    expect(trace[5].cyclesDelta).toBe(24);
+    expect(trace[5]).toMatchObject({ cls: 'GOTO', cyclesDelta: 24 })
     expect(trace[5].after.J).toBe(tgt);
     expect(trace[5].after.XY).toBe(start + 8); // PC after GOTO is start+8
 
@@ -70,7 +60,7 @@ describe('EmulatorCore trace hook', () => {
   test('trace before/after snapshots are different objects and frozen', () => {
     const traces: StepTrace[] = [];
     const core = new EmulatorCore(32768, t => traces.push(t));
-    core.load(program(0x0000, [SETA(0x01), HALT()]));
+    core.load(program(0, SETA(1), HALT));
 
     while (core.step()) { /* run */ }
 

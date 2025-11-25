@@ -1,6 +1,6 @@
 // TypeScript
 import { EmulatorCore, Snapshot } from '../../../src/components/emulator/emu-core';
-import { ALU_TO_A, GOTO, HALT, LOAD_TO, MOV8, SETA, STORE_FROM } from './helpers/opcodes';
+import { ALU, GOTO, HALT, LOAD, MOV8, SETA, STORE } from './helpers/opcodes';
 import { program } from './helpers/program';
 
 // capture a subset of the snapshot for readability
@@ -25,19 +25,19 @@ describe('EmulatorCore golden snapshots', () => {
     // 0120: HALT               -> jump target (will not be hit in this run)
     const bytes = [
       SETA(0x05),
-      MOV8(1, 0),           // B <- A
-      STORE_FROM(1),        // [M] <- B
-      LOAD_TO(0),           // A <- [M]
-      ALU_TO_A(2),          // B + 1 -> A
-      ...GOTO({ d:1, z:1, x:1 }, (tgt >> 8) & 0xff, tgt & 0xff),
-      HALT(),
+      MOV8(1, 0),  // B <- A
+      STORE(1),    // [M] <- B
+      LOAD(0),     // A <- [M]
+      ALU(2),      // B + 1 -> A
+      ...GOTO({ d:1, z:1, x:1 }, tgt),
+      HALT,
       // pad up to target, place HALT at tgt
       ...new Array(((tgt - (start + 9)) & 0xffff)).fill(0x00),
-      HALT(),
+      HALT,
     ];
 
     const core = new EmulatorCore();
-    core.load(program(start, bytes));
+    core.load(program(start, ...bytes));
 
     const steps: any[] = [];
 
