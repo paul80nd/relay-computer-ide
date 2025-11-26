@@ -20,7 +20,10 @@ function Output({ assembly }: OutputProps) {
     if (!editorRef.current) {
       const editor = monaco.editor.create(containerRef.current, {
         value: assembly?.dasm ?? '',
-        theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light',
+        theme:
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'vs-dark'
+            : 'vs-light',
         language: 'rcdsm',
         lineNumbers: 'off',
         renderLineHighlight: 'none',

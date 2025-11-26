@@ -1,7 +1,12 @@
 // TypeScript / TSX
 import { makeStyles, tokens, Text } from '@fluentui/react-components';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
-import { Dismiss12Filled, ErrorCircle16Regular, Warning16Regular, Info16Regular } from '@fluentui/react-icons';
+import {
+  Dismiss12Filled,
+  ErrorCircle16Regular,
+  Warning16Regular,
+  Info16Regular,
+} from '@fluentui/react-icons';
 import { useMemo } from 'react';
 
 type Props = {
@@ -58,8 +63,10 @@ const useStyles = makeStyles({
 });
 
 function severityIcon(sev: number, classes: ReturnType<typeof useStyles>) {
-  if (sev === monaco.MarkerSeverity.Error) return <ErrorCircle16Regular className={classes.iconError} />;
-  if (sev === monaco.MarkerSeverity.Warning) return <Warning16Regular className={classes.iconWarning} />;
+  if (sev === monaco.MarkerSeverity.Error)
+    return <ErrorCircle16Regular className={classes.iconError} />;
+  if (sev === monaco.MarkerSeverity.Warning)
+    return <Warning16Regular className={classes.iconWarning} />;
   if (sev === monaco.MarkerSeverity.Info) return <Info16Regular className={classes.iconInfo} />;
   return <Dismiss12Filled className={classes.iconInfo} />;
 }
@@ -134,7 +141,9 @@ export default function Problems({ markers, onSelect }: Props) {
                   {m.startLineNumber}:{m.startColumn}
                 </Text>
               </div>
-              <div style={{ color: tokens.colorNeutralForeground3 }}>{/* Only one file open; omit filename */}</div>
+              <div style={{ color: tokens.colorNeutralForeground3 }}>
+                {/* Only one file open; omit filename */}
+              </div>
             </div>
           ))}
         </div>

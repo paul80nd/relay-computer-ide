@@ -25,14 +25,14 @@ describe('EmulatorCore golden snapshots', () => {
     // 0120: HALT               -> jump target (will not be hit in this run)
     const bytes = [
       SETA(0x05),
-      MOV8(1, 0),  // B <- A
-      STORE(1),    // [M] <- B
-      LOAD(0),     // A <- [M]
-      ALU(2),      // B + 1 -> A
-      ...GOTO({ d:1, z:1, x:1 }, tgt),
+      MOV8(1, 0), // B <- A
+      STORE(1), // [M] <- B
+      LOAD(0), // A <- [M]
+      ALU(2), // B + 1 -> A
+      ...GOTO({ d: 1, z: 1, x: 1 }, tgt),
       HALT,
       // pad up to target, place HALT at tgt
-      ...new Array(((tgt - (start + 9)) & 0xffff)).fill(0x00),
+      ...new Array((tgt - (start + 9)) & 0xffff).fill(0x00),
       HALT,
     ];
 
@@ -64,7 +64,15 @@ describe('EmulatorCore golden snapshots', () => {
       // LOAD A <- [M]
       expect.objectContaining({ PC: 0x0104, A: 0x05, CLS: 'LOAD', cycles: 40 }),
       // ALU B+1 -> A
-      expect.objectContaining({ PC: 0x0105, A: 0x06, FZ: false, FS: false, FC: false, CLS: 'ALU', cycles: 48 }),
+      expect.objectContaining({
+        PC: 0x0105,
+        A: 0x06,
+        FZ: false,
+        FS: false,
+        FC: false,
+        CLS: 'ALU',
+        cycles: 48,
+      }),
       // GOTO (no jump because Z=false), captures XY, writes J
       expect.objectContaining({ PC: 0x0108, J: tgt, XY: 0x0108, CLS: 'GOTO', cycles: 72 }),
       // HALT

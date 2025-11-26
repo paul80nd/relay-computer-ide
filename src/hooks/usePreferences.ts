@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from 'react';
 
 export interface IPreferences {
   panels: {
@@ -23,26 +23,17 @@ export const Prefs = {
     EXPORT: 'export',
     EMULATOR: 'emulator',
     WELCOME: 'welcome',
-  }
+  },
 } as const;
 
-export type PanelType =
-  | 'sidebar-p'
-  | 'sidebar-s'
-  | 'panel';
+export type PanelType = 'sidebar-p' | 'sidebar-s' | 'panel';
 
-export type SectionType =
-  | 'documentation'
-  | 'examples'
-  | 'export'
-  | 'emulator'
-  | 'welcome';
+export type SectionType = 'documentation' | 'examples' | 'export' | 'emulator' | 'welcome';
 
 /**
  * Handles management of user preferences stored in local browser storage
  */
 export function usePreferences(): [IPreferences, Dispatch<SetStateAction<IPreferences>>] {
-
   // Read the initial prefs from localStorage
   const initialPrefs = (): IPreferences => {
     const savedState = localStorage.getItem('prefs');
@@ -53,7 +44,7 @@ export function usePreferences(): [IPreferences, Dispatch<SetStateAction<IPrefer
           panels: {
             primary: parsed.panels?.primary ?? false,
             secondary: parsed.panels?.secondary ?? true,
-            bottom: parsed.panels?.bottom ?? false
+            bottom: parsed.panels?.bottom ?? false,
           },
           section: parsed.section,
           autoSave: parsed.autoSave ?? true,
@@ -90,7 +81,10 @@ export type CheckedValues = {
 };
 
 // Map typed prefs -> Fluent UI checkedValues
-export function mapPrefsToCheckedValues(prefs: IPreferences, Panels: typeof Prefs.Panels): CheckedValues {
+export function mapPrefsToCheckedValues(
+  prefs: IPreferences,
+  Panels: typeof Prefs.Panels,
+): CheckedValues {
   return {
     panels: [
       prefs.panels.primary ? Panels.PRI_SIDEBAR : null,
@@ -101,7 +95,6 @@ export function mapPrefsToCheckedValues(prefs: IPreferences, Panels: typeof Pref
   };
 }
 
-
 /**
  * Applies a Fluent UI checkedValues change (for 'panels' or 'section')
  * to the preference state consistently.
@@ -110,7 +103,7 @@ export function updatePrefsFromCheckedValues(
   prev: IPreferences,
   name: string,
   checkedItems: string[],
-  panelsEnum: typeof Prefs.Panels
+  panelsEnum: typeof Prefs.Panels,
 ): IPreferences {
   const next = { ...prev };
 
@@ -121,7 +114,7 @@ export function updatePrefsFromCheckedValues(
 
     // If primary sidebar is opened, keep the current section or default to 'emulator'
     // If primary sidebar is closed, clear the section
-    const section = primaryChecked ? next.section ?? 'emulator' : undefined;
+    const section = primaryChecked ? (next.section ?? 'emulator') : undefined;
 
     return {
       ...next,

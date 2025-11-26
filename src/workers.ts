@@ -65,7 +65,10 @@ monaco.languages.registerCodeLensProvider('rcdsm', {
 
     return { lenses: labelLenses, dispose: () => {} };
   },
-  resolveCodeLens: function (_model: monaco.editor.ITextModel, codeLens: monaco.languages.CodeLens) {
+  resolveCodeLens: function (
+    _model: monaco.editor.ITextModel,
+    codeLens: monaco.languages.CodeLens,
+  ) {
     return codeLens;
   },
 });

@@ -109,7 +109,10 @@ export const App = () => {
     return bus.subscribe('panel', command => {
       // Show secondary sidebar
       if (command.type === 'panel.toggle' && command.panel === 'sidebar-s') {
-        setPrefs(prev => ({ ...prev, panels: { ...prev.panels, secondary: !prev.panels.secondary } }));
+        setPrefs(prev => ({
+          ...prev,
+          panels: { ...prev.panels, secondary: !prev.panels.secondary },
+        }));
       }
       if (command.type === 'panel.toggle' && command.panel === 'panel') {
         setPrefs(prev => ({ ...prev, panels: { ...prev.panels, bottom: !prev.panels.bottom } }));
@@ -117,9 +120,12 @@ export const App = () => {
       // Show section
       if (command.type === 'panel.showSection') {
         setPrefs(prev => {
-          const next = prev.section === command.section ? prev : { ...prev, section: command.section };
+          const next =
+            prev.section === command.section ? prev : { ...prev, section: command.section };
           // Ensure primary panel is visible
-          return next.panels.primary ? next : { ...next, panels: { ...next.panels, primary: true } };
+          return next.panels.primary
+            ? next
+            : { ...next, panels: { ...next.panels, primary: true } };
         });
       }
       return;
@@ -169,7 +175,10 @@ export const App = () => {
         case 'app.jumpToAssembled': {
           // Jump to the address for the given source code line number
           if (assembly) {
-            const address = exchangeSourceLineNumberForAddress(assembly, command.fromSourceLineNumber);
+            const address = exchangeSourceLineNumberForAddress(
+              assembly,
+              command.fromSourceLineNumber,
+            );
             if (address) {
               bus.execute(outputCommands.gotoAddress(address));
             }
@@ -267,7 +276,8 @@ export const App = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [bus]);
 
-  const onEditorPositionChanged = (e: monaco.editor.ICursorPositionChangedEvent) => setPosition(e.position);
+  const onEditorPositionChanged = (e: monaco.editor.ICursorPositionChangedEvent) =>
+    setPosition(e.position);
 
   const styles = useStyles();
 
@@ -327,12 +337,23 @@ export const App = () => {
                 {prefs.panels.bottom && (
                   <>
                     <PanelResizeHandle className={styles.resizeHandle} />
-                    <Panel id='bottom' order={2} defaultSize={20} minSize={20} className={styles.panel}>
+                    <Panel
+                      id='bottom'
+                      order={2}
+                      defaultSize={20}
+                      minSize={20}
+                      className={styles.panel}
+                    >
                       <Problems
                         markers={markers}
                         onSelect={marker => {
                           // Jump to the marker location in the editor
-                          bus.execute(editorCommands.gotoLine(marker.startLineNumber ?? 1, marker.startColumn ?? 1));
+                          bus.execute(
+                            editorCommands.gotoLine(
+                              marker.startLineNumber ?? 1,
+                              marker.startColumn ?? 1,
+                            ),
+                          );
                         }}
                       />
                     </Panel>
@@ -350,7 +371,13 @@ export const App = () => {
             )}
           </PanelGroup>
         </div>
-        <StatusBar position={position} validation={validation} assembly={assembly} autoSave={autoSave} dirty={dirty} />
+        <StatusBar
+          position={position}
+          validation={validation}
+          assembly={assembly}
+          autoSave={autoSave}
+          dirty={dirty}
+        />
       </div>
     </CommandBusProvider>
   );

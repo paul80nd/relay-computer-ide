@@ -42,7 +42,10 @@ function exportToClipboard(bytes?: Uint8Array, notify?: (title: string, body: st
   const hex = [...bytes].map(x => x.toString(16).padStart(2, '0')).join('');
   navigator.clipboard.writeText(hex);
   if (notify) {
-    notify('Exported to Clipboard', `Copied ${hex.length > 14 ? hex.substring(0, 14) + '...' : hex} to the clipboard`);
+    notify(
+      'Exported to Clipboard',
+      `Copied ${hex.length > 14 ? hex.substring(0, 14) + '...' : hex} to the clipboard`,
+    );
   }
 }
 
@@ -102,7 +105,9 @@ function Export({ assembly }: ExportProps) {
       <SectionContent>
         <Accordion collapsible multiple defaultOpenItems='assembled'>
           <AccordionItem value='assembled'>
-            <AccordionHeader className={styles.accordionHeader}>for Assembled Output</AccordionHeader>
+            <AccordionHeader className={styles.accordionHeader}>
+              for Assembled Output
+            </AccordionHeader>
             <AccordionPanel>
               <Card className={styles.card} size='small' appearance='filled' role='listitem'>
                 <CardHeader
@@ -120,7 +125,8 @@ function Export({ assembly }: ExportProps) {
                   }
                 />
                 <p className={styles.text}>
-                  Exports the current assembled byte code to your clipboard. This can then be pasted into the{' '}
+                  Exports the current assembled byte code to your clipboard. This can then be pasted
+                  into the{' '}
                   <Link href={Links.Simulator} rel='noopener nofollow'>
                     Relay Simulator
                   </Link>
@@ -142,8 +148,8 @@ function Export({ assembly }: ExportProps) {
                   }
                 />
                 <p className={styles.text}>
-                  Exports the current assembled byte code as a paper tape which could be printed and read into the Relay
-                  Computer via an optical reader (none of which exists yet).
+                  Exports the current assembled byte code as a paper tape which could be printed and
+                  read into the Relay Computer via an optical reader (none of which exists yet).
                 </p>
               </Card>
               <Card className={styles.card} size='small' appearance='filled' role='listitem'>
@@ -162,8 +168,8 @@ function Export({ assembly }: ExportProps) {
                   }
                 />
                 <p className={styles.text}>
-                  Exports the current assembled byte code as a 'load sheet' which can be printed and makes it easier to
-                  manual load programs into the Relay Computer.
+                  Exports the current assembled byte code as a 'load sheet' which can be printed and
+                  makes it easier to manual load programs into the Relay Computer.
                 </p>
               </Card>
               <Toaster toasterId={toasterId} />

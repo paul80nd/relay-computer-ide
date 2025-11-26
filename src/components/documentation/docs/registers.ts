@@ -24,7 +24,8 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     size: 8,
     canRead: true,
     canWrite: true,
-    description: 'General purpose 8-bit register. Directly feeds the ALU for all binary and unary operations.',
+    description:
+      'General purpose 8-bit register. Directly feeds the ALU for all binary and unary operations.',
   },
   c: {
     title: 'c',

@@ -48,7 +48,10 @@ export type AssemblerResult = {
 };
 
 /** Exchange a given assembly address for the nearest originating source code line */
-export function exchangeAddressForSourceLine(asm: AssemblerResult, address: number): number | undefined {
+export function exchangeAddressForSourceLine(
+  asm: AssemblerResult,
+  address: number,
+): number | undefined {
   const pcToLocs = asm.pcToLocs;
   if (!pcToLocs) return undefined;
 
@@ -66,7 +69,10 @@ export function exchangeAddressForSourceLine(asm: AssemblerResult, address: numb
 }
 
 /** Exchange a given source code line number for the approprate assembly address */
-export function exchangeSourceLineNumberForAddress(asm: AssemblerResult, sourceLineNumber: number): number | undefined {
+export function exchangeSourceLineNumberForAddress(
+  asm: AssemblerResult,
+  sourceLineNumber: number,
+): number | undefined {
   const pcToLocs = asm.pcToLocs;
   if (!pcToLocs) return undefined;
 

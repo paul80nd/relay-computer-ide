@@ -21,8 +21,8 @@ function Welcome() {
       <SectionContent>
         <div className={styles.contentHeader}>
           <p className={styles.para}>
-            This is an &apos;Integrated Development Environment&apos; (IDE) for writing programs in an assembly language
-            specific to my relay computer.
+            This is an &apos;Integrated Development Environment&apos; (IDE) for writing programs in
+            an assembly language specific to my relay computer.
           </p>
           <p className={styles.para}>
             More details on my relay computer can be found at&nbsp;

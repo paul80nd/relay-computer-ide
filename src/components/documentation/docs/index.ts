@@ -15,7 +15,7 @@ export interface MnemonicDoc {
 
 export const mnemonicDocs = {
   ...instructionDocs,
-  ...directiveDocs
+  ...directiveDocs,
 };
 
 export type RegisterName =
@@ -33,6 +33,5 @@ export type RegisterName =
   | 'pc'
   | 'as'
   | 'ds';
-
 
 export type AddressingMode = 'dr' | 'ar' | 'mIndirect' | 'imm';

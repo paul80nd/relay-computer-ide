@@ -1,7 +1,20 @@
 // TypeScript
 import { EmulatorCore, Snapshot } from '../../../src/components/emulator/emu-core';
 import { expectPC } from './helpers/asserts';
-import { ALU, ALUD, GOTO, HALT, HALTR, INCXY, LOAD, MOV16, MOV8, SETA, SETB, STORE } from './helpers/opcodes';
+import {
+  ALU,
+  ALUD,
+  GOTO,
+  HALT,
+  HALTR,
+  INCXY,
+  LOAD,
+  MOV16,
+  MOV8,
+  SETA,
+  SETB,
+  STORE,
+} from './helpers/opcodes';
 import { padTo, program } from './helpers/program';
 
 describe('EmulatorCore - reset/load/step basics', () => {
@@ -14,7 +27,21 @@ describe('EmulatorCore - reset/load/step basics', () => {
     expect(core.getMemory()[0]).toBe(0);
     expect(core.getMemoryVersion()).toBeGreaterThanOrEqual(v0 + 1);
 
-    expect(snap).toMatchObject({ A: 0, B: 0, C: 0, D: 0, M: 0, XY: 0, J: 0, PC: 0, FZ: false, FS: false, FC: false, PS: 0, cycles: 0 });
+    expect(snap).toMatchObject({
+      A: 0,
+      B: 0,
+      C: 0,
+      D: 0,
+      M: 0,
+      XY: 0,
+      J: 0,
+      PC: 0,
+      FZ: false,
+      FS: false,
+      FC: false,
+      PS: 0,
+      cycles: 0,
+    });
   });
 
   test('load writes program at offset, wraps, sets PC, bumps version', () => {
@@ -56,17 +83,17 @@ describe('Instruction behavior', () => {
     // Step 1
     expect(core.step()).toBe(true);
     let s1 = core.getSnapshot();
-    expect(s1).toMatchObject({ A: 0x03, B: 0x00, PC: (start + 1) & 0xffff, cycles: 8 })
+    expect(s1).toMatchObject({ A: 0x03, B: 0x00, PC: (start + 1) & 0xffff, cycles: 8 });
 
     // Step 2
     expect(core.step()).toBe(true);
     let s2 = core.getSnapshot();
-    expect(s2).toMatchObject({ B: 0xff, cycles: 16 }) // -1 as 8-bit
+    expect(s2).toMatchObject({ B: 0xff, cycles: 16 }); // -1 as 8-bit
 
     // Step 3
     expect(core.step()).toBe(false);
     const s3 = core.getSnapshot();
-    expect(s3).toMatchObject({ PC: (start + 3) & 0xffff, cycles: 26 })// HALT counts 10 cycles in core
+    expect(s3).toMatchObject({ PC: (start + 3) & 0xffff, cycles: 26 }); // HALT counts 10 cycles in core
   });
 
   test('MOV8 moves between regs and M/XY halves', () => {
@@ -88,8 +115,17 @@ describe('Instruction behavior', () => {
   test('ALU sets A/D and updates FZ, FS, FC correctly', () => {
     const core = new EmulatorCore();
     // Prepare B and C: B=0xFF, C=0x01 then ALU f=1: B+C -> A; then ALU f=6: ~B -> D
-    core.load(program(0, SETB(0x1f), SETA(1), MOV8(2, 0), // C <- A (C=1)
-      ALU(1), ALUD(6), HALT));
+    core.load(
+      program(
+        0,
+        SETB(0x1f),
+        SETA(1),
+        MOV8(2, 0), // C <- A (C=1)
+        ALU(1),
+        ALUD(6),
+        HALT,
+      ),
+    );
     // After SETB(-1), B=0xFF
     core.step(); // SETB
     core.step(); // SETA
@@ -97,11 +133,11 @@ describe('Instruction behavior', () => {
 
     expect(core.step()).toBe(true); // ALU f=1: B + C = 0xFF + 0x01 = 0x100
     let s = core.getSnapshot();
-    expect(s).toMatchObject({ A: 0x00, FZ: true, FC: true, FS: false })
+    expect(s).toMatchObject({ A: 0x00, FZ: true, FC: true, FS: false });
 
     expect(core.step()).toBe(true); // ALU f=6: ~B
     s = core.getSnapshot();
-    expect(s).toMatchObject({ D: 0x00, FZ: true, FC: false, FS: false }) // ~0xff & 0xff = 0x00
+    expect(s).toMatchObject({ D: 0x00, FZ: true, FC: false, FS: false }); // ~0xff & 0xff = 0x00
 
     expect(core.step()).toBe(false); // HALT
   });
@@ -110,13 +146,16 @@ describe('Instruction behavior', () => {
     const core = new EmulatorCore();
     const start = 0x0100;
     // Set B=0x2A, M.low <- B (so M=0x002A), STORE from B to [M], LOAD to A from [M]
-    core.load(program(start,
-      SETB(0x0a),    // B=0x0A
-      MOV8(5, 1),    // M.low <- B (M=0x000A)
-      STORE(1),      // [M] <- B
-      LOAD(0),       // A <- [M]
-      HALT
-    ));
+    core.load(
+      program(
+        start,
+        SETB(0x0a), // B=0x0A
+        MOV8(5, 1), // M.low <- B (M=0x000A)
+        STORE(1), // [M] <- B
+        LOAD(0), // A <- [M]
+        HALT,
+      ),
+    );
 
     const vBefore = core.getMemoryVersion();
     core.step(); // SETB
@@ -134,12 +173,15 @@ describe('Instruction behavior', () => {
   test('MOV16 and INCXY modify 16-bit regs and PC', () => {
     const core = new EmulatorCore();
     // Set M=0x1234 via MOV8, then MOV16 XY <- M, INCXY, MOV16 PC <- XY
-    core.load(program(0,
-      ...GOTO({ d: 0, s: 0, c: 0, z: 0, n: 0, x: 0 }, 0x1234),  // M <- 0x1234
-      MOV16(0, 0),                  // XY <- M = 0x1234
-      INCXY,                        // XY = 0x1235
-      MOV16(1, 1),                  // PC <- XY = 0x1235
-    ));
+    core.load(
+      program(
+        0,
+        ...GOTO({ d: 0, s: 0, c: 0, z: 0, n: 0, x: 0 }, 0x1234), // M <- 0x1234
+        MOV16(0, 0), // XY <- M = 0x1234
+        INCXY, // XY = 0x1235
+        MOV16(1, 1), // PC <- XY = 0x1235
+      ),
+    );
     // Run 5 steps to move PC
     for (let i = 0; i < 5; i++) expect(core.step()).toBe(true);
     const s = core.getSnapshot();
@@ -154,8 +196,8 @@ describe('Instruction behavior', () => {
 
     const progPrefix = [
       SETB(0x1f),
-      MOV8(2, 1),         // C <- B
-      ALU(5),             // B ^ C => 0x00 => Z=true
+      MOV8(2, 1), // C <- B
+      ALU(5), // B ^ C => 0x00 => Z=true
       ...GOTO({ d: 1, z: 1, x: 1 }, tgt),
     ];
     const pad = padTo(start, progPrefix.length + 1, tgt); // +1 for the following HALT we’ll add at target
@@ -167,9 +209,9 @@ describe('Instruction behavior', () => {
     for (let i = 0; i < 4; i++) expect(core.step()).toBe(true);
 
     const s = core.getSnapshot();
-    expect(s.J).toBe(tgt);  // d=1 -> J loaded
+    expect(s.J).toBe(tgt); // d=1 -> J loaded
     expect(s.XY).toBe((start + progPrefix.length) & 0xffff);
-    expectPC(s, tgt)        // jumped
+    expectPC(s, tgt); // jumped
 
     expect(core.step()).toBe(false); // HALT at target
   });
@@ -206,13 +248,16 @@ describe('Instruction behavior', () => {
     const core = new EmulatorCore();
     const start = 0x0000;
     // Set B=0x2A; set M=0x7FFF via GOTO load of target; STORE B -> [M]; LOAD A <- [M]; HALT
-    core.load(program(start,
-      SETB(0x0a),                 // B=0x0A (10)
-      ...GOTO({ d: 0 }, 0x7fff),  // M <- 0x7FFF
-      STORE(1),                   // [M] <- B
-      LOAD(0),                    // A <- [M]
-      HALT,
-    ));
+    core.load(
+      program(
+        start,
+        SETB(0x0a), // B=0x0A (10)
+        ...GOTO({ d: 0 }, 0x7fff), // M <- 0x7FFF
+        STORE(1), // [M] <- B
+        LOAD(0), // A <- [M]
+        HALT,
+      ),
+    );
     expect(core.step()).toBe(true); // SETB
     expect(core.step()).toBe(true); // GOTO write M
     expect(core.getSnapshot().M).toBe(0x7fff);
@@ -222,5 +267,4 @@ describe('Instruction behavior', () => {
     expect(s.A).toBe(0x0a);
     expect(core.step()).toBe(false); // HALT
   });
-
 });

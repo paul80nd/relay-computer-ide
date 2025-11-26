@@ -56,9 +56,13 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
   const autoSaveOn = prefs.autoSave ?? true;
 
   // Handle toolbar/menus changing panels/section
-  const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+  const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (
+    _e,
+    { name, checkedItems },
+  ) => {
     onPrefsChange(
-      (prev: IPreferences): IPreferences => updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels),
+      (prev: IPreferences): IPreferences =>
+        updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels),
     );
   };
 
@@ -88,10 +92,19 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
         )}
       </ToolbarGroup>
       <ToolbarGroup role='presentation'>
-        <Text weight='semibold' size={200} style={{ marginRight: '1rem', color: tokens.colorBrandForeground2 }}>
+        <Text
+          weight='semibold'
+          size={200}
+          style={{ marginRight: '1rem', color: tokens.colorBrandForeground2 }}
+        >
           Relay Computer IDE
         </Text>
-        <Tooltip content='Toggle Primary Side Bar' relationship='description' positioning='below-end' withArrow>
+        <Tooltip
+          content='Toggle Primary Side Bar'
+          relationship='description'
+          positioning='below-end'
+          withArrow
+        >
           <ToolbarToggleButton
             className={styles.toggle}
             icon={<PanelLeft />}
@@ -100,7 +113,12 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
             value={Prefs.Panels.PRI_SIDEBAR}
           />
         </Tooltip>
-        <Tooltip content='Toggle Bottom Panel' relationship='description' positioning='below-start' withArrow>
+        <Tooltip
+          content='Toggle Bottom Panel'
+          relationship='description'
+          positioning='below-start'
+          withArrow
+        >
           <ToolbarToggleButton
             className={styles.toggle}
             icon={<PanelBottom />}
@@ -109,7 +127,12 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
             value={Prefs.Panels.PANEL}
           />
         </Tooltip>
-        <Tooltip content='Toggle Secondary Side Bar' relationship='description' positioning='below-start' withArrow>
+        <Tooltip
+          content='Toggle Secondary Side Bar'
+          relationship='description'
+          positioning='below-start'
+          withArrow
+        >
           <ToolbarToggleButton
             className={styles.toggle}
             icon={<PanelRight />}

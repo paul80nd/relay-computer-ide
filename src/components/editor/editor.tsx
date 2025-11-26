@@ -63,7 +63,10 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
 
     if (!editorRef.current) {
       const editor = monaco.editor.create(containerRef.current, {
-        theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light',
+        theme:
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'vs-dark'
+            : 'vs-light',
         value: initialCode,
         language: 'rcasm',
         lineNumbers: 'on',

@@ -117,7 +117,9 @@ export default function Emulator({ assembly }: EmulatorProps) {
     const h = Math.floor(d / 3600);
     const m = Math.floor((d - h * 3600) / 60);
     const s = d - h * 3600 - m * 60;
-    setStatusText(`${cycles} cycles, ${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s runtime`);
+    setStatusText(
+      `${cycles} cycles, ${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s runtime`,
+    );
   };
 
   /** Reset emulator state (and reload asembled code if available) */
@@ -242,14 +244,31 @@ export default function Emulator({ assembly }: EmulatorProps) {
         <div className={classes.content}>
           <EmulatorDiagram snapshot={snapshot} />
 
-          <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalXS }}>
+          <div
+            style={{
+              flexGrow: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: tokens.spacingVerticalXS,
+            }}
+          >
             <div className={classes.controlsRow}>
               {running ? (
-                <Button size='small' appearance='primary' onClick={stop} style={{ minWidth: 0, flexGrow: 1 }}>
+                <Button
+                  size='small'
+                  appearance='primary'
+                  onClick={stop}
+                  style={{ minWidth: 0, flexGrow: 1 }}
+                >
                   Stop
                 </Button>
               ) : (
-                <Button size='small' onClick={run} disabled={!canRun} style={{ minWidth: 0, flexGrow: 1 }}>
+                <Button
+                  size='small'
+                  onClick={run}
+                  disabled={!canRun}
+                  style={{ minWidth: 0, flexGrow: 1 }}
+                >
                   Run
                 </Button>
               )}
@@ -265,23 +284,42 @@ export default function Emulator({ assembly }: EmulatorProps) {
               >
                 Step
               </Button>
-              <Button size='small' onClick={reset} disabled={running || !canRun} style={{ minWidth: 0, flexGrow: 1 }}>
+              <Button
+                size='small'
+                onClick={reset}
+                disabled={running || !canRun}
+                style={{ minWidth: 0, flexGrow: 1 }}
+              >
                 Reset
               </Button>
 
               <Popover trapFocus>
                 <PopoverTrigger disableButtonEnhancement>
-                  <Button size='small' style={{ minWidth: 0, flexGrow: 1 }} icon={<Settings16Regular />} />
+                  <Button
+                    size='small'
+                    style={{ minWidth: 0, flexGrow: 1 }}
+                    icon={<Settings16Regular />}
+                  />
                 </PopoverTrigger>
 
                 <PopoverSurface>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <Caption1>IPR</Caption1>
-                    <Button size='small' appearance='subtle' disabled={ipr === 1} onClick={() => setIpr(ipr / 2)}>
+                    <Button
+                      size='small'
+                      appearance='subtle'
+                      disabled={ipr === 1}
+                      onClick={() => setIpr(ipr / 2)}
+                    >
                       -
                     </Button>
                     <span>{ipr}</span>
-                    <Button size='small' appearance='subtle' disabled={ipr === 32} onClick={() => setIpr(ipr * 2)}>
+                    <Button
+                      size='small'
+                      appearance='subtle'
+                      disabled={ipr === 32}
+                      onClick={() => setIpr(ipr * 2)}
+                    >
                       +
                     </Button>
                   </div>

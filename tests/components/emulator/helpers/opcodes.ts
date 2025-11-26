@@ -31,16 +31,16 @@ export const INCXY = 0xb0;
 /**  GOTO: d s c z n x, then hi, then lo */
 export const GOTO = (
   opts: { d?: 0 | 1; s?: 0 | 1; c?: 0 | 1; z?: 0 | 1; n?: 0 | 1; x?: 0 | 1 },
-  tgt: number
+  tgt: number,
 ) => {
   const { d = 0, s = 0, c = 0, z = 0, n = 0, x = 0 } = opts;
-  const op = 0xc0
-    | ((d & 1) << 5)
-    | ((s & 1) << 4)
-    | ((c & 1) << 3)
-    | ((z & 1) << 2)
-    | ((n & 1) << 1)
-    | (x & 1);
+  const op =
+    0xc0 |
+    ((d & 1) << 5) |
+    ((s & 1) << 4) |
+    ((c & 1) << 3) |
+    ((z & 1) << 2) |
+    ((n & 1) << 1) |
+    (x & 1);
   return [op, (tgt >> 8) & 0xff, tgt & 0xff];
 };
-

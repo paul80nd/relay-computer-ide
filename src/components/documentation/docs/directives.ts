@@ -28,7 +28,9 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
     summary: 'Define Align',
     syntax: ['!align <value:2|4|8|16|...>'],
     snippet: '!align ${1:8}',
-    description: ['Writes 8-bit zeros into the output until the current location is a multiple of the given value.'],
+    description: [
+      'Writes 8-bit zeros into the output until the current location is a multiple of the given value.',
+    ],
   },
   '!byte': {
     title: '!byte',

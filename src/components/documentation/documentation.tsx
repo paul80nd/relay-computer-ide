@@ -90,27 +90,30 @@ function Documentation() {
         content: (
           <>
             <p className={styles.para}>
-              Type your assembly program into the editor window to the right. Your program is automatically assembled
-              (as you type) with the results placed in the output window at the far right. Any syntax errors or warnings
-              will be displayed and highlighted in the code editor.
+              Type your assembly program into the editor window to the right. Your program is
+              automatically assembled (as you type) with the results placed in the output window at
+              the far right. Any syntax errors or warnings will be displayed and highlighted in the
+              code editor.
             </p>
             <p className={styles.para}>
-              Your program is automatically saved in your browser&apos;s local storage meaning your last program will be
-              available at your next visit to this IDE.
+              Your program is automatically saved in your browser&apos;s local storage meaning your
+              last program will be available at your next visit to this IDE.
             </p>
             <p className={styles.para}>
-              You can load an example program into the editor from the examples folder icon at the top left. You can
-              also export the current program via the export icon below the examples icon. This includes the ability to
-              export the assembled program to your clipboard which can then be imported/pasted into the{' '}
+              You can load an example program into the editor from the examples folder icon at the
+              top left. You can also export the current program via the export icon below the
+              examples icon. This includes the ability to export the assembled program to your
+              clipboard which can then be imported/pasted into the{' '}
               <Link href={Links.Simulator} target='_blank' rel='noreferrer noopener'>
                 Relay Computer Simulator
               </Link>
               .
             </p>
             <p className={styles.para}>
-              Providing your program assembles without error it will be automatically loaded into the emulator ('chip'
-              icon on the left) within this IDE. The emulator is a simplified version of the full simulator above and
-              allows you to quickly confirm your program before trying the full simulator.
+              Providing your program assembles without error it will be automatically loaded into
+              the emulator ('chip' icon on the left) within this IDE. The emulator is a simplified
+              version of the full simulator above and allows you to quickly confirm your program
+              before trying the full simulator.
             </p>
           </>
         ),
@@ -120,12 +123,13 @@ function Documentation() {
         content: (
           <>
             <p className={styles.para}>
-              My assembly language (RCASM) draws inspiration from 6502 and Z80 assemblers so has many similarities
-              (although is relatively cut-down and simplified).
+              My assembly language (RCASM) draws inspiration from 6502 and Z80 assemblers so has
+              many similarities (although is relatively cut-down and simplified).
             </p>
             <p className={styles.para}>
-              Every instruction must be on its own line with everything after a semi-colon ignored. Labels are optional
-              and must start with a letter or underscore and end with a colon e.g. <Code>label:</Code>.
+              Every instruction must be on its own line with everything after a semi-colon ignored.
+              Labels are optional and must start with a letter or underscore and end with a colon
+              e.g. <Code>label:</Code>.
             </p>
             <p className={styles.para}>Valid number formats for constants are:</p>
             <ul>
@@ -153,7 +157,9 @@ function Documentation() {
                 the current address: <Code>*</Code>
               </li>
             </ul>
-            <p className={styles.para}>Operators can be used with all operands where they make sense:</p>
+            <p className={styles.para}>
+              Operators can be used with all operands where they make sense:
+            </p>
             <ul>
               <li>
                 Additive <Code>+</Code> and <Code>-</Code>
@@ -165,14 +171,15 @@ function Documentation() {
                 Expression Order <Code>(</Code> and <Code>)</Code>
               </li>
               <li>
-                Comparative <Code>==</Code>, <Code>!=</Code>, <Code>&lt;</Code>, <Code>&lt;=</Code>, <Code>&gt;</Code>,{' '}
-                <Code>&gt;=</Code>
+                Comparative <Code>==</Code>, <Code>!=</Code>, <Code>&lt;</Code>, <Code>&lt;=</Code>,{' '}
+                <Code>&gt;</Code>, <Code>&gt;=</Code>
               </li>
             </ul>
             <p className={styles.para}>
-              A special <Code>§</Code> operator also exists that will take the lower byte of the left and right operand
-              and combine into a 16-bit value of left:right. This can be useful for &apos;quick loading&apos; the{' '}
-              <Code>m</Code> register. For example: <Code>ldi m,label§23</Code>.
+              A special <Code>§</Code> operator also exists that will take the lower byte of the
+              left and right operand and combine into a 16-bit value of left:right. This can be
+              useful for &apos;quick loading&apos; the <Code>m</Code> register. For example:{' '}
+              <Code>ldi m,label§23</Code>.
             </p>
           </>
         ),
@@ -196,12 +203,13 @@ function Documentation() {
               <Text>8-bit ALU Operations</Text>
               <br />
               <br />
-              For ALU instructions the result is placed in <em>dst</em> (register <Code>a</Code> or <Code>d</Code>). If{' '}
-              <em>dst</em> is not specified then register <Code>a</Code> is assumed.
+              For ALU instructions the result is placed in <em>dst</em> (register <Code>a</Code> or{' '}
+              <Code>d</Code>). If <em>dst</em> is not specified then register <Code>a</Code> is
+              assumed.
               <br />
               <br />
-              Each instruction affects the condition flags <Code>Z</Code> (zero) and <Code>S</Code> (sign - if most
-              significant bit set) based on the result of the instruction.
+              Each instruction affects the condition flags <Code>Z</Code> (zero) and <Code>S</Code>{' '}
+              (sign - if most significant bit set) based on the result of the instruction.
             </Commentary>
             <Mnemonic {...mnemonics['add']} />
             <Mnemonic {...mnemonics['inc']} />
@@ -226,9 +234,10 @@ function Documentation() {
             <Commentary>
               <Text>Conditional Branching</Text>
               <br /> <br />
-              For the following instructions the <Code>j</Code> register is loaded with the address referenced by{' '}
-              <em>label</em> and then based on the condition flags <Code>Z</Code>, <Code>C</Code> and <Code>S</Code> the
-              program counter will be loaded from the <Code>j</Code> register if the jump is required.
+              For the following instructions the <Code>j</Code> register is loaded with the address
+              referenced by <em>label</em> and then based on the condition flags <Code>Z</Code>,{' '}
+              <Code>C</Code> and <Code>S</Code> the program counter will be loaded from the{' '}
+              <Code>j</Code> register if the jump is required.
             </Commentary>
             <Mnemonic {...mnemonics['beq']} />
             <Mnemonic {...mnemonics['bne']} />
@@ -251,7 +260,8 @@ function Documentation() {
         content: (
           <>
             <Commentary>
-              The following instructions are experimental and not yet fully implemented in the relay computer simulator.
+              The following instructions are experimental and not yet fully implemented in the relay
+              computer simulator.
             </Commentary>
             <Mnemonic {...mnemonics['div']} />
             <Mnemonic {...mnemonics['dvr']} />
@@ -332,7 +342,9 @@ function Documentation() {
             <AccordionItem value={i} key={String(i)}>
               <AccordionHeader className={styles.accordionHeader}>
                 <div className={styles.accordionHeaderBlock}>
-                  {s.section ? <Text className={styles.accordionHeaderBlockSection}>{s.section}</Text> : null}
+                  {s.section ? (
+                    <Text className={styles.accordionHeaderBlockSection}>{s.section}</Text>
+                  ) : null}
                   <Text className={styles.accordionHeaderBlockSummary}>{s.title}</Text>
                 </div>
               </AccordionHeader>

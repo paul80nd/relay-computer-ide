@@ -64,22 +64,24 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← [B] + [C]',
     syntax: ['add [<dst:a|d>]'],
     description: [
-      'Adds the contents of register `b` and `c` placing the result in `dst` (a or d).', 'If dst is not specified then register a is assumed.'],
+      'Adds the contents of register `b` and `c` placing the result in `dst` (a or d).',
+      'If dst is not specified then register a is assumed.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '*',
       c: '*',
-      s: '*'
+      s: '*',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   and: {
     title: 'and',
@@ -89,22 +91,24 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← [B] . [C]',
     syntax: ['and [<dst:a|d>]'],
     description: [
-      'Performs a bitwise AND on register `b` and `c` placing the result in `dst` (a or d).', 'If dst is not specified then register a is assumed.'],
+      'Performs a bitwise AND on register `b` and `c` placing the result in `dst` (a or d).',
+      'If dst is not specified then register a is assumed.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '*',
       c: '0',
-      s: '*'
+      s: '*',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   bcs: {
     title: 'bcs',
@@ -118,12 +122,12 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   beq: {
     title: 'beq',
@@ -137,12 +141,12 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   ble: {
     title: 'ble',
@@ -153,16 +157,17 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     syntax: ['ble <label>'],
     snippet: 'ble ${1:label}',
     description: [
-      'Jumps to label if S or Z is set (last ALU operation resulted in a zero or negative value).'],
+      'Jumps to label if S or Z is set (last ALU operation resulted in a zero or negative value).',
+    ],
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   blt: {
     title: 'blt',
@@ -173,16 +178,18 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     syntax: ['blt <label>'],
     snippet: 'blt ${1:label}',
     description: [
-      'Jumps to label if S is set (last ALU operation has most significant bit set / is negative).', 'Synonym of `bmi`.'],
+      'Jumps to label if S is set (last ALU operation has most significant bit set / is negative).',
+      'Synonym of `bmi`.',
+    ],
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   bmi: {
     title: 'bmi',
@@ -193,16 +200,18 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     syntax: ['bmi <label>'],
     snippet: 'bmi ${1:label}',
     description: [
-      'Jumps to label if S is set (last ALU operation has most significant bit set / is negative).', 'Synonym of `blt`.'],
+      'Jumps to label if S is set (last ALU operation has most significant bit set / is negative).',
+      'Synonym of `blt`.',
+    ],
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   bne: {
     title: 'bne',
@@ -216,12 +225,12 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   clr: {
     title: 'clr',
@@ -232,21 +241,23 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← 0',
     syntax: ['clr <dst:Dr>'],
     description: [
-      'Clears (sets to 0) general purpose 8-bit register dst.','This is the equivalent of `mov dst,dst`.'],
+      'Clears (sets to 0) general purpose 8-bit register dst.',
+      'This is the equivalent of `mov dst,dst`.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
+      'rcasm+div': true,
     },
     variants: [
       {
@@ -254,17 +265,19 @@ export const instructionDocs: Record<string, InstructionDoc> = {
         cycles: 10,
         variant: '16-bit Register Clear',
         description: [
-          'Clears (sets to 0) 16-bit register xy.','This is the equivalent of `mov xy,xy`.'],
+          'Clears (sets to 0) 16-bit register xy.',
+          'This is the equivalent of `mov xy,xy`.',
+        ],
         syntax: ['clr xy'],
         dest: {
           dr: false,
           ar: true,
           mIndirect: false,
-          imm: false
+          imm: false,
         },
-        whenFirstParamIs: ['xy']
-      }
-    ]
+        whenFirstParamIs: ['xy'],
+      },
+    ],
   },
   cmp: {
     title: 'cmp',
@@ -274,22 +287,26 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← [B] - [C]',
     syntax: ['cmp [<dst:a|d>]'],
     description: [
-      'Compares the values in register `b` and `c` setting condition flag Z (zero) if the values are the same.', 'Overwrites `dst` (a or d).', 'If dst is not specified then register a is assumed. Affects Z (zero) and S (sign) flags.', 'Synonym of `eor`.'],
+      'Compares the values in register `b` and `c` setting condition flag Z (zero) if the values are the same.',
+      'Overwrites `dst` (a or d).',
+      'If dst is not specified then register a is assumed. Affects Z (zero) and S (sign) flags.',
+      'Synonym of `eor`.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '*',
       c: '0',
-      s: '*'
+      s: '*',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   div: {
     title: 'div',
@@ -299,22 +316,24 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← [B]/[C]',
     syntax: ['div [<dst:a|d>]'],
     description: [
-      'Performs an integer division of register `b` by register `c` placing the quotient result in `dst` (a or d).','If dst is not specified then register a is assumed.'],
+      'Performs an integer division of register `b` by register `c` placing the quotient result in `dst` (a or d).',
+      'If dst is not specified then register a is assumed.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: false,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   dvr: {
     title: 'dvr',
@@ -324,22 +343,24 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← R / [C]',
     syntax: ['dvr [<dst:a|d>]'],
     description: [
-      'Performs a further division of the last `div` or `mod` remainder by register `c` placing the quotient result in `dst` (a or d).','Register B should be set to 0. If dst is not specified then register a is assumed.'],
+      'Performs a further division of the last `div` or `mod` remainder by register `c` placing the quotient result in `dst` (a or d).',
+      'Register B should be set to 0. If dst is not specified then register a is assumed.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: false,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   eor: {
     title: 'eor',
@@ -349,22 +370,25 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← [B] ⊕ [C]',
     syntax: ['eor [<dst:a|d>]'],
     description: [
-      'Performs a bitwise XOR (exlusive OR) on register `b` and `c` placing the result in `dst` (a or d).', 'If dst is not specified then register a is assumed.', 'Synonym of `cmp`.'],
+      'Performs a bitwise XOR (exlusive OR) on register `b` and `c` placing the result in `dst` (a or d).',
+      'If dst is not specified then register a is assumed.',
+      'Synonym of `cmp`.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '*',
       c: '0',
-      s: '*'
+      s: '*',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   inc: {
     title: 'inc',
@@ -374,22 +398,24 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← [B] + 1',
     syntax: ['inc [<dst:a|d>]'],
     description: [
-      'Adds one to the contents of register `b` (register `c` is ignored) placing the result in `dst` (a or d).', 'If dst is not specified then register a is assumed.'],
+      'Adds one to the contents of register `b` (register `c` is ignored) placing the result in `dst` (a or d).',
+      'If dst is not specified then register a is assumed.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '*',
       c: '*',
-      s: '*'
+      s: '*',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   hlt: {
     title: 'hlt',
@@ -402,12 +428,12 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   hlr: {
     title: 'hlr',
@@ -417,16 +443,17 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: 'HALT and [PC] ← [AS]',
     syntax: ['hlr'],
     description: [
-      'Halts execution of the program and sets the program counter to the value on the primary switches.'],
+      'Halts execution of the program and sets the program counter to the value on the primary switches.',
+    ],
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   ixy: {
     title: 'ixy',
@@ -439,12 +466,12 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   jmp: {
     title: 'jmp',
@@ -458,12 +485,12 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   jsr: {
     title: 'jsr',
@@ -474,16 +501,18 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     syntax: ['jsr <label>'],
     snippet: 'jsr ${1:label}',
     description: [
-      'Saves the address of the next instruction into register `xy` and then unconditionally jumps to `label` (via register j).', 'Notionally behaves as a \'call subroutine\' operation.'],
+      'Saves the address of the next instruction into register `xy` and then unconditionally jumps to `label` (via register j).',
+      "Notionally behaves as a 'call subroutine' operation.",
+    ],
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   ldi: {
     title: 'ldi',
@@ -494,7 +523,9 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     syntax: ['ldi <dst:a|b>,<value:-16..15>'],
     snippet: 'ldi ${1:a},${2:0}',
     description: [
-      'Loads an 8-bit constant value into `dst` (register a or b).','The `value` must be between -16 and 15.'],
+      'Loads an 8-bit constant value into `dst` (register a or b).',
+      'The `value` must be between -16 and 15.',
+    ],
     variant: '8-bit Load Immediate',
     variants: [
       {
@@ -502,44 +533,46 @@ export const instructionDocs: Record<string, InstructionDoc> = {
         cycles: 24,
         variant: '16-bit Load Immediate',
         description: [
-          'Loads a 16-bit constant value into `dst` (register m or j).','The `value` can be between 0x0000 and 0xFFFF.'],
+          'Loads a 16-bit constant value into `dst` (register m or j).',
+          'The `value` can be between 0x0000 and 0xFFFF.',
+        ],
         syntax: ['ldi <dst:m|j>,<value:0x0000..0xFFFF>', 'ldi <dst:m|j>,<label>'],
         whenFirstParamIs: ['m', 'j'],
         src: {
           dr: false,
           ar: false,
           mIndirect: false,
-          imm: true
+          imm: true,
         },
         dest: {
           dr: false,
           ar: true,
           mIndirect: false,
-          imm: false
-        }
-      }
+          imm: false,
+        },
+      },
     ],
     src: {
       dr: false,
       ar: false,
       mIndirect: false,
-      imm: true
+      imm: true,
     },
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   lds: {
     title: 'lds',
@@ -554,17 +587,17 @@ export const instructionDocs: Record<string, InstructionDoc> = {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   ldr: {
     title: 'ldr',
@@ -575,28 +608,29 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     syntax: ['ldr <dst:a-d>'],
     snippet: 'ldr ${1:b}',
     description: [
-      'Loads register `dst` (a, b, c or d) with the byte in memory currently referenced by register `m`.'],
+      'Loads register `dst` (a, b, c or d) with the byte in memory currently referenced by register `m`.',
+    ],
     src: {
       dr: false,
       ar: false,
       mIndirect: true,
-      imm: false
+      imm: false,
     },
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   mod: {
     title: 'mod',
@@ -606,22 +640,24 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← [B]%[C]',
     syntax: ['mod <dst:a|d>'],
     description: [
-      'Performs an integer division of register `b` by register `c` placing the remainder result in `dst` (a or d).','If dst is not specified then register a is assumed.'],
+      'Performs an integer division of register `b` by register `c` placing the remainder result in `dst` (a or d).',
+      'If dst is not specified then register a is assumed.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: false,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   mdr: {
     title: 'mdr',
@@ -631,22 +667,24 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← R % [C]',
     syntax: ['mdr <dst:a|d>'],
     description: [
-      'Performs a further modulo of the last `div` or `mod` remainder by register `c` placing the remainder result in `dst` (a or d).','Register B should be set to 0. If dst is not specified then register a is assumed.'],
+      'Performs a further modulo of the last `div` or `mod` remainder by register `c` placing the remainder result in `dst` (a or d).',
+      'Register B should be set to 0. If dst is not specified then register a is assumed.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: false,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   mov: {
     title: 'mov',
@@ -657,7 +695,9 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     syntax: ['mov <dst:Dr>,<src:Dr>'],
     snippet: 'mov ${1:b},${2:a}',
     description: [
-      'Copies a value from `src` to `dst` between any of the eight general purpose 8-bit registers.','If dst and src are the same then dst will be set to 0.'],
+      'Copies a value from `src` to `dst` between any of the eight general purpose 8-bit registers.',
+      'If dst and src are the same then dst will be set to 0.',
+    ],
     variant: '8-bit Register to Register Copy',
     variants: [
       {
@@ -665,44 +705,46 @@ export const instructionDocs: Record<string, InstructionDoc> = {
         cycles: 10,
         variant: '16-bit Register to Register Copy',
         description: [
-          'Copies a value between the 16-bit `src` registers (m, xy or j) and `dst` (xy or the program counter pc).','If dst and src are the same then dst will be set to 0.'],
+          'Copies a value between the 16-bit `src` registers (m, xy or j) and `dst` (xy or the program counter pc).',
+          'If dst and src are the same then dst will be set to 0.',
+        ],
         syntax: ['mov <dst:xy|pc>,<src:m|xy|j|as>'],
         whenFirstParamIs: ['xy', 'pc'],
         src: {
           dr: false,
           ar: true,
           mIndirect: false,
-          imm: false
+          imm: false,
         },
         dest: {
           dr: false,
           ar: true,
           mIndirect: false,
-          imm: false
-        }
-      }
+          imm: false,
+        },
+      },
     ],
     src: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   not: {
     title: 'not',
@@ -712,22 +754,24 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← ~[B]',
     syntax: ['not [<dst:a|d>]'],
     description: [
-      'Performs a bitwise NOT on register `b` (register `c` is ignored) placing the result in `dst` (a or d).', 'If dst is not specified then register a is assumed.'],
+      'Performs a bitwise NOT on register `b` (register `c` is ignored) placing the result in `dst` (a or d).',
+      'If dst is not specified then register a is assumed.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '*',
       c: '0',
-      s: '*'
+      s: '*',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   orr: {
     title: 'orr',
@@ -737,22 +781,24 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← [B] + [C]',
     syntax: ['orr <dst:a|d>'],
     description: [
-      'Performs a bitwise OR on register `b` and `c` placing the result in `dst` (a or d).', 'If dst is not specified then register a is assumed.'],
+      'Performs a bitwise OR on register `b` and `c` placing the result in `dst` (a or d).',
+      'If dst is not specified then register a is assumed.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '*',
       c: '0',
-      s: '*'
+      s: '*',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   rol: {
     title: 'rol',
@@ -762,22 +808,25 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[dst] ← [B] rotated by 1',
     syntax: ['rol <dst:a|d>'],
     description: [
-      'Performs a bitwise left-rotation on register `b` (register `c` is ignored) placing the result in `dst` (a or d).', 'If dst is not specified then register a is assumed.', 'Every bit shifts one place to the left with the left most bit rotated around to right.'],
+      'Performs a bitwise left-rotation on register `b` (register `c` is ignored) placing the result in `dst` (a or d).',
+      'If dst is not specified then register a is assumed.',
+      'Every bit shifts one place to the left with the left most bit rotated around to right.',
+    ],
     dest: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '*',
       c: '0',
-      s: '*'
+      s: '*',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   rts: {
     title: 'rts',
@@ -787,28 +836,30 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     operation: '[PC] ← [XY]',
     syntax: ['rts'],
     description: [
-      'Copies the value in register `xy` to the program counter `pc`.', 'Notionally behaves as a \'return\' operation to a previous jsr call.'],
+      'Copies the value in register `xy` to the program counter `pc`.',
+      "Notionally behaves as a 'return' operation to a previous jsr call.",
+    ],
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     src: {
       dr: false,
       ar: true,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     dest: {
       dr: false,
       ar: true,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
+      'rcasm+div': true,
+    },
   },
   str: {
     title: 'str',
@@ -819,27 +870,28 @@ export const instructionDocs: Record<string, InstructionDoc> = {
     syntax: ['str <src:a-d>'],
     snippet: 'str ${1:a}',
     description: [
-      'Stores register `src` (a, b, c or d) into the byte of memory currently referenced by register `m`.'],
+      'Stores register `src` (a, b, c or d) into the byte of memory currently referenced by register `m`.',
+    ],
     src: {
       dr: true,
       ar: false,
       mIndirect: false,
-      imm: false
+      imm: false,
     },
     dest: {
       dr: false,
       ar: false,
       mIndirect: true,
-      imm: false
+      imm: false,
     },
     flags: {
       z: '-',
       c: '-',
-      s: '-'
+      s: '-',
     },
     procs: {
       rcasm: true,
-      'rcasm+div': true
-    }
-  }
+      'rcasm+div': true,
+    },
+  },
 };

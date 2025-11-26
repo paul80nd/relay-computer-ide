@@ -174,7 +174,17 @@ li.blank {
 }
 
 .b0101 {
-  background: linear-gradient(90deg, #fff, #fff 4mm, #000 4mm, #000 8mm, #fff 8mm, #fff 12mm, #000 12mm, #000 16mm);
+  background: linear-gradient(
+    90deg,
+    #fff,
+    #fff 4mm,
+    #000 4mm,
+    #000 8mm,
+    #fff 8mm,
+    #fff 12mm,
+    #000 12mm,
+    #000 16mm
+  );
 }
 
 .b0110 {
@@ -194,7 +204,17 @@ li.blank {
 }
 
 .b1010 {
-  background: linear-gradient(90deg, #000, #000 4mm, #fff 4mm, #fff 8mm, #000 8mm, #000 12mm, #fff 12mm, #fff 16mm);
+  background: linear-gradient(
+    90deg,
+    #000,
+    #000 4mm,
+    #fff 4mm,
+    #fff 8mm,
+    #000 8mm,
+    #000 12mm,
+    #fff 12mm,
+    #fff 16mm
+  );
 }
 
 .b1011 {

@@ -61,7 +61,9 @@ function StatusBar({ position, validation, assembly, autoSave, dirty }: StatusBa
             onClick={() => execute(panelCommands.togglePanel('panel'))}
           >
             <ErrorCircle16Regular className={validation.errors === 0 ? undefined : styles.error} />
-            <Caption1 className={validation.errors === 0 ? undefined : styles.error}>{validation.errors}</Caption1>
+            <Caption1 className={validation.errors === 0 ? undefined : styles.error}>
+              {validation.errors}
+            </Caption1>
             &nbsp;
             <Warning16Regular className={validation.warnings === 0 ? undefined : styles.warning} />
             <Caption1 className={validation.warnings === 0 ? undefined : styles.warning}>
@@ -71,7 +73,12 @@ function StatusBar({ position, validation, assembly, autoSave, dirty }: StatusBa
         </Tooltip>
         <Caption1 className={styles.item}>{renderSaveLabel()}</Caption1>
         {position && (
-          <Tooltip content='Goto Line/Column' relationship='description' positioning='above' withArrow>
+          <Tooltip
+            content='Goto Line/Column'
+            relationship='description'
+            positioning='above'
+            withArrow
+          >
             <ToolbarButton
               className={styles.item}
               appearance='transparent'

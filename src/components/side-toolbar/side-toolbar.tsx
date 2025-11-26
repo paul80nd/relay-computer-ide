@@ -57,9 +57,13 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
   const checkedValues = mapPrefsToCheckedValues(prefs, Prefs.Panels);
 
   // Apply changes from the side toolbar to prefs
-  const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+  const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (
+    _e,
+    { name, checkedItems },
+  ) => {
     onPrefsChange(
-      (prev: IPreferences): IPreferences => updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels),
+      (prev: IPreferences): IPreferences =>
+        updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels),
     );
   };
 
@@ -124,7 +128,12 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
         </Tooltip>
       </ToolbarGroup>
       <ToolbarGroup role='presentation'>
-        <Tooltip content='Toggle Assembler Output' relationship='description' positioning='after' withArrow>
+        <Tooltip
+          content='Toggle Assembler Output'
+          relationship='description'
+          positioning='after'
+          withArrow
+        >
           <ToolbarToggleButton
             className={styles.toggle}
             icon={<DiagramRegular className={styles.icon} />}

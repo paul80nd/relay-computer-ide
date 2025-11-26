@@ -57,7 +57,9 @@ function makeCommand<
   TTarget extends CommandTarget,
   TPayload extends object = Record<never, never>,
 >(target: TTarget, type: TType, payload?: TPayload): CommandBase<TType, TTarget, TPayload> {
-  return payload ? { target, type, ...payload } : ({ target, type } as CommandBase<TType, TTarget, TPayload>);
+  return payload
+    ? { target, type, ...payload }
+    : ({ target, type } as CommandBase<TType, TTarget, TPayload>);
 }
 
 // Nice factories for call-sites
@@ -66,13 +68,21 @@ export const appCommands = {
   save: (): AppCommand => ({ target: 'app', type: 'app.save' }),
   saveAs: (): AppCommand => ({ target: 'app', type: 'app.saveAs' }),
   open: (): AppCommand => ({ target: 'app', type: 'app.open' }),
-  loadExample: (example: string): AppCommand => ({ target: 'app', type: 'app.loadExample', example }),
+  loadExample: (example: string): AppCommand => ({
+    target: 'app',
+    type: 'app.loadExample',
+    example,
+  }),
   jumpToAssembled: (fromSourceLineNumber: number): AppCommand => ({
     target: 'app',
     type: 'app.jumpToAssembled',
     fromSourceLineNumber,
   }),
-  jumpToSource: (fromAddress: number): AppCommand => ({ target: 'app', type: 'app.jumpToSource', fromAddress }),
+  jumpToSource: (fromAddress: number): AppCommand => ({
+    target: 'app',
+    type: 'app.jumpToSource',
+    fromAddress,
+  }),
 };
 
 export const editorCommands = {
@@ -81,7 +91,11 @@ export const editorCommands = {
     type: 'editor.doMonacoKeyboardAction',
     id,
   }),
-  doMonacoAction: (actionId: string): EditorCommand => ({ target: 'editor', type: 'editor.doMonacoAction', actionId }),
+  doMonacoAction: (actionId: string): EditorCommand => ({
+    target: 'editor',
+    type: 'editor.doMonacoAction',
+    actionId,
+  }),
   gotoLine: (lineNumber?: number, column: number | undefined = undefined): EditorCommand => ({
     target: 'editor',
     type: 'editor.gotoLine',
@@ -91,10 +105,15 @@ export const editorCommands = {
 };
 
 export const outputCommands = {
-  gotoAddress: (address: number): OutputCommand => makeCommand('output', 'output.gotoAddress', { address }),
+  gotoAddress: (address: number): OutputCommand =>
+    makeCommand('output', 'output.gotoAddress', { address }),
 };
 
 export const panelCommands = {
   togglePanel: (panel: PanelType): PanelCommand => makeCommand('panel', 'panel.toggle', { panel }),
-  showSection: (section: SectionType): PanelCommand => ({ target: 'panel', type: 'panel.showSection', section }),
+  showSection: (section: SectionType): PanelCommand => ({
+    target: 'panel',
+    type: 'panel.showSection',
+    section,
+  }),
 };

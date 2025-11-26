@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from 'react';
 
 export interface UseCodeStorageOptions {
   /** localStorage key for persisting source code (default: 'code') */
@@ -19,16 +19,11 @@ export interface UseCodeStorageResult {
   dirty: boolean;
 }
 
-
 /**
  * Manages editor source code, initial load from localStorage, and optional auto-save.
  */
 export function useCodeStorage(options: UseCodeStorageOptions = {}): UseCodeStorageResult {
-  const {
-    storageKey = 'code',
-    autoSave = true,
-    defaultCode = '',
-  } = options;
+  const { storageKey = 'code', autoSave = true, defaultCode = '' } = options;
 
   const [code, setCode] = useState<string>(() => {
     const stored = localStorage.getItem(storageKey);

@@ -47,7 +47,10 @@ const useStyles = makeStyles({
     borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
     cursor: 'default',
   },
-  pcMarker: { backgroundColor: tokens.colorBrandBackground, outline: `1px solid ${tokens.colorBrandStroke1}` },
+  pcMarker: {
+    backgroundColor: tokens.colorBrandBackground,
+    outline: `1px solid ${tokens.colorBrandStroke1}`,
+  },
   mMarker: {
     backgroundColor: tokens.colorStatusSuccessBackground3,
     outline: `1px solid ${tokens.colorStatusSuccessBorderActive}`,
@@ -60,7 +63,12 @@ const useStyles = makeStyles({
       ${tokens.colorStatusSuccessBackground3} 100%)`,
     outline: '1px solid lightGray',
   },
-  toolbarItem: { color: tokens.colorNeutralForeground3, padding: '0 .4rem', minWidth: '2rem', marginRight: '.2rem' },
+  toolbarItem: {
+    color: tokens.colorNeutralForeground3,
+    padding: '0 .4rem',
+    minWidth: '2rem',
+    marginRight: '.2rem',
+  },
 });
 
 export type MemoryTableProps = {
@@ -95,7 +103,15 @@ function isAddrVisible(addr: number, offset: number) {
   return addr >= offset && addr < offset + PAGE_SIZE;
 }
 
-function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOffset }: MemoryTableProps) {
+function EmulatorMemory({
+  memory,
+  pc,
+  m,
+  offset,
+  onPrevPage,
+  onNextPage,
+  onSetOffset,
+}: MemoryTableProps) {
   const styles = useStyles();
   const rows = useMemo(() => [...Array(8).keys()], []);
   const cols = useMemo(() => [...Array(16).keys()], []);
@@ -123,7 +139,10 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
     return null;
   };
 
-  const setOffset = useCallback((next: number) => onSetOffset?.(clampOffsetToPage(next)), [onSetOffset]);
+  const setOffset = useCallback(
+    (next: number) => onSetOffset?.(clampOffsetToPage(next)),
+    [onSetOffset],
+  );
 
   const handleGoto = useCallback(() => {
     const addr = parseAddr(gotoText);
@@ -147,7 +166,10 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
   });
   const followMode = (toolbarChecked.follow?.[0] as FollowMode) ?? 'none';
 
-  const onFollowCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+  const onFollowCheckedChange: ToolbarProps['onCheckedValueChange'] = (
+    _e,
+    { name, checkedItems },
+  ) => {
     // Expect name === 'follow'
     setToolbarChecked(prev => ({ ...prev, [name]: checkedItems }));
   };
@@ -228,7 +250,13 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
                   <td
                     key={c}
                     className={`${styles.memTd} ${
-                      isM && isPC ? styles.pcAndMMarker : isM ? styles.mMarker : isPC ? styles.pcMarker : ''
+                      isM && isPC
+                        ? styles.pcAndMMarker
+                        : isM
+                          ? styles.mMarker
+                          : isPC
+                            ? styles.pcMarker
+                            : ''
                     }`}
                     onClick={() => setCurrentAddr(addr)}
                     role='gridcell'
@@ -252,7 +280,12 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
               >
                 {/* Left group: jump to memory location */}
                 <ToolbarGroup role='presentation'>
-                  <Popover withArrow trapFocus open={gotoOpen} onOpenChange={(_, data) => setGotoOpen(data.open)}>
+                  <Popover
+                    withArrow
+                    trapFocus
+                    open={gotoOpen}
+                    onOpenChange={(_, data) => setGotoOpen(data.open)}
+                  >
                     <PopoverTrigger disableButtonEnhancement>
                       <ToolbarButton className={styles.toolbarItem} appearance='subtle'>
                         <Caption1> Goto...</Caption1>

@@ -1,4 +1,12 @@
-import { Badge, Card, CardHeader, Text, Tooltip, makeStyles, tokens } from '@fluentui/react-components';
+import {
+  Badge,
+  Card,
+  CardHeader,
+  Text,
+  Tooltip,
+  makeStyles,
+  tokens,
+} from '@fluentui/react-components';
 import { isInstructionDoc, type AluFlags, type AluFlagState, type MnemonicDoc } from './docs';
 import { Fragment } from 'react';
 
@@ -109,7 +117,11 @@ export function Mnemonic(doc: MnemonicDoc) {
       </Tooltip>
     );
     const cycles = (cycles: number) => (
-      <Tooltip content={'Instruction Duration: ' + cycles + ' Cycles'} withArrow relationship='description'>
+      <Tooltip
+        content={'Instruction Duration: ' + cycles + ' Cycles'}
+        withArrow
+        relationship='description'
+      >
         <Badge size='small' appearance='outline' color='important' shape='rounded'>
           {cycles}
         </Badge>
@@ -121,7 +133,11 @@ export function Mnemonic(doc: MnemonicDoc) {
         <CardHeader
           header={doc.syntax.map((s, ii) =>
             s.split(' ').map((p, i) => (
-              <Text className={styles.syntax} key={`${ii}_${i}`} weight={i == 0 ? 'semibold' : 'regular'}>
+              <Text
+                className={styles.syntax}
+                key={`${ii}_${i}`}
+                weight={i == 0 ? 'semibold' : 'regular'}
+              >
                 {p}
               </Text>
             )),
@@ -156,7 +172,11 @@ export function Mnemonic(doc: MnemonicDoc) {
               {v.syntax.map((s, ii) => (
                 <div key={`${ii}`}>
                   {s.split(' ').map((p, i) => (
-                    <Text className={styles.syntax} key={`${i}`} weight={i == 0 ? 'semibold' : 'regular'}>
+                    <Text
+                      className={styles.syntax}
+                      key={`${i}`}
+                      weight={i == 0 ? 'semibold' : 'regular'}
+                    >
                       {p}
                     </Text>
                   ))}
