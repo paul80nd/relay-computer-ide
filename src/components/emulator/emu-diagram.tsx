@@ -163,6 +163,9 @@ const useStyles = makeStyles({
   posC8_9R11_19: { gridColumn: '8 / 9', gridRow: '11 / 19' },
   posC9_10R18_19: { gridColumn: '9 / 10', gridRow: '18 / 19' },
 
+  dvrL: { gridColumn: '12 / 13', gridRow: '13 / 15' },
+  dvrV: { gridColumn: '10 / 12', gridRow: '13 / 15' },
+
   psL: { gridColumn: '12 / 13', gridRow: '15 / 17' },
   psV: { gridColumn: '10 / 12', gridRow: '15 / 17' },
 
@@ -383,6 +386,30 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
       <Reg16L label='J1' value={jHi} styles={styles} rowCls={styles.posR17_19} />
       <Reg16L label='J2' value={jLo} styles={styles} rowCls={styles.posR19_21} />
       <Reg16R label='J' value={snapshot.J} styles={styles} rowCls={styles.posR17_21} />
+
+      {/* Divider Unit Remainder */}
+      {snapshot.DVR !== 0 && (
+        <>
+          <div className={`${styles.dgPCLab} ${styles.dvrL}`}>DR</div>
+          <Tooltip
+            withArrow
+            appearance='inverted'
+            relationship='label'
+            content={
+              <RegTooltipContent
+                title='Divider Unit Held Remainder'
+                value={snapshot.DVR}
+                width={2}
+                showDec
+              />
+            }
+          >
+            <div className={`${styles.dgPCV} ${styles.dvrV}`}>
+              <code className={styles.code}>{toHex(snapshot.DVR, 2)}</code>
+            </div>
+          </Tooltip>
+        </>
+      )}
 
       {/* Primary Switches */}
       <Tooltip

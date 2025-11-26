@@ -1,0 +1,68 @@
+;************************************************************************
+; Divider Unit Testing the operation of a proposed hardware divider unit
+;************************************************************************
+
+; Unsigned Integer Division Tests
+
+        ldi m,255§17    ; 255 / 17
+        ldi b,15        ; = 15 (exact)
+        mov d,b
+        jsr test_div_a  ; test
+
+        ldi m,123§32    ; 123 / 32
+        ldi a,3         ; = 3 (high remainder)
+        jsr test_div_d  ; test
+
+        ldi m,111§11    ; 111 / 11
+        ldi b,10        ; = 10 (low remainder)
+        mov d,b
+        jsr test_div_a  ; test
+
+        ldi m,123§235    ; 123 / 235
+        ldi a,0         ; = 0 (fractional remainder)
+        jsr test_div_d  ; test
+
+        ldi m,0§3       ; 0 / 3
+        ldi b,0         ; = 0
+        mov d,b
+        jsr test_div_a  ; test
+
+        ldi m,123§0     ; 123 / 0
+        ldi a,-1         ; = 0xFF (divide by zero)
+        jsr test_div_d  ; test
+
+; Halting here means the tests passed.
+pass:   hlt
+
+; *************************************************
+;  Test unsigned division (A = M1/M2, check A==D)
+; *************************************************
+test_div_a: {
+        mov b,m1
+        mov c,m2
+        div
+        mov b,a
+        mov c,d
+        cmp
+        bne fail
+        rts
+}
+
+; *************************************************
+;  Test unsigned division (D = M1/M2, check D==A)
+; *************************************************
+test_div_d: {
+        mov b,m1
+        mov c,m2
+        div d
+        mov b,a
+        mov c,d
+        cmp
+        bne fail
+        rts
+}
+
+; Halting here means a test failed. Check the XY register for the
+; address of the failing test case.
+fail:   hlt
+

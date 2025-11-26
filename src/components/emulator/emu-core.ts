@@ -1,33 +1,16 @@
 export type Snapshot = {
-  A: number;
-  B: number;
-  C: number;
-  D: number;
-  I: number;
-  PC: number;
-  M: number;
-  XY: number;
-  J: number;
-  FZ: boolean;
-  FS: boolean;
-  FC: boolean;
-  PS: number;
-  CLS: string;
-  cycles: number;
+  A: number; B: number; C: number; D: number;
+  I: number; PC: number;
+  M: number; XY: number; J: number;
+  FZ: boolean; FS: boolean; FC: boolean;
+  PS: number; CLS: string; cycles: number;
+  DVR: number;
 };
 
 const InstructionKind = {
-  SETAB: 0,
-  MOV8: 1,
-  ALU: 2,
-  LOAD: 3,
-  STORE: 4,
-  MOV16: 5,
-  LDSW: 6,
-  HALT: 7,
-  INCXY: 8,
-  GOTO: 9,
-  UNKNOWN: 10
+  SETAB: 0, MOV8: 1, ALU: 2, LOAD: 3,
+  STORE: 4, MOV16: 5, LDSW: 6, HALT: 7,
+  INCXY: 8, GOTO: 9, UNKNOWN: 10, DIVIDE: 11
 } as const;
 type InstructionKind = (typeof InstructionKind)[keyof typeof InstructionKind];
 
@@ -44,7 +27,8 @@ const KindToCls: Record<InstructionKind, string> = {
   [InstructionKind.HALT]: 'MISC',
   [InstructionKind.INCXY]: 'INCXY',
   [InstructionKind.GOTO]: 'GOTO',
-  [InstructionKind.UNKNOWN]: '???'
+  [InstructionKind.UNKNOWN]: '???',
+  [InstructionKind.DIVIDE]: 'INCXY',
 };
 
 export type StepTrace = {
@@ -78,21 +62,12 @@ export class EmulatorCore {
     this.memory = new Uint8Array(size);
     this.trace = trace;
     this.regs = {
-      A: 0,
-      B: 0,
-      C: 0,
-      D: 0,
-      I: 0,
-      PC: 0,
-      M: 0,
-      XY: 0,
-      J: 0,
-      FZ: false,
-      FS: false,
-      FC: false,
-      PS: 0,
-      CLS: 'MOV8',
-      cycles: 0
+      A: 0, B: 0, C: 0, D: 0,
+      I: 0, PC: 0,
+      M: 0, XY: 0, J: 0,
+      FZ: false, FS: false, FC: false,
+      PS: 0, CLS: 'MOV8', cycles: 0,
+      DVR: 0
     };
     this.initDecodeTables();
   }
@@ -169,21 +144,12 @@ export class EmulatorCore {
   getSnapshot(): Readonly<Snapshot> {
     const r = this.regs;
     return Object.freeze({
-      A: r.A,
-      B: r.B,
-      C: r.C,
-      D: r.D,
-      I: r.I,
-      PC: r.PC,
-      M: r.M,
-      XY: r.XY,
-      J: r.J,
-      FZ: r.FZ,
-      FS: r.FS,
-      FC: r.FC,
-      PS: r.PS,
-      CLS: r.CLS,
-      cycles: r.cycles
+      A: r.A, B: r.B, C: r.C, D: r.D,
+      I: r.I, PC: r.PC,
+      M: r.M, XY: r.XY, J: r.J,
+      FZ: r.FZ, FS: r.FS, FC: r.FC,
+      PS: r.PS, CLS: r.CLS, cycles: r.cycles,
+      DVR: r.DVR
     });
   }
 
@@ -231,16 +197,18 @@ export class EmulatorCore {
   }
 
   private decode(op: number): InstructionKind {
-    if ((op & 0xc0) === 0x40) return InstructionKind.SETAB; // 01------
-    if ((op & 0xc0) === 0x00) return InstructionKind.MOV8; // 00------
-    if ((op & 0xf0) === 0x80) return InstructionKind.ALU; // 1000----
-    if ((op & 0xfc) === 0x90) return InstructionKind.LOAD; // 100100--
-    if ((op & 0xfc) === 0x98) return InstructionKind.STORE; // 100110--
-    if ((op & 0xf8) === 0xa0) return InstructionKind.MOV16; // 101000--
-    if ((op & 0xfe) === 0xac) return InstructionKind.LDSW; // 1010110-
-    if ((op & 0xfe) === 0xae) return InstructionKind.HALT; // 1010111-
-    if ((op & 0xff) === 0xb0) return InstructionKind.INCXY; // 10110000
-    if ((op & 0xc0) === 0xc0) return InstructionKind.GOTO; // 11------
+    if ((op & 0xc0) === 0x40) return InstructionKind.SETAB;  // 01-- ----
+    if ((op & 0xc0) === 0x00) return InstructionKind.MOV8;   // 00-- ----
+    if ((op & 0xf0) === 0x80) return InstructionKind.ALU;    // 1000 ----
+    if ((op & 0xfc) === 0x90) return InstructionKind.LOAD;   // 1001 00--
+    if ((op & 0xfc) === 0x98) return InstructionKind.STORE;  // 1001 10--
+    if ((op & 0xf8) === 0xa0) return InstructionKind.MOV16;  // 1010 00--
+    if ((op & 0xfe) === 0xac) return InstructionKind.LDSW;   // 1010 110-
+    if ((op & 0xfe) === 0xae) return InstructionKind.HALT;   // 1010 111-
+    if ((op & 0xff) === 0xb0) return InstructionKind.INCXY;  // 1011 0000
+    if ((op & 0xf8) === 0xb8) return InstructionKind.DIVIDE; // 1011 1---
+    if ((op & 0xc0) === 0xc0) return InstructionKind.GOTO;   // 11-- ----
+
     return InstructionKind.UNKNOWN;
   }
 
@@ -324,8 +292,7 @@ export class EmulatorCore {
   private execLDSW(op: number): ExecResult {
     const r = this.regs;
     const toD = (op & 0x01) === 0x01;
-    if (toD) r.D = r.PS & 0xff;
-    else r.A = r.PS & 0xff;
+    if (toD) r.D = r.PS & 0xff; else r.A = r.PS & 0xff;
     this.advPC(1);
     this.tick(10);
     return true;
@@ -380,6 +347,46 @@ export class EmulatorCore {
     return true;
   }
 
+  // DIVIDE 10111cod
+  private execDIVIDE(op: number): ExecResult {
+    const r = this.regs;
+    const isMod = (op & 0x02) === 0x02;
+    const isCont = (op & 0x04) === 0x04;
+    const toD = (op & 0x01) === 0x01;
+    let res = 0; let rem = 0;
+    if (r.C == 0) {
+      // Divide by zero
+      res = 0xFF;
+      rem = r.B;
+    } else {
+      if (isMod) {
+        if (isCont) {
+          // Remainder modulo
+          res = rem = r.DVR % r.C;
+        } else {
+          // Quotient modulo
+          res = rem = r.B % r.C;
+        }
+      }
+      else {
+        if (isCont) {
+          // Remainder divide
+          res = Math.floor(r.DVR / r.C);
+          rem = r.DVR % r.C;
+        } else {
+          // Quotient divide
+          res = Math.floor(r.B / r.C);
+          rem = r.B % r.C;
+        }
+      }
+    }
+    if (toD) r.D = res; else r.A = res;
+    r.DVR = rem;
+    this.advPC(1);
+    this.tick(24);
+    return true;
+  }
+
   step(): ExecResult {
     const r = this.regs;
     const pc0 = r.PC;
@@ -421,6 +428,9 @@ export class EmulatorCore {
         break;
       case InstructionKind.GOTO:
         cont = this.execGOTO(op);
+        break;
+      case InstructionKind.DIVIDE:
+        cont = this.execDIVIDE(op);
         break;
       default:
         cont = false;
