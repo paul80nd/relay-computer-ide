@@ -21,7 +21,7 @@ export type CommandTarget = 'app' | 'editor' | 'output' | 'panel';
 type CommandBase<
   TType extends CommandType,
   TTarget extends CommandTarget,
-  TPayload extends object = Record<never, never>,
+  TPayload extends object = Record<never, never>
 > = Readonly<
   {
     type: TType;
@@ -55,7 +55,7 @@ export type PanelCommand = Extract<Command, { target: 'panel' }>;
 function makeCommand<
   TType extends CommandType,
   TTarget extends CommandTarget,
-  TPayload extends object = Record<never, never>,
+  TPayload extends object = Record<never, never>
 >(target: TTarget, type: TType, payload?: TPayload): CommandBase<TType, TTarget, TPayload> {
   return payload
     ? { target, type, ...payload }
@@ -71,42 +71,42 @@ export const appCommands = {
   loadExample: (example: string): AppCommand => ({
     target: 'app',
     type: 'app.loadExample',
-    example,
+    example
   }),
   jumpToAssembled: (fromSourceLineNumber: number): AppCommand => ({
     target: 'app',
     type: 'app.jumpToAssembled',
-    fromSourceLineNumber,
+    fromSourceLineNumber
   }),
   jumpToSource: (fromAddress: number): AppCommand => ({
     target: 'app',
     type: 'app.jumpToSource',
-    fromAddress,
-  }),
+    fromAddress
+  })
 };
 
 export const editorCommands = {
   doMonacoKeyboardAction: (id: string): EditorCommand => ({
     target: 'editor',
     type: 'editor.doMonacoKeyboardAction',
-    id,
+    id
   }),
   doMonacoAction: (actionId: string): EditorCommand => ({
     target: 'editor',
     type: 'editor.doMonacoAction',
-    actionId,
+    actionId
   }),
   gotoLine: (lineNumber?: number, column: number | undefined = undefined): EditorCommand => ({
     target: 'editor',
     type: 'editor.gotoLine',
     lineNumber,
-    column,
-  }),
+    column
+  })
 };
 
 export const outputCommands = {
   gotoAddress: (address: number): OutputCommand =>
-    makeCommand('output', 'output.gotoAddress', { address }),
+    makeCommand('output', 'output.gotoAddress', { address })
 };
 
 export const panelCommands = {
@@ -114,6 +114,6 @@ export const panelCommands = {
   showSection: (section: SectionType): PanelCommand => ({
     target: 'panel',
     type: 'panel.showSection',
-    section,
-  }),
+    section
+  })
 };

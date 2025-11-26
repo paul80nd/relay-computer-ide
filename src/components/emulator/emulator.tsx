@@ -7,7 +7,7 @@ import {
   Caption1,
   Popover,
   PopoverTrigger,
-  PopoverSurface,
+  PopoverSurface
 } from '@fluentui/react-components';
 import { Settings16Regular } from '@fluentui/react-icons';
 import type { EmulatorProps } from './types';
@@ -23,21 +23,21 @@ const useStyles = makeStyles({
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    gap: tokens.spacingVerticalL,
+    gap: tokens.spacingVerticalL
   },
   tablesRow: {
     display: 'flex',
-    gap: tokens.spacingHorizontalSNudge,
+    gap: tokens.spacingHorizontalSNudge
   },
   controlsRow: {
     display: 'flex',
     flexGrow: 1,
-    gap: tokens.spacingHorizontalXS,
+    gap: tokens.spacingHorizontalXS
   },
   switchesRow: {
     display: 'flex',
     flexGrow: 1,
-    gap: tokens.spacingHorizontalXS,
+    gap: tokens.spacingHorizontalXS
   },
   switchBtn: {
     flexGrow: 1,
@@ -46,16 +46,16 @@ const useStyles = makeStyles({
     background: tokens.colorNeutralBackground1,
     color: tokens.colorNeutralForeground2,
     cursor: 'pointer',
-    userSelect: 'none',
+    userSelect: 'none'
   },
   switchActive: {
     background: tokens.colorNeutralBackground1Hover,
-    border: `1px solid ${tokens.colorBrandForeground2}`,
+    border: `1px solid ${tokens.colorBrandForeground2}`
   },
   status: {
     fontSize: tokens.fontSizeBase200,
-    color: tokens.colorNeutralForeground3,
-  },
+    color: tokens.colorNeutralForeground3
+  }
 });
 
 export default function Emulator({ assembly }: EmulatorProps) {
@@ -100,7 +100,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
       }
       runningRef.current = false;
     },
-    [],
+    []
   );
 
   /** Instructions-per-refresh handling */
@@ -118,7 +118,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
     const m = Math.floor((d - h * 3600) / 60);
     const s = d - h * 3600 - m * 60;
     setStatusText(
-      `${cycles} cycles, ${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s runtime`,
+      `${cycles} cycles, ${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s runtime`
     );
   };
 
@@ -208,7 +208,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
       coreRef.current.flipPrimarySwitchBit(pos);
       commitSnapshot();
     },
-    [commitSnapshot],
+    [commitSnapshot]
   );
 
   /** Move current memory page back */
@@ -249,7 +249,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
               flexGrow: 1,
               display: 'flex',
               flexDirection: 'column',
-              gap: tokens.spacingVerticalXS,
+              gap: tokens.spacingVerticalXS
             }}
           >
             <div className={classes.controlsRow}>

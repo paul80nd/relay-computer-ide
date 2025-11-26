@@ -14,7 +14,7 @@ import {
   Tooltip,
   makeStyles,
   tokens,
-  type ToolbarProps,
+  type ToolbarProps
 } from '@fluentui/react-components';
 import { CaretLeft16Filled, CaretRight16Filled } from '@fluentui/react-icons';
 import { toBin, toDec, toHex } from './fmt';
@@ -25,13 +25,13 @@ const useStyles = makeStyles({
     fontWeight: tokens.fontWeightRegular,
     fontSize: tokens.fontSizeBase200,
     color: tokens.colorNeutralForeground2,
-    lineHeight: tokens.lineHeightBase200,
+    lineHeight: tokens.lineHeightBase200
   },
   memoryTable: {
     flexGrow: 1,
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     borderSpacing: 0,
-    borderCollapse: 'collapse',
+    borderCollapse: 'collapse'
   },
   memTh: {
     textAlign: 'center',
@@ -39,21 +39,21 @@ const useStyles = makeStyles({
     fontWeight: tokens.fontWeightMedium,
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     backgroundColor: tokens.colorNeutralBackground2,
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground2
   },
   memTd: {
     textAlign: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
     borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
-    cursor: 'default',
+    cursor: 'default'
   },
   pcMarker: {
     backgroundColor: tokens.colorBrandBackground,
-    outline: `1px solid ${tokens.colorBrandStroke1}`,
+    outline: `1px solid ${tokens.colorBrandStroke1}`
   },
   mMarker: {
     backgroundColor: tokens.colorStatusSuccessBackground3,
-    outline: `1px solid ${tokens.colorStatusSuccessBorderActive}`,
+    outline: `1px solid ${tokens.colorStatusSuccessBorderActive}`
   },
   pcAndMMarker: {
     backgroundImage: `linear-gradient(135deg,
@@ -61,14 +61,14 @@ const useStyles = makeStyles({
       ${tokens.colorBrandBackground} 50%,
       ${tokens.colorStatusSuccessBackground3} 50%,
       ${tokens.colorStatusSuccessBackground3} 100%)`,
-    outline: '1px solid lightGray',
+    outline: '1px solid lightGray'
   },
   toolbarItem: {
     color: tokens.colorNeutralForeground3,
     padding: '0 .4rem',
     minWidth: '2rem',
-    marginRight: '.2rem',
-  },
+    marginRight: '.2rem'
+  }
 });
 
 export type MemoryTableProps = {
@@ -110,7 +110,7 @@ function EmulatorMemory({
   offset,
   onPrevPage,
   onNextPage,
-  onSetOffset,
+  onSetOffset
 }: MemoryTableProps) {
   const styles = useStyles();
   const rows = useMemo(() => [...Array(8).keys()], []);
@@ -141,7 +141,7 @@ function EmulatorMemory({
 
   const setOffset = useCallback(
     (next: number) => onSetOffset?.(clampOffsetToPage(next)),
-    [onSetOffset],
+    [onSetOffset]
   );
 
   const handleGoto = useCallback(() => {
@@ -157,18 +157,18 @@ function EmulatorMemory({
         handleGoto();
       }
     },
-    [handleGoto],
+    [handleGoto]
   );
 
   // Follow PC / M
   const [toolbarChecked, setToolbarChecked] = useState<Record<string, string[]>>({
-    follow: ['none'], // default selection
+    follow: ['none'] // default selection
   });
   const followMode = (toolbarChecked.follow?.[0] as FollowMode) ?? 'none';
 
   const onFollowCheckedChange: ToolbarProps['onCheckedValueChange'] = (
     _e,
-    { name, checkedItems },
+    { name, checkedItems }
   ) => {
     // Expect name === 'follow'
     setToolbarChecked(prev => ({ ...prev, [name]: checkedItems }));

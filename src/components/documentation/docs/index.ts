@@ -15,7 +15,7 @@ export interface MnemonicDoc {
 
 export const mnemonicDocs = {
   ...instructionDocs,
-  ...directiveDocs,
+  ...directiveDocs
 };
 
 export type RegisterName =

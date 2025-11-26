@@ -5,7 +5,7 @@ import {
   Toolbar,
   ToolbarButton,
   ToolbarGroup,
-  Tooltip,
+  Tooltip
 } from '@fluentui/react-components';
 import { Warning16Regular, ErrorCircle16Regular } from '@fluentui/react-icons';
 import type { StatusBarProps } from './types';
@@ -19,11 +19,11 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground3,
     backgroundColor: tokens.colorNeutralBackground2,
     padding: '0 .5rem 0 3.75rem',
-    minHeight: '1.5rem',
+    minHeight: '1.5rem'
   },
   item: { color: tokens.colorNeutralForeground3, padding: '0 .4rem', minWidth: '2rem' },
   error: { color: tokens.colorStatusDangerForeground1 },
-  warning: { color: tokens.colorStatusWarningForeground1 },
+  warning: { color: tokens.colorStatusWarningForeground1 }
 });
 
 function StatusBar({ position, validation, assembly, autoSave, dirty }: StatusBarProps) {
@@ -49,7 +49,7 @@ function StatusBar({ position, validation, assembly, autoSave, dirty }: StatusBa
           content={`Problems (${pluralize(validation.errors, 'error', 'errors')}, ${pluralize(
             validation.warnings,
             'warning',
-            'warnings',
+            'warnings'
           )})`}
           relationship='description'
           positioning='above-start'

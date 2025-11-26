@@ -8,33 +8,43 @@ const dasm = input[3];
 let result = '';
 
 // Parse dasm and flatten to single array of opcodes
-const data = dasm.split('|').map(l => {
-  const vs = l.slice(5).match(/[0-9A-F]{2}/g);
-  const c1 = l.slice(5).replace(/[0-9A-F]{2}/g, '').trim();
-  const l1 = parseInt(l.slice(0, 5), 16);
-  return vs.map((v, i) => ({
-    v: parseInt(v, 16),
-    a: (l1 + i),
-    c: i === 0 && c1.length > 0 ? c1 : '-'
-  }));
-}).flat();
+const data = dasm
+  .split('|')
+  .map(l => {
+    const vs = l.slice(5).match(/[0-9A-F]{2}/g);
+    const c1 = l
+      .slice(5)
+      .replace(/[0-9A-F]{2}/g, '')
+      .trim();
+    const l1 = parseInt(l.slice(0, 5), 16);
+    return vs.map((v, i) => ({
+      v: parseInt(v, 16),
+      a: l1 + i,
+      c: i === 0 && c1.length > 0 ? c1 : '-'
+    }));
+  })
+  .flat();
 
 // Chunk opcodes into strips, 25 in first, 28 in rest
 const dataStrips = data.reduce((ra, d, i) => {
   const cidx = i < 25 ? 0 : Math.floor((i - 25) / 28) + 1;
-  if (!ra[cidx]) { ra[cidx] = []; }
+  if (!ra[cidx]) {
+    ra[cidx] = [];
+  }
   ra[cidx].push(d);
   return ra;
-}, [])
+}, []);
 const totalStrips = dataStrips.length;
 
 // Chunk strips into pages
 const dataPages = dataStrips.reduce((ra, s, i) => {
   const cidx = Math.floor(i / 3);
-  if (!ra[cidx]) { ra[cidx] = []; }
+  if (!ra[cidx]) {
+    ra[cidx] = [];
+  }
   ra[cidx].push(s);
   return ra;
-}, [])
+}, []);
 
 // Iterate pages, strips and opcodes to build pages
 let strip = 1;
@@ -43,7 +53,7 @@ dataPages.forEach(p => {
 
   p.forEach(s => {
     result += '<ul>';
-    result += `<li class="page">${prgid} ${strip.toString().padStart(2, '0')}/${totalStrips.toString().padStart(2, '0')}</li>`
+    result += `<li class="page">${prgid} ${strip.toString().padStart(2, '0')}/${totalStrips.toString().padStart(2, '0')}</li>`;
     if (strip === 1) {
       result += `<li class="title">${prgname.length > 0 ? prgname : prgid}</li>`;
       if (prgdesc.length > 0) {
@@ -65,16 +75,15 @@ dataPages.forEach(p => {
     });
 
     if (strip < totalStrips) {
-      result += `<li class="footer">continues on ${(strip + 1).toString().padStart(2, '0')}/${totalStrips.toString().padStart(2, '0')}</li>`
+      result += `<li class="footer">continues on ${(strip + 1).toString().padStart(2, '0')}/${totalStrips.toString().padStart(2, '0')}</li>`;
     } else {
-      result += '<li class="footer ends">PROGRAM ENDS</li>'
+      result += '<li class="footer ends">PROGRAM ENDS</li>';
     }
     result += '</ul>';
     strip++;
   });
 
-  result += '</div>'
-})
+  result += '</div>';
+});
 
 document.body.innerHTML = result;
-

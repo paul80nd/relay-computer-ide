@@ -15,15 +15,15 @@ export const Prefs = {
   Panels: {
     PRI_SIDEBAR: 'sidebar-p',
     SEC_SIDEBAR: 'sidebar-s',
-    PANEL: 'panel',
+    PANEL: 'panel'
   },
   Sections: {
     DOCUMENTATION: 'documentation',
     EXAMPLES: 'examples',
     EXPORT: 'export',
     EMULATOR: 'emulator',
-    WELCOME: 'welcome',
-  },
+    WELCOME: 'welcome'
+  }
 } as const;
 
 export type PanelType = 'sidebar-p' | 'sidebar-s' | 'panel';
@@ -44,10 +44,10 @@ export function usePreferences(): [IPreferences, Dispatch<SetStateAction<IPrefer
           panels: {
             primary: parsed.panels?.primary ?? false,
             secondary: parsed.panels?.secondary ?? true,
-            bottom: parsed.panels?.bottom ?? false,
+            bottom: parsed.panels?.bottom ?? false
           },
           section: parsed.section,
-          autoSave: parsed.autoSave ?? true,
+          autoSave: parsed.autoSave ?? true
         };
       } catch {
         // fall through to default
@@ -59,9 +59,9 @@ export function usePreferences(): [IPreferences, Dispatch<SetStateAction<IPrefer
       panels: {
         primary: false,
         secondary: true,
-        bottom: false,
+        bottom: false
       },
-      autoSave: true,
+      autoSave: true
     };
   };
 
@@ -83,15 +83,15 @@ export type CheckedValues = {
 // Map typed prefs -> Fluent UI checkedValues
 export function mapPrefsToCheckedValues(
   prefs: IPreferences,
-  Panels: typeof Prefs.Panels,
+  Panels: typeof Prefs.Panels
 ): CheckedValues {
   return {
     panels: [
       prefs.panels.primary ? Panels.PRI_SIDEBAR : null,
       prefs.panels.secondary ? Panels.SEC_SIDEBAR : null,
-      prefs.panels.bottom ? Panels.PANEL : null,
+      prefs.panels.bottom ? Panels.PANEL : null
     ].filter(Boolean) as string[],
-    section: prefs.section ? [prefs.section] : [],
+    section: prefs.section ? [prefs.section] : []
   };
 }
 
@@ -103,7 +103,7 @@ export function updatePrefsFromCheckedValues(
   prev: IPreferences,
   name: string,
   checkedItems: string[],
-  panelsEnum: typeof Prefs.Panels,
+  panelsEnum: typeof Prefs.Panels
 ): IPreferences {
   const next = { ...prev };
 
@@ -121,9 +121,9 @@ export function updatePrefsFromCheckedValues(
       panels: {
         primary: primaryChecked,
         secondary: secondaryChecked,
-        bottom: bottomChecked,
+        bottom: bottomChecked
       },
-      section,
+      section
     };
   }
 
@@ -138,8 +138,8 @@ export function updatePrefsFromCheckedValues(
         section: undefined,
         panels: {
           ...next.panels,
-          primary: false,
-        },
+          primary: false
+        }
       };
     }
 
@@ -150,8 +150,8 @@ export function updatePrefsFromCheckedValues(
         section: newSection,
         panels: {
           ...next.panels,
-          primary: true,
-        },
+          primary: true
+        }
       };
     }
 

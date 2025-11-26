@@ -23,7 +23,7 @@ export const language = {
       [/[0-9A-F]{2}/, 'keyword'],
 
       // Otherwise a comment
-      [/.*/, 'comment'],
-    ],
-  },
+      [/.*/, 'comment']
+    ]
+  }
 } as languages.IMonarchLanguage;

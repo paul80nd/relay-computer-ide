@@ -13,7 +13,7 @@ import {
   MenuGroup,
   MenuGroupHeader,
   MenuItemLink,
-  MenuItemRadio,
+  MenuItemRadio
 } from '@fluentui/react-components';
 import { useEffect, useMemo, useState } from 'react';
 import { Prefs, type SectionType } from '../../hooks/usePreferences';
@@ -26,8 +26,8 @@ const useStyles = makeStyles({
   menuTrigger: {
     padding: '0 .5rem',
     minWidth: 0,
-    fontWeight: tokens.fontWeightRegular,
-  },
+    fontWeight: tokens.fontWeightRegular
+  }
 });
 
 // Note: We reuse AppToolbarProps but only rely on:
@@ -37,7 +37,7 @@ function AppToolbarMenu(
   props: AppToolbarProps & {
     checkedValues: Record<string, string[]>;
     onCheckedValueChange: ToolbarProps['onCheckedValueChange'];
-  },
+  }
 ): JSXElement {
   const styles = useStyles();
   const { execute, executeAsync } = useCommandBus();
@@ -45,38 +45,38 @@ function AppToolbarMenu(
   // Platform detection – derived once
   const isMac = useMemo(
     () => typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().includes('mac'),
-    [],
+    []
   );
 
   const autoSaveOn = props.prefs.autoSave ?? true;
 
   // Local state for File menu (save group)
   const [fileMenuCheckedValues, setFileMenuCheckedValues] = useState<Record<string, string[]>>({
-    save: autoSaveOn ? ['auto'] : [],
+    save: autoSaveOn ? ['auto'] : []
   });
 
   // Sync File menu 'save' group from prefState.autoSave
   useEffect(() => {
     setFileMenuCheckedValues(prev => ({
       ...prev,
-      save: autoSaveOn ? ['auto'] : [],
+      save: autoSaveOn ? ['auto'] : []
     }));
   }, [autoSaveOn]);
 
   const handleFileMenuCheckedChange: MenuProps['onCheckedValueChange'] = (
     _e,
-    { name, checkedItems },
+    { name, checkedItems }
   ) => {
     setFileMenuCheckedValues(prev => ({
       ...prev,
-      [name]: checkedItems,
+      [name]: checkedItems
     }));
 
     if (name === 'save') {
       const autoEnabled = checkedItems.includes('auto');
       props.onPrefsChange(prev => ({
         ...prev,
-        autoSave: autoEnabled,
+        autoSave: autoEnabled
       }));
     }
   };

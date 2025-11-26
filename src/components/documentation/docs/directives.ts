@@ -8,8 +8,8 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
     snippet: 'org ${1:0x0000}',
     description: [
       'Sets the current location of the assembler so that the next instruction will be placed at the given address.',
-      'An 8-bit constant may be used and will be assumed to be in the zero page (`0x00--`).',
-    ],
+      'An 8-bit constant may be used and will be assumed to be in the zero page (`0x00--`).'
+    ]
   },
   opc: {
     title: 'opc',
@@ -20,8 +20,8 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
       'Writes the given 8-bit value directly into the assembled output.',
       'Values may be any valid 8-bit constant.',
       'Typically this directive is used to issue a direct opcode that has no current assembler equivalent.',
-      'Directly equivalent to `!byte <opcode>`.',
-    ],
+      'Directly equivalent to `!byte <opcode>`.'
+    ]
   },
   '!align': {
     title: '!align',
@@ -29,8 +29,8 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
     syntax: ['!align <value:2|4|8|16|...>'],
     snippet: '!align ${1:8}',
     description: [
-      'Writes 8-bit zeros into the output until the current location is a multiple of the given value.',
-    ],
+      'Writes 8-bit zeros into the output until the current location is a multiple of the given value.'
+    ]
   },
   '!byte': {
     title: '!byte',
@@ -41,8 +41,8 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
       'Writes the given 8-bit comma seperated values directly into the assembled output.',
       'Values may be any valid 8-bit constant.',
       'Where a label is provided the least significant byte of that address will be used.',
-      'Alternatively a string may be provided within double quotes which will be output as an UTF-8 byte per character.',
-    ],
+      'Alternatively a string may be provided within double quotes which will be output as an UTF-8 byte per character.'
+    ]
   },
   '!word': {
     title: '!word',
@@ -53,8 +53,8 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
       'Writes the given 16-bit comma seperated values directly into the assembled output.',
       'Values may be any valid 16-bit constant.',
       'Where a label is provided the addess it references will be used.',
-      'Alternatively a string may be provided within double quotes which will be output as an UTF-16BE word per character.',
-    ],
+      'Alternatively a string may be provided within double quotes which will be output as an UTF-16BE word per character.'
+    ]
   },
   '!fill': {
     title: '!fill',
@@ -63,8 +63,8 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
     snippet: '!fill ${1:8},${2:0x00}',
     description: [
       'Writes the given 8-bit value <em>v</em> directly into the assembled output `n` times.',
-      'Values may be any valid 8-bit constant.',
-    ],
+      'Values may be any valid 8-bit constant.'
+    ]
   },
   '!for': {
     title: '!for',
@@ -74,8 +74,8 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
     description: [
       'Repeats the given code block, according to the given range, in the assembled output.',
       'The variable `i` can be referenced from within the code block and increases per iteration of the `for` loop.',
-      'If a label preceeds the directive then any label within the code block can be referenced, by iteration number `i`, with a fully scoped label in the form `outer_label__i::inner_label`',
-    ],
+      'If a label preceeds the directive then any label within the code block can be referenced, by iteration number `i`, with a fully scoped label in the form `outer_label__i::inner_label`'
+    ]
   },
   range: {
     title: 'range',
@@ -84,8 +84,8 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
     snippet: 'range(${1:5})',
     description: [
       'Defines a range for use with a `!for` directive.',
-      'The range can either be a single numeric value `n` giving a range of `0..n-1` or two values `s`,`e` giving a range on `s..e-1`.',
-    ],
+      'The range can either be a single numeric value `n` giving a range of `0..n-1` or two values `s`,`e` giving a range on `s..e-1`.'
+    ]
   },
   '!if': {
     title: '!if',
@@ -95,8 +95,8 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
     description: [
       'Conditionally assembles the next code block.',
       "The condition can be any expression that results in a 'truthy' or 'falsy' value.",
-      'Following the code block multiple optional `elif` (else if) directives may be added followed by one final optional `else` directive.',
-    ],
+      'Following the code block multiple optional `elif` (else if) directives may be added followed by one final optional `else` directive.'
+    ]
   },
   elif: {
     title: 'elif',
@@ -106,8 +106,8 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
     description: [
       'Conditionally assembles the next code block.',
       "The condition can be any expression that results in a 'truthy' or 'falsy' value.",
-      'Must follow an `if` or `elif` block and can be followed by multiple optional `elif` directives or by one final optional `else` directive.',
-    ],
+      'Must follow an `if` or `elif` block and can be followed by multiple optional `elif` directives or by one final optional `else` directive.'
+    ]
   },
   else: {
     title: 'else',
@@ -116,8 +116,8 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
     snippet: 'else {\n        ${2:add}\n}',
     description: [
       'Conditionally assembles the next code block if no preceeding `if` or `elif` block evaluated to true.',
-      'Must follow an `if` or `elif` block.',
-    ],
+      'Must follow an `if` or `elif` block.'
+    ]
   },
   '!let': {
     title: '!let',
@@ -128,8 +128,8 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
       'Defines a variable that can be later referenced.',
       'Values may be any valid 8-bit constant (either directly or resulting from an expression).',
       'Where a label is provided the least significant byte of that address will be used.',
-      'Alternatively a string may be provided within double quotes which will be output as an UTF-8 byte per character.',
-    ],
+      'Alternatively a string may be provided within double quotes which will be output as an UTF-8 byte per character.'
+    ]
   },
   '!error': {
     title: '!error',
@@ -138,7 +138,7 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
     snippet: '!if (${1:i == 0}) { !error "${2:Error message}" }',
     description: [
       'Intentionally raises an error at assembly time.',
-      'Typically used within an `!if` directive to assert that a condition is met.',
-    ],
-  },
+      'Typically used within an `!if` directive to assert that a condition is met.'
+    ]
+  }
 };

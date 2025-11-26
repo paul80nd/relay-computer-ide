@@ -9,7 +9,7 @@ import {
   Link,
   Text,
   makeStyles,
-  tokens,
+  tokens
 } from '@fluentui/react-components';
 import { mnemonicDocs } from './docs';
 import { Mnemonic } from './mnemonic';
@@ -25,42 +25,42 @@ type Section = {
 
 const useStyles = makeStyles({
   accordionHeader: {
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground2
   },
   accordionHeaderBlock: {
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'column'
   },
   accordionHeaderBlockSummary: {
-    fontSize: tokens.fontSizeBase300,
+    fontSize: tokens.fontSizeBase300
   },
   accordionHeaderBlockSection: {
     fontSize: tokens.fontSizeBase100,
     lineHeight: tokens.lineHeightBase100,
-    marginBottom: '-.1rem',
+    marginBottom: '-.1rem'
   },
   accordionContent: {
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground2
   },
   para: {
     marginTop: 0,
     paddingLeft: '.7rem',
-    marginBottom: tokens.spacingVerticalS,
+    marginBottom: tokens.spacingVerticalS
   },
   card: {
     height: 'fit-content',
-    marginBottom: tokens.spacingVerticalXS,
+    marginBottom: tokens.spacingVerticalXS
   },
   caption: {
-    color: tokens.colorNeutralForeground3,
+    color: tokens.colorNeutralForeground3
   },
   code: {
     fontFamily: 'Menlo, Monaco, "Courier New", monospace',
     fontWeight: tokens.fontWeightRegular,
     color: tokens.colorPaletteGreenForeground2,
     fontSize: tokens.fontSizeBase200,
-    lineHeight: tokens.lineHeightBase200,
-  },
+    lineHeight: tokens.lineHeightBase200
+  }
 });
 
 function Documentation() {
@@ -116,7 +116,7 @@ function Documentation() {
               before trying the full simulator.
             </p>
           </>
-        ),
+        )
       },
       {
         title: 'Assembly Syntax',
@@ -182,7 +182,7 @@ function Documentation() {
               <Code>ldi m,label§23</Code>.
             </p>
           </>
-        ),
+        )
       },
       {
         title: 'Flow Control',
@@ -192,7 +192,7 @@ function Documentation() {
             <Mnemonic {...mnemonics['hlt']} />
             <Mnemonic {...mnemonics['hlr']} />
           </>
-        ),
+        )
       },
       {
         title: 'Arithmetic & Logic (ALU)',
@@ -224,7 +224,7 @@ function Documentation() {
             </Commentary>
             <Mnemonic {...mnemonics['ixy']} />
           </>
-        ),
+        )
       },
       {
         title: 'Branching',
@@ -252,7 +252,7 @@ function Documentation() {
             <Mnemonic {...mnemonics['jsr']} />
             <Mnemonic {...mnemonics['rts']} />
           </>
-        ),
+        )
       },
       {
         title: 'Experimental',
@@ -268,7 +268,7 @@ function Documentation() {
             <Mnemonic {...mnemonics['mod']} />
             <Mnemonic {...mnemonics['mdr']} />
           </>
-        ),
+        )
       },
       {
         title: 'Register Manipulation',
@@ -291,7 +291,7 @@ function Documentation() {
             <Mnemonic {...mnemonics['str']} />
             <Mnemonic {...mnemonics['lds']} />
           </>
-        ),
+        )
       },
       {
         title: 'Organisation',
@@ -301,7 +301,7 @@ function Documentation() {
             <Mnemonic {...mnemonics['org']} />
             <Mnemonic {...mnemonics['!align']} />
           </>
-        ),
+        )
       },
       {
         title: 'Control Flow',
@@ -315,7 +315,7 @@ function Documentation() {
             <Mnemonic {...mnemonics['range']} />
             <Mnemonic {...mnemonics['!error']} />
           </>
-        ),
+        )
       },
       {
         title: 'Data / Literals',
@@ -328,10 +328,10 @@ function Documentation() {
             <Mnemonic {...mnemonics['!fill']} />
             <Mnemonic {...mnemonics['opc']} />
           </>
-        ),
-      },
+        )
+      }
     ],
-    [],
+    []
   );
 
   return (

@@ -10,7 +10,7 @@ function useUpdate(effect: EffectCallback, deps: DependencyList, applyChanges = 
           isInitialMount.current = false;
         }
       : effect,
-    deps,
+    deps
   );
 }
 

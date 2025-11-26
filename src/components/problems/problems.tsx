@@ -5,7 +5,7 @@ import {
   Dismiss12Filled,
   ErrorCircle16Regular,
   Warning16Regular,
-  Info16Regular,
+  Info16Regular
 } from '@fluentui/react-icons';
 import { useMemo } from 'react';
 
@@ -19,7 +19,7 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    overflow: 'hidden',
+    overflow: 'hidden'
   },
   header: {
     display: 'flex',
@@ -30,15 +30,15 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground2,
     fontSize: tokens.fontSizeBase200,
     fontWeight: tokens.fontWeightMedium,
-    flexShrink: 0,
+    flexShrink: 0
   },
   counts: {
     display: 'flex',
-    gap: '12px',
+    gap: '12px'
   },
   list: {
     overflow: 'auto',
-    flex: 1,
+    flex: 1
   },
   row: {
     display: 'grid',
@@ -50,16 +50,16 @@ const useStyles = makeStyles({
     borderBottom: `1px solid ${tokens.colorNeutralStroke3}`,
     color: tokens.colorNeutralForeground1,
     ':hover': {
-      backgroundColor: tokens.colorNeutralBackground3Hover,
-    },
+      backgroundColor: tokens.colorNeutralBackground3Hover
+    }
   },
   empty: {
     padding: '8px',
-    color: tokens.colorNeutralForeground3,
+    color: tokens.colorNeutralForeground3
   },
   iconError: { color: tokens.colorStatusDangerForeground1, paddingTop: '2px' },
   iconWarning: { color: tokens.colorStatusWarningForeground1, paddingTop: '2px' },
-  iconInfo: { color: tokens.colorPaletteBlueForeground2, paddingTop: '2px' },
+  iconInfo: { color: tokens.colorPaletteBlueForeground2, paddingTop: '2px' }
 });
 
 function severityIcon(sev: number, classes: ReturnType<typeof useStyles>) {

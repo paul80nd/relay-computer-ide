@@ -3,23 +3,23 @@ import type { languages } from 'monaco-editor';
 
 export const conf = {
   comments: {
-    lineComment: ';',
+    lineComment: ';'
   },
   brackets: [
     ['{', '}'],
-    ['(', ')'],
+    ['(', ')']
   ],
   autoClosingPairs: [
     { open: '{', close: '}' },
     { open: '(', close: ')' },
     { open: "'", close: "'", notIn: ['string', 'comment'] },
-    { open: '"', close: '"', notIn: ['string'] },
+    { open: '"', close: '"', notIn: ['string'] }
   ],
   surroundingPairs: [
     { open: '{', close: '}' },
-    { open: '(', close: ')' },
+    { open: '(', close: ')' }
   ],
-  wordPattern: /(-?\d*\.\d\w*)|([a-zA-Z_][\w]*)/,
+  wordPattern: /(-?\d*\.\d\w*)|([a-zA-Z_][\w]*)/
   //    "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)"
 } as languages.LanguageConfiguration;
 
@@ -60,7 +60,7 @@ export const language = {
     'org',
     'orr',
     'rol',
-    'str',
+    'str'
   ],
 
   registers: ['a', 'b', 'c', 'd', 'j', 'j1', 'j2', 'm', 'm1', 'm2', 'x', 'y', 'xy'],
@@ -82,9 +82,9 @@ export const language = {
           cases: {
             '@keywords': 'keyword',
             '@registers': 'type.register',
-            '@default': 'identifier',
-          },
-        },
+            '@default': 'identifier'
+          }
+        }
       ],
 
       // whitespace
@@ -105,11 +105,11 @@ export const language = {
 
       // strings
       [/"([^"\\]|\\.)*$/, 'string.invalid'], // non-teminated string
-      [/"/, { token: 'string.quote', bracket: '@open', next: '@string' }],
+      [/"/, { token: 'string.quote', bracket: '@open', next: '@string' }]
     ],
     string: [
       [/[^\\"]+/, 'string'],
-      [/"/, { token: 'string.quote', bracket: '@close', next: '@pop' }],
-    ],
-  },
+      [/"/, { token: 'string.quote', bracket: '@close', next: '@pop' }]
+    ]
+  }
 } as languages.IMonarchLanguage;

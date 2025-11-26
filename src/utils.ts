@@ -18,10 +18,10 @@ export async function saveAsTextFile(text: string): Promise<void> {
         types: [
           {
             description: 'RCASM source',
-            accept: { [mimeType]: extensions.map(ext => `.${ext}`) },
-          },
+            accept: { [mimeType]: extensions.map(ext => `.${ext}`) }
+          }
         ],
-        excludeAcceptAllOption: false,
+        excludeAcceptAllOption: false
       });
       const writable = await handle.createWritable();
       await writable.write(new Blob([text], { type: mimeType }));
@@ -63,10 +63,10 @@ export async function pickTextFile(): Promise<{ name: string; text: string } | n
         types: [
           {
             description: 'RCASM source',
-            accept: { [mimeTypes[0]]: extensions.map(ext => `.${ext}`) },
-          },
+            accept: { [mimeTypes[0]]: extensions.map(ext => `.${ext}`) }
+          }
         ],
-        excludeAcceptAllOption: false,
+        excludeAcceptAllOption: false
       });
       const file = await handle.getFile();
       const text = await file.text();

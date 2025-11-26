@@ -7,7 +7,7 @@ import {
   PanelLeftRegular,
   Code20Color,
   PanelBottomFilled,
-  PanelBottomRegular,
+  PanelBottomRegular
 } from '@fluentui/react-icons';
 import {
   Toolbar,
@@ -16,13 +16,13 @@ import {
   ToolbarToggleButton,
   ToolbarGroup,
   makeStyles,
-  Text,
+  Text
 } from '@fluentui/react-components';
 import {
   type IPreferences,
   mapPrefsToCheckedValues,
   Prefs,
-  updatePrefsFromCheckedValues,
+  updatePrefsFromCheckedValues
 } from '../../hooks/usePreferences';
 import type { AppToolbarProps } from './types';
 import AppToolbarMenu from './toolbar-menu';
@@ -36,15 +36,15 @@ const useStyles = makeStyles({
     justifyContent: 'space-between',
     color: tokens.colorNeutralForeground2,
     backgroundColor: tokens.colorNeutralBackground1,
-    padding: '0 .5rem 0 1.2rem',
+    padding: '0 .5rem 0 1.2rem'
   },
   toggle: {
     backgroundColor: tokens.colorNeutralBackground1,
-    color: tokens.colorNeutralForeground4,
+    color: tokens.colorNeutralForeground4
   },
   dirtyIndicator: {
-    color: tokens.colorStatusWarningForeground1,
-  },
+    color: tokens.colorStatusWarningForeground1
+  }
 });
 
 function AppToolbar(props: AppToolbarProps): JSXElement {
@@ -58,11 +58,11 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
   // Handle toolbar/menus changing panels/section
   const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (
     _e,
-    { name, checkedItems },
+    { name, checkedItems }
   ) => {
     onPrefsChange(
       (prev: IPreferences): IPreferences =>
-        updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels),
+        updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels)
     );
   };
 

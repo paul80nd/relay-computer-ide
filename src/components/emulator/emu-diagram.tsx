@@ -9,23 +9,23 @@ const useStyles = makeStyles({
     display: 'grid',
     gridTemplateColumns: '3px 12px auto 1fr 1fr auto 12px 3px 12px 1fr 1fr 1fr',
     gridTemplateRows: 'repeat(20, 1fr)',
-    textAlign: 'center',
+    textAlign: 'center'
   },
   code: {
     fontFamily: 'Menlo, Monaco, "Courier New", monospace',
     fontWeight: tokens.fontWeightRegular,
     fontSize: tokens.fontSizeBase200,
     color: tokens.colorNeutralForeground2,
-    lineHeight: tokens.lineHeightBase200,
+    lineHeight: tokens.lineHeightBase200
   },
   dgBus: {
-    borderRight: `3px solid ${tokens.colorBrandStroke2}`,
+    borderRight: `3px solid ${tokens.colorBrandStroke2}`
   },
   dgLink: {
-    borderTop: `2px solid ${tokens.colorBrandStroke2}`,
+    borderTop: `2px solid ${tokens.colorBrandStroke2}`
   },
   dgLinkU: {
-    borderBottom: `2px solid ${tokens.colorBrandStroke2}`,
+    borderBottom: `2px solid ${tokens.colorBrandStroke2}`
   },
   dgR8V: {
     margin: '1px 0',
@@ -36,7 +36,7 @@ const useStyles = makeStyles({
     borderTopLeftRadius: tokens.borderRadiusMedium,
     borderBottomLeftRadius: tokens.borderRadiusMedium,
     backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'default',
+    cursor: 'default'
   },
   dgR16V: {
     margin: '1px 0',
@@ -48,7 +48,7 @@ const useStyles = makeStyles({
     borderBottomRightRadius: tokens.borderRadiusMedium,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'default',
+    cursor: 'default'
   },
   dgRLab: {
     margin: '1px 0',
@@ -57,7 +57,7 @@ const useStyles = makeStyles({
     alignContent: 'center',
     fontSize: tokens.fontSizeBase200,
     fontWeight: tokens.fontWeightMedium,
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground2
   },
   dgR8E: {
     margin: '1px 0',
@@ -65,7 +65,7 @@ const useStyles = makeStyles({
     borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     borderTopRightRadius: tokens.borderRadiusMedium,
-    borderBottomRightRadius: tokens.borderRadiusMedium,
+    borderBottomRightRadius: tokens.borderRadiusMedium
   },
   dgPCV: {
     borderLeft: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -76,7 +76,7 @@ const useStyles = makeStyles({
     borderBottomLeftRadius: tokens.borderRadiusMedium,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'default',
+    cursor: 'default'
   },
   dgPCLab: {
     borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -87,7 +87,7 @@ const useStyles = makeStyles({
     alignContent: 'center',
     fontSize: tokens.fontSizeBase200,
     fontWeight: tokens.fontWeightMedium,
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground2
   },
   dgAILab: {
     fontSize: tokens.fontSizeBase200,
@@ -98,7 +98,7 @@ const useStyles = makeStyles({
     borderTopRightRadius: tokens.borderRadiusMedium,
     borderTopLeftRadius: tokens.borderRadiusMedium,
     alignContent: 'center',
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground2
   },
   dgAIBL: {
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -106,13 +106,13 @@ const useStyles = makeStyles({
     borderBottomLeftRadius: tokens.borderRadiusMedium,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'default',
+    cursor: 'default'
   },
   dgAIBM: {
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'default',
+    cursor: 'default'
   },
   dgAIBR: {
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -120,7 +120,7 @@ const useStyles = makeStyles({
     borderBottomRightRadius: tokens.borderRadiusMedium,
     alignContent: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
-    cursor: 'default',
+    cursor: 'default'
   },
 
   posC3: { gridColumn: '3 / 3' },
@@ -176,7 +176,7 @@ const useStyles = makeStyles({
 
   instrL: { gridColumn: '10 / 13', gridRow: '9 / 11' },
   instrV: { textAlign: 'right', gridColumn: '10 / 11', gridRow: '11 / 13' },
-  instrCls: { paddingLeft: '3px', gridColumn: '11 / 13', gridRow: '11 / 13' },
+  instrCls: { paddingLeft: '3px', gridColumn: '11 / 13', gridRow: '11 / 13' }
 });
 
 const FlagTooltip = memo(function FlagTooltip({ name, set }: { name: string; set: boolean }) {
@@ -193,7 +193,7 @@ function RegTooltipContent({
   title,
   value,
   width,
-  showDec = false,
+  showDec = false
 }: {
   title: string;
   value: number;
@@ -225,7 +225,7 @@ const Reg8 = memo(function Reg8({
   label,
   value,
   rowCls,
-  styles,
+  styles
 }: {
   label: string;
   value: number;
@@ -256,7 +256,7 @@ const Reg16L = memo(function Reg16L({
   label,
   value,
   rowCls,
-  styles,
+  styles
 }: {
   label: string;
   value: number;
@@ -285,7 +285,7 @@ const Reg16R = memo(function Reg16R({
   label,
   value,
   rowCls,
-  styles,
+  styles
 }: {
   label: string;
   value: number;
@@ -311,7 +311,7 @@ const Reg16R = memo(function Reg16R({
 });
 
 const StaticLayer = memo(function StaticLayer({
-  styles,
+  styles
 }: {
   styles: ReturnType<typeof useStyles>;
 }) {

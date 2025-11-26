@@ -10,9 +10,9 @@ export default defineConfig({
         manualChunks: {
           react: ['react', 'react-dom'],
           monaco: ['monaco-editor'],
-          fluent: ['@fluentui/react-components'],
-        },
-      },
-    },
-  },
+          fluent: ['@fluentui/react-components']
+        }
+      }
+    }
+  }
 });

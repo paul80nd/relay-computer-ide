@@ -31,7 +31,7 @@ export const INCXY = 0xb0;
 /**  GOTO: d s c z n x, then hi, then lo */
 export const GOTO = (
   opts: { d?: 0 | 1; s?: 0 | 1; c?: 0 | 1; z?: 0 | 1; n?: 0 | 1; x?: 0 | 1 },
-  tgt: number,
+  tgt: number
 ) => {
   const { d = 0, s = 0, c = 0, z = 0, n = 0, x = 0 } = opts;
   const op =

@@ -27,9 +27,9 @@ const InstructionKind = {
   HALT: 7,
   INCXY: 8,
   GOTO: 9,
-  UNKNOWN: 10,
+  UNKNOWN: 10
 } as const;
-type InstructionKind = typeof InstructionKind[keyof typeof InstructionKind];
+type InstructionKind = (typeof InstructionKind)[keyof typeof InstructionKind];
 
 type ExecResult = boolean; // true to continue, false to stop
 
@@ -44,7 +44,7 @@ const KindToCls: Record<InstructionKind, string> = {
   [InstructionKind.HALT]: 'MISC',
   [InstructionKind.INCXY]: 'INCXY',
   [InstructionKind.GOTO]: 'GOTO',
-  [InstructionKind.UNKNOWN]: '???',
+  [InstructionKind.UNKNOWN]: '???'
 };
 
 export type StepTrace = {
@@ -78,10 +78,21 @@ export class EmulatorCore {
     this.memory = new Uint8Array(size);
     this.trace = trace;
     this.regs = {
-      A: 0, B: 0, C: 0, D: 0,
-      I: 0, PC: 0, M: 0, XY: 0, J: 0,
-      FZ: false, FS: false, FC: false,
-      PS: 0, CLS: 'MOV8', cycles: 0,
+      A: 0,
+      B: 0,
+      C: 0,
+      D: 0,
+      I: 0,
+      PC: 0,
+      M: 0,
+      XY: 0,
+      J: 0,
+      FZ: false,
+      FS: false,
+      FC: false,
+      PS: 0,
+      CLS: 'MOV8',
+      cycles: 0
     };
     this.initDecodeTables();
   }
@@ -95,10 +106,10 @@ export class EmulatorCore {
       () => r.B,
       () => r.C,
       () => r.D,
-      () => (r.M & 0xff00) >> 8,  // M.hi (M1)
-      () => r.M & 0x00ff,         // M.lo (M2)
+      () => (r.M & 0xff00) >> 8, // M.hi (M1)
+      () => r.M & 0x00ff, // M.lo (M2)
       () => (r.XY & 0xff00) >> 8, // XY.hi (X)
-      () => r.XY & 0x00ff,        // XY.lo (Y)
+      () => r.XY & 0x00ff // XY.lo (Y)
     ];
 
     // 8-bit destinations
@@ -107,32 +118,24 @@ export class EmulatorCore {
       (v: number) => (r.B = v & 0xff),
       (v: number) => (r.C = v & 0xff),
       (v: number) => (r.D = v & 0xff),
-      (v: number) => (r.M = (r.M & 0x00ff) | ((v & 0xff) << 8)),    // M.hi (M1)
-      (v: number) => (r.M = (r.M & 0xff00) | (v & 0xff)),           // M.lo (M2)
-      (v: number) => (r.XY = (r.XY & 0x00ff) | ((v & 0xff) << 8)),  // XY.hi (X)
-      (v: number) => (r.XY = (r.XY & 0xff00) | (v & 0xff)),         // XY.lo (Y)
+      (v: number) => (r.M = (r.M & 0x00ff) | ((v & 0xff) << 8)), // M.hi (M1)
+      (v: number) => (r.M = (r.M & 0xff00) | (v & 0xff)), // M.lo (M2)
+      (v: number) => (r.XY = (r.XY & 0x00ff) | ((v & 0xff) << 8)), // XY.hi (X)
+      (v: number) => (r.XY = (r.XY & 0xff00) | (v & 0xff)) // XY.lo (Y)
     ];
 
     // 16-bit sources
-    this.getMov16 = [
-      () => r.M & 0xffff,
-      () => r.XY & 0xffff,
-      () => r.J & 0xffff,
-      () => 0
-    ];
+    this.getMov16 = [() => r.M & 0xffff, () => r.XY & 0xffff, () => r.J & 0xffff, () => 0];
 
     // 16-bit destinations
-    this.setMov16 = [
-      (v: number) => (r.XY = v & 0xffff),
-      (v: number) => (r.PC = v & 0xffff),
-    ];
+    this.setMov16 = [(v: number) => (r.XY = v & 0xffff), (v: number) => (r.PC = v & 0xffff)];
 
     // LOAD/STORE register select
     this.loadReg = [
       (v: number) => (r.A = v & 0xff),
       (v: number) => (r.B = v & 0xff),
       (v: number) => (r.C = v & 0xff),
-      (v: number) => (r.D = v & 0xff),
+      (v: number) => (r.D = v & 0xff)
     ];
     this.saveReg = [
       () => r.A & 0xff,
@@ -151,7 +154,7 @@ export class EmulatorCore {
       () => r.B | r.C,
       () => r.B ^ r.C,
       () => ~r.B & 0xff,
-      () => ((r.B & 0x80) === 0x80 ? (r.B << 1) + 1 : r.B << 1),
+      () => ((r.B & 0x80) === 0x80 ? (r.B << 1) + 1 : r.B << 1)
     ];
   }
 
@@ -180,7 +183,7 @@ export class EmulatorCore {
       FC: r.FC,
       PS: r.PS,
       CLS: r.CLS,
-      cycles: r.cycles,
+      cycles: r.cycles
     });
   }
 
@@ -220,20 +223,24 @@ export class EmulatorCore {
   }
 
   // Small helpers
-  private advPC(n: number) { this.regs.PC = (this.regs.PC + n) & 0xffff; }
-  private tick(n: number) { this.regs.cycles += n; }
+  private advPC(n: number) {
+    this.regs.PC = (this.regs.PC + n) & 0xffff;
+  }
+  private tick(n: number) {
+    this.regs.cycles += n;
+  }
 
   private decode(op: number): InstructionKind {
     if ((op & 0xc0) === 0x40) return InstructionKind.SETAB; // 01------
-    if ((op & 0xc0) === 0x00) return InstructionKind.MOV8;  // 00------
-    if ((op & 0xf0) === 0x80) return InstructionKind.ALU;   // 1000----
-    if ((op & 0xfc) === 0x90) return InstructionKind.LOAD;  // 100100--
+    if ((op & 0xc0) === 0x00) return InstructionKind.MOV8; // 00------
+    if ((op & 0xf0) === 0x80) return InstructionKind.ALU; // 1000----
+    if ((op & 0xfc) === 0x90) return InstructionKind.LOAD; // 100100--
     if ((op & 0xfc) === 0x98) return InstructionKind.STORE; // 100110--
     if ((op & 0xf8) === 0xa0) return InstructionKind.MOV16; // 101000--
-    if ((op & 0xfe) === 0xac) return InstructionKind.LDSW;  // 1010110-
-    if ((op & 0xfe) === 0xae) return InstructionKind.HALT;  // 1010111-
+    if ((op & 0xfe) === 0xac) return InstructionKind.LDSW; // 1010110-
+    if ((op & 0xfe) === 0xae) return InstructionKind.HALT; // 1010111-
     if ((op & 0xff) === 0xb0) return InstructionKind.INCXY; // 10110000
-    if ((op & 0xc0) === 0xc0) return InstructionKind.GOTO;  // 11------
+    if ((op & 0xc0) === 0xc0) return InstructionKind.GOTO; // 11------
     return InstructionKind.UNKNOWN;
   }
 
@@ -242,7 +249,8 @@ export class EmulatorCore {
     const r = this.regs;
     const isB = (op & 0x20) === 0x20;
     const v = (op & 0x10) === 0x10 ? (op & 0x0f) + 0xf0 : op & 0x0f;
-    if (isB) r.B = v & 0xff; else r.A = v & 0xff;
+    if (isB) r.B = v & 0xff;
+    else r.A = v & 0xff;
     this.advPC(1);
     this.tick(8);
     return true;
@@ -269,7 +277,8 @@ export class EmulatorCore {
     r.FC = (v & 0x100) === 0x100;
     r.FS = (v & 0x80) === 0x80;
     const res = v & 0xff;
-    if (toD) r.D = res; else r.A = res;
+    if (toD) r.D = res;
+    else r.A = res;
     this.advPC(1);
     this.tick(8);
     return true;
@@ -315,7 +324,8 @@ export class EmulatorCore {
   private execLDSW(op: number): ExecResult {
     const r = this.regs;
     const toD = (op & 0x01) === 0x01;
-    if (toD) r.D = r.PS & 0xff; else r.A = r.PS & 0xff;
+    if (toD) r.D = r.PS & 0xff;
+    else r.A = r.PS & 0xff;
     this.advPC(1);
     this.tick(10);
     return true;
@@ -382,17 +392,38 @@ export class EmulatorCore {
 
     let cont: boolean;
     switch (kind) {
-      case InstructionKind.SETAB: cont = this.execSETAB(op); break;
-      case InstructionKind.MOV8: cont = this.execMOV8(op); break;
-      case InstructionKind.ALU: cont = this.execALU(op); break;
-      case InstructionKind.LOAD: cont = this.execLOAD(op); break;
-      case InstructionKind.STORE: cont = this.execSTORE(op); break;
-      case InstructionKind.MOV16: cont = this.execMOV16(op); break;
-      case InstructionKind.LDSW: cont = this.execLDSW(op); break;
-      case InstructionKind.HALT: cont = this.execHALT(op); break;
-      case InstructionKind.INCXY: cont = this.execINCXY(op); break;
-      case InstructionKind.GOTO: cont = this.execGOTO(op); break;
-      default: cont = false;
+      case InstructionKind.SETAB:
+        cont = this.execSETAB(op);
+        break;
+      case InstructionKind.MOV8:
+        cont = this.execMOV8(op);
+        break;
+      case InstructionKind.ALU:
+        cont = this.execALU(op);
+        break;
+      case InstructionKind.LOAD:
+        cont = this.execLOAD(op);
+        break;
+      case InstructionKind.STORE:
+        cont = this.execSTORE(op);
+        break;
+      case InstructionKind.MOV16:
+        cont = this.execMOV16(op);
+        break;
+      case InstructionKind.LDSW:
+        cont = this.execLDSW(op);
+        break;
+      case InstructionKind.HALT:
+        cont = this.execHALT(op);
+        break;
+      case InstructionKind.INCXY:
+        cont = this.execINCXY(op);
+        break;
+      case InstructionKind.GOTO:
+        cont = this.execGOTO(op);
+        break;
+      default:
+        cont = false;
     }
 
     if (this.trace) {
@@ -404,7 +435,7 @@ export class EmulatorCore {
         cls: r.CLS,
         cyclesDelta: after.cycles - cy0,
         before,
-        after,
+        after
       });
     }
 

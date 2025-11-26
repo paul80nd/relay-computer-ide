@@ -15,7 +15,7 @@ import {
   ToastTitle,
   tokens,
   useId,
-  useToastController,
+  useToastController
 } from '@fluentui/react-components';
 import { Section, SectionContent } from '../shared';
 import { Links } from '../../links';
@@ -23,18 +23,18 @@ import type { ExportProps } from './types';
 
 const useStyles = makeStyles({
   accordionHeader: {
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground2
   },
   card: {
     height: 'fit-content',
-    marginBottom: tokens.spacingVerticalXS,
+    marginBottom: tokens.spacingVerticalXS
   },
   text: {
     color: tokens.colorNeutralForeground3,
     fontSize: tokens.fontSizeBase200,
     lineHeight: tokens.lineHeightBase200,
-    margin: '0',
-  },
+    margin: '0'
+  }
 });
 
 function exportToClipboard(bytes?: Uint8Array, notify?: (title: string, body: string) => void) {
@@ -44,7 +44,7 @@ function exportToClipboard(bytes?: Uint8Array, notify?: (title: string, body: st
   if (notify) {
     notify(
       'Exported to Clipboard',
-      `Copied ${hex.length > 14 ? hex.substring(0, 14) + '...' : hex} to the clipboard`,
+      `Copied ${hex.length > 14 ? hex.substring(0, 14) + '...' : hex} to the clipboard`
     );
   }
 }
@@ -96,7 +96,7 @@ function Export({ assembly }: ExportProps) {
         <ToastTitle>{title}</ToastTitle>
         <ToastBody>{body}</ToastBody>
       </Toast>,
-      { intent: 'success' },
+      { intent: 'success' }
     );
 
   const hasAssembled = assembly?.didAssemble ?? false;

@@ -13,7 +13,7 @@ import {
   MOV8,
   SETA,
   SETB,
-  STORE,
+  STORE
 } from './helpers/opcodes';
 import { padTo, program } from './helpers/program';
 
@@ -40,7 +40,7 @@ describe('EmulatorCore - reset/load/step basics', () => {
       FS: false,
       FC: false,
       PS: 0,
-      cycles: 0,
+      cycles: 0
     });
   });
 
@@ -123,8 +123,8 @@ describe('Instruction behavior', () => {
         MOV8(2, 0), // C <- A (C=1)
         ALU(1),
         ALUD(6),
-        HALT,
-      ),
+        HALT
+      )
     );
     // After SETB(-1), B=0xFF
     core.step(); // SETB
@@ -153,8 +153,8 @@ describe('Instruction behavior', () => {
         MOV8(5, 1), // M.low <- B (M=0x000A)
         STORE(1), // [M] <- B
         LOAD(0), // A <- [M]
-        HALT,
-      ),
+        HALT
+      )
     );
 
     const vBefore = core.getMemoryVersion();
@@ -179,8 +179,8 @@ describe('Instruction behavior', () => {
         ...GOTO({ d: 0, s: 0, c: 0, z: 0, n: 0, x: 0 }, 0x1234), // M <- 0x1234
         MOV16(0, 0), // XY <- M = 0x1234
         INCXY, // XY = 0x1235
-        MOV16(1, 1), // PC <- XY = 0x1235
-      ),
+        MOV16(1, 1) // PC <- XY = 0x1235
+      )
     );
     // Run 5 steps to move PC
     for (let i = 0; i < 5; i++) expect(core.step()).toBe(true);
@@ -198,7 +198,7 @@ describe('Instruction behavior', () => {
       SETB(0x1f),
       MOV8(2, 1), // C <- B
       ALU(5), // B ^ C => 0x00 => Z=true
-      ...GOTO({ d: 1, z: 1, x: 1 }, tgt),
+      ...GOTO({ d: 1, z: 1, x: 1 }, tgt)
     ];
     const pad = padTo(start, progPrefix.length + 1, tgt); // +1 for the following HALT we’ll add at target
     const prog = [...progPrefix, HALT, ...pad, HALT]; // HALT immediately after GOTO (will be skipped), and HALT at tgt
@@ -255,8 +255,8 @@ describe('Instruction behavior', () => {
         ...GOTO({ d: 0 }, 0x7fff), // M <- 0x7FFF
         STORE(1), // [M] <- B
         LOAD(0), // A <- [M]
-        HALT,
-      ),
+        HALT
+      )
     );
     expect(core.step()).toBe(true); // SETB
     expect(core.step()).toBe(true); // GOTO write M

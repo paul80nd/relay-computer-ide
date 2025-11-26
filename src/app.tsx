@@ -31,29 +31,29 @@ const useStyles = makeStyles({
     width: '100vw',
     overflow: 'hidden',
     gap: '2px',
-    backgroundColor: tokens.colorNeutralBackground3,
+    backgroundColor: tokens.colorNeutralBackground3
   },
   main: {
     display: 'flex',
     flexDirection: 'row',
     flexGrow: '1',
     minHeight: 0,
-    gap: '2px',
+    gap: '2px'
   },
   editor: {
     flexGrow: 1,
-    minWidth: 0,
+    minWidth: 0
   },
   panel: {
     backgroundColor: tokens.colorNeutralBackground2,
     display: 'flex',
     flexDirection: 'column',
     minHeight: 0,
-    overflow: 'hidden',
+    overflow: 'hidden'
   },
   resizeHandle: {
-    flexBasis: '2px',
-  },
+    flexBasis: '2px'
+  }
 });
 
 const defaultTemplate = [
@@ -64,7 +64,7 @@ const defaultTemplate = [
   ';  from the examples folder top left',
   '; *****************************************************',
   '',
-  '',
+  ''
 ].join('\n');
 
 export const App = () => {
@@ -81,7 +81,7 @@ export const App = () => {
   const { code, onCodeChange, save, dirty } = useCodeStorage({
     storageKey: 'code',
     autoSave,
-    defaultCode: defaultTemplate,
+    defaultCode: defaultTemplate
   });
 
   // Debounced assembly from the current code
@@ -111,7 +111,7 @@ export const App = () => {
       if (command.type === 'panel.toggle' && command.panel === 'sidebar-s') {
         setPrefs(prev => ({
           ...prev,
-          panels: { ...prev.panels, secondary: !prev.panels.secondary },
+          panels: { ...prev.panels, secondary: !prev.panels.secondary }
         }));
       }
       if (command.type === 'panel.toggle' && command.panel === 'panel') {
@@ -138,7 +138,7 @@ export const App = () => {
       switch (command.type) {
         case 'app.new': {
           const ok = window.confirm(
-            'This will clear the editor (and clear the code saved in your browser storage). Continue?',
+            'This will clear the editor (and clear the code saved in your browser storage). Continue?'
           );
           if (!ok) return;
           editorRef.current?.loadCode(defaultTemplate);
@@ -177,7 +177,7 @@ export const App = () => {
           if (assembly) {
             const address = exchangeSourceLineNumberForAddress(
               assembly,
-              command.fromSourceLineNumber,
+              command.fromSourceLineNumber
             );
             if (address) {
               bus.execute(outputCommands.gotoAddress(address));
@@ -257,7 +257,7 @@ export const App = () => {
           event.preventDefault();
           setPrefs(prev => ({
             ...prev,
-            panels: { ...prev.panels, bottom: !prev.panels.bottom },
+            panels: { ...prev.panels, bottom: !prev.panels.bottom }
           }));
           return;
         }
@@ -265,7 +265,7 @@ export const App = () => {
           event.preventDefault();
           setPrefs(prev => ({
             ...prev,
-            panels: { ...prev.panels, secondary: !prev.panels.secondary },
+            panels: { ...prev.panels, secondary: !prev.panels.secondary }
           }));
           return;
         }
@@ -351,8 +351,8 @@ export const App = () => {
                           bus.execute(
                             editorCommands.gotoLine(
                               marker.startLineNumber ?? 1,
-                              marker.startColumn ?? 1,
-                            ),
+                              marker.startColumn ?? 1
+                            )
                           );
                         }}
                       />

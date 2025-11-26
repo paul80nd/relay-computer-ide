@@ -33,7 +33,7 @@ describe('EmulatorCore golden snapshots', () => {
       HALT,
       // pad up to target, place HALT at tgt
       ...new Array((tgt - (start + 9)) & 0xffff).fill(0x00),
-      HALT,
+      HALT
     ];
 
     const core = new EmulatorCore();
@@ -71,12 +71,12 @@ describe('EmulatorCore golden snapshots', () => {
         FS: false,
         FC: false,
         CLS: 'ALU',
-        cycles: 48,
+        cycles: 48
       }),
       // GOTO (no jump because Z=false), captures XY, writes J
       expect.objectContaining({ PC: 0x0108, J: tgt, XY: 0x0108, CLS: 'GOTO', cycles: 72 }),
       // HALT
-      expect.objectContaining({ PC: 0x0109, CLS: 'MISC', cycles: 82 }),
+      expect.objectContaining({ PC: 0x0109, CLS: 'MISC', cycles: 82 })
     ]);
   });
 });

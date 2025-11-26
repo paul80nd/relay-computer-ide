@@ -33,7 +33,7 @@ function Output({ assembly }: OutputProps) {
         minimap: { enabled: false },
         glyphMargin: false,
         automaticLayout: true,
-        scrollBeyondLastLine: false,
+        scrollBeyondLastLine: false
       });
 
       // Register "Go to Source" action once
@@ -48,7 +48,7 @@ function Output({ assembly }: OutputProps) {
           if (!addrText) return;
           const addr = parseInt(addrText, 16);
           bus.execute(appCommands.jumpToSource(addr));
-        },
+        }
       });
 
       // Register CodeLens jump from label
@@ -80,7 +80,7 @@ function Output({ assembly }: OutputProps) {
       editorRef.current.setAssembly(assembly);
     },
     [assembly],
-    isEditorReady,
+    isEditorReady
   );
 
   // Subscribe to output-targeted commands

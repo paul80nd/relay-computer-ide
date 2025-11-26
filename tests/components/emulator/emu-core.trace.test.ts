@@ -17,7 +17,7 @@ describe('EmulatorCore trace hook', () => {
       LOAD(0), // +12
       ALU(2), // +8
       ...GOTO({ d: 1, z: 1, x: 1 }, tgt), // +24, not taken (Z false)
-      HALT, // +10, returns false
+      HALT // +10, returns false
     ];
 
     core.load(program(start, ...bytes));

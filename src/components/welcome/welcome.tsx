@@ -5,12 +5,12 @@ import { Section, SectionContent } from '../shared';
 const useStyles = makeStyles({
   contentHeader: {
     padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL} 0`,
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground2
   },
   para: {
     marginTop: 0,
-    marginBottom: tokens.spacingVerticalS,
-  },
+    marginBottom: tokens.spacingVerticalS
+  }
 });
 
 function Welcome() {

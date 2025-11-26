@@ -12,11 +12,11 @@ export function assemble(code: string): AssemblerResult {
       .disassemble(prg, {
         isInstruction: debugInfo?.info().isInstruction,
         isData: debugInfo?.info().isData,
-        dataLength: debugInfo?.info().dataLength,
+        dataLength: debugInfo?.info().dataLength
       })
       .join('\n');
     labelDict = Object.fromEntries(
-      labels.map(l => [l.addr.toString(16).padStart(4, '0').toUpperCase(), { name: l.name }]),
+      labels.map(l => [l.addr.toString(16).padStart(4, '0').toUpperCase(), { name: l.name }])
     );
   } else {
     dasm = `❌ Assembly failed (${pluralize(errors.length, 'error', 'errors')})`;
@@ -26,7 +26,7 @@ export function assemble(code: string): AssemblerResult {
     bytes: prg,
     dasm: dasm,
     pcToLocs: debugInfo?.pcToLocs,
-    labels: labelDict,
+    labels: labelDict
   };
 }
 
@@ -50,7 +50,7 @@ export type AssemblerResult = {
 /** Exchange a given assembly address for the nearest originating source code line */
 export function exchangeAddressForSourceLine(
   asm: AssemblerResult,
-  address: number,
+  address: number
 ): number | undefined {
   const pcToLocs = asm.pcToLocs;
   if (!pcToLocs) return undefined;
@@ -71,7 +71,7 @@ export function exchangeAddressForSourceLine(
 /** Exchange a given source code line number for the approprate assembly address */
 export function exchangeSourceLineNumberForAddress(
   asm: AssemblerResult,
-  sourceLineNumber: number,
+  sourceLineNumber: number
 ): number | undefined {
   const pcToLocs = asm.pcToLocs;
   if (!pcToLocs) return undefined;

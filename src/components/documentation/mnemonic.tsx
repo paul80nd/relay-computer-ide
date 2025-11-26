@@ -5,7 +5,7 @@ import {
   Text,
   Tooltip,
   makeStyles,
-  tokens,
+  tokens
 } from '@fluentui/react-components';
 import { isInstructionDoc, type AluFlags, type AluFlagState, type MnemonicDoc } from './docs';
 import { Fragment } from 'react';
@@ -13,40 +13,40 @@ import { Fragment } from 'react';
 const useStyles = makeStyles({
   card: {
     height: 'fit-content',
-    marginBottom: tokens.spacingVerticalXS,
+    marginBottom: tokens.spacingVerticalXS
   },
   badges: {
     display: 'flex',
-    gap: tokens.spacingHorizontalXS,
+    gap: tokens.spacingHorizontalXS
   },
   syntax: {
     fontSize: tokens.fontSizeBase400,
     marginRight: '.3rem',
     display: 'inline',
-    whiteSpace: 'pre-wrap',
+    whiteSpace: 'pre-wrap'
   },
   instrSummaries: {
     display: 'flex',
     flexDirection: 'column',
-    gap: tokens.spacingHorizontalXS,
+    gap: tokens.spacingHorizontalXS
   },
   instrSummary: {
     fontSize: tokens.fontSizeBase300,
     fontWeight: tokens.fontWeightMedium,
-    margin: 0,
+    margin: 0
   },
   instDesc: {
     margin: 0,
     fontSize: tokens.fontSizeBase200,
-    lineHeight: tokens.lineHeightBase200,
+    lineHeight: tokens.lineHeightBase200
   },
   code: {
     fontFamily: 'Menlo, Monaco, "Courier New", monospace',
     fontWeight: tokens.fontWeightRegular,
     fontSize: tokens.fontSizeBase200,
     lineHeight: tokens.lineHeightBase200,
-    color: tokens.colorPaletteGreenForeground2,
-  },
+    color: tokens.colorPaletteGreenForeground2
+  }
 });
 
 export function Mnemonic(doc: MnemonicDoc) {
@@ -140,7 +140,7 @@ export function Mnemonic(doc: MnemonicDoc) {
               >
                 {p}
               </Text>
-            )),
+            ))
           )}
           action={
             <div className={styles.badges}>
@@ -215,7 +215,7 @@ export function Mnemonic(doc: MnemonicDoc) {
               <Text className={styles.syntax} key={i} weight={i == 0 ? 'semibold' : 'regular'}>
                 {p}
               </Text>
-            )),
+            ))
           )}
         />
         <div className={styles.instrSummaries}>

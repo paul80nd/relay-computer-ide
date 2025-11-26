@@ -10,7 +10,7 @@ self.MonacoEnvironment = {
   getWorker(_: unknown, label: string) {
     console.log(`Requesting worker for: ${label}`);
     return new editorWorker();
-  },
+  }
 };
 
 // Set up RC languages
@@ -58,8 +58,8 @@ monaco.languages.registerCodeLensProvider('rcdsm', {
         command: {
           id: jumpToSourceCommandId ?? '',
           title: label.name,
-          arguments: [addr],
-        },
+          arguments: [addr]
+        }
       });
     });
 
@@ -67,8 +67,8 @@ monaco.languages.registerCodeLensProvider('rcdsm', {
   },
   resolveCodeLens: function (
     _model: monaco.editor.ITextModel,
-    codeLens: monaco.languages.CodeLens,
+    codeLens: monaco.languages.CodeLens
   ) {
     return codeLens;
-  },
+  }
 });

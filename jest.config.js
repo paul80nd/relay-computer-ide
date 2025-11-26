@@ -8,8 +8,8 @@ const config = {
   testEnvironment: 'node',
   testMatch: ['**/__tests__/**/*.test.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
   transform: {
-    ...tsJestTransformCfg,
-  },
+    ...tsJestTransformCfg
+  }
 };
 
 export default config;
