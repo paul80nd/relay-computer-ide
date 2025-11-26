@@ -1,10 +1,15 @@
 {
+  "arrowParens": "avoid",
+  "bracketSameLine": false,
+  "objectWrap": "preserve",
+  "bracketSpacing": true,
+  "semi": true,
+  "experimentalOperatorPosition": "end",
+  "experimentalTernaries": false,
+  "singleQuote": true,
+  "jsxSingleQuote": true,
   "printWidth": 100,
   "tabWidth": 2,
-  "singleQuote": true,
-  "semi": true,
   "quoteProps": "as-needed",
-  "jsxSingleQuote": true,
-  "arrowParens": "avoid",
   "singleAttributePerLine": false
 }

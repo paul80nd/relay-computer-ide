@@ -310,7 +310,11 @@ const Reg16R = memo(function Reg16R({
   );
 });
 
-const StaticLayer = memo(function StaticLayer({ styles }: { styles: ReturnType<typeof useStyles> }) {
+const StaticLayer = memo(function StaticLayer({
+  styles,
+}: {
+  styles: ReturnType<typeof useStyles>;
+}) {
   return (
     <>
       {/* Data Bus */}
@@ -385,7 +389,9 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         withArrow
         appearance='inverted'
         relationship='label'
-        content={<RegTooltipContent title='Primary Switches' value={snapshot.PS} width={2} showDec />}
+        content={
+          <RegTooltipContent title='Primary Switches' value={snapshot.PS} width={2} showDec />
+        }
       >
         <div className={`${styles.dgPCV} ${styles.psV}`}>
           <code className={styles.code}>{toHex(snapshot.PS, 2)}</code>
@@ -397,7 +403,9 @@ export default function EmulatorDiagram({ snapshot }: { snapshot: Snapshot }) {
         withArrow
         appearance='inverted'
         relationship='label'
-        content={<RegTooltipContent title='Program Counter' value={snapshot.PC} width={4} showDec />}
+        content={
+          <RegTooltipContent title='Program Counter' value={snapshot.PC} width={4} showDec />
+        }
       >
         <div className={`${styles.dgPCV} ${styles.pcV}`}>
           <code className={styles.code}>{toHex(snapshot.PC, 4)}</code>
