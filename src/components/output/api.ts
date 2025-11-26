@@ -1,9 +1,8 @@
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js'
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import type { AssemblerResult } from '../../assembler.ts';
 import { setCurrentAssembly } from '../../workers.ts';
 
 export class OutputApi {
-
   private editor: monaco.editor.IStandaloneCodeEditor;
 
   constructor(editor: monaco.editor.IStandaloneCodeEditor) {
@@ -18,7 +17,7 @@ export class OutputApi {
 
   /** Jump to the line for the given address */
   gotoAddress(address: number) {
-    const hexAddr = address.toString(16).toUpperCase().padStart(4, '0')
+    const hexAddr = address.toString(16).toUpperCase().padStart(4, '0');
     const lineNo = this.getLineNumberFromHexAddress(hexAddr);
     if (lineNo) {
       this.editor.revealLineInCenterIfOutsideViewport(lineNo, monaco.editor.ScrollType.Smooth);
@@ -27,7 +26,9 @@ export class OutputApi {
     }
   }
 
-  dispose(): void { this.editor.dispose() };
+  dispose(): void {
+    this.editor.dispose();
+  }
 
   private getLineNumberFromHexAddress(hexAddr: string): number | undefined {
     const model = this.editor.getModel();

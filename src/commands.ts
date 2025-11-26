@@ -1,4 +1,4 @@
-import type { PanelType, SectionType } from "./hooks/usePreferences.ts";
+import type { PanelType, SectionType } from './hooks/usePreferences.ts';
 
 export type CommandType =
   | 'app.new'
@@ -21,11 +21,13 @@ export type CommandTarget = 'app' | 'editor' | 'output' | 'panel';
 type CommandBase<
   TType extends CommandType,
   TTarget extends CommandTarget,
-  TPayload extends object = Record<never, never>
-> = Readonly<{
-  type: TType;
-  target: TTarget;
-} & TPayload>;
+  TPayload extends object = Record<never, never>,
+> = Readonly<
+  {
+    type: TType;
+    target: TTarget;
+  } & TPayload
+>;
 
 /** Global command union */
 export type Command =
@@ -36,9 +38,9 @@ export type Command =
   | CommandBase<'app.loadExample', 'app', { example: string }>
   | CommandBase<'app.jumpToSource', 'app', { fromAddress: number }>
   | CommandBase<'app.jumpToAssembled', 'app', { fromSourceLineNumber: number }>
-  | CommandBase<'editor.gotoLine', 'editor', { lineNumber?: number, column?: number }>
-  | CommandBase<'editor.doMonacoKeyboardAction', 'editor', { id: string; }>
-  | CommandBase<'editor.doMonacoAction', 'editor', { actionId: string; }>
+  | CommandBase<'editor.gotoLine', 'editor', { lineNumber?: number; column?: number }>
+  | CommandBase<'editor.doMonacoKeyboardAction', 'editor', { id: string }>
+  | CommandBase<'editor.doMonacoAction', 'editor', { actionId: string }>
   | CommandBase<'output.gotoAddress', 'output', { address: number }>
   | CommandBase<'panel.toggle', 'panel', { panel: PanelType }>
   | CommandBase<'panel.showSection', 'panel', { section: SectionType }>;
@@ -53,11 +55,9 @@ export type PanelCommand = Extract<Command, { target: 'panel' }>;
 function makeCommand<
   TType extends CommandType,
   TTarget extends CommandTarget,
-  TPayload extends object = Record<never, never>
+  TPayload extends object = Record<never, never>,
 >(target: TTarget, type: TType, payload?: TPayload): CommandBase<TType, TTarget, TPayload> {
-  return payload
-    ? { target, type, ...payload }
-    : ({ target, type } as CommandBase<TType, TTarget, TPayload>);
+  return payload ? { target, type, ...payload } : ({ target, type } as CommandBase<TType, TTarget, TPayload>);
 }
 
 // Nice factories for call-sites
@@ -67,14 +67,27 @@ export const appCommands = {
   saveAs: (): AppCommand => ({ target: 'app', type: 'app.saveAs' }),
   open: (): AppCommand => ({ target: 'app', type: 'app.open' }),
   loadExample: (example: string): AppCommand => ({ target: 'app', type: 'app.loadExample', example }),
-  jumpToAssembled: (fromSourceLineNumber: number): AppCommand => ({ target: 'app', type: 'app.jumpToAssembled', fromSourceLineNumber }),
+  jumpToAssembled: (fromSourceLineNumber: number): AppCommand => ({
+    target: 'app',
+    type: 'app.jumpToAssembled',
+    fromSourceLineNumber,
+  }),
   jumpToSource: (fromAddress: number): AppCommand => ({ target: 'app', type: 'app.jumpToSource', fromAddress }),
 };
 
 export const editorCommands = {
-  doMonacoKeyboardAction: (id: string): EditorCommand => ({ target: 'editor', type: 'editor.doMonacoKeyboardAction', id }),
+  doMonacoKeyboardAction: (id: string): EditorCommand => ({
+    target: 'editor',
+    type: 'editor.doMonacoKeyboardAction',
+    id,
+  }),
   doMonacoAction: (actionId: string): EditorCommand => ({ target: 'editor', type: 'editor.doMonacoAction', actionId }),
-  gotoLine: (lineNumber?: number, column: number | undefined = undefined): EditorCommand => ({ target: 'editor', type: 'editor.gotoLine', lineNumber, column }),
+  gotoLine: (lineNumber?: number, column: number | undefined = undefined): EditorCommand => ({
+    target: 'editor',
+    type: 'editor.gotoLine',
+    lineNumber,
+    column,
+  }),
 };
 
 export const outputCommands = {

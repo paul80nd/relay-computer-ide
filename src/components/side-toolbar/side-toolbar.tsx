@@ -59,7 +59,7 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
   // Apply changes from the side toolbar to prefs
   const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
     onPrefsChange(
-      (prev: IPreferences): IPreferences => updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels)
+      (prev: IPreferences): IPreferences => updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels),
     );
   };
 
@@ -102,7 +102,7 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
             value='emulator'
           />
         </Tooltip>
-         <Tooltip content='Documentation' relationship='description' positioning='after' withArrow>
+        <Tooltip content='Documentation' relationship='description' positioning='after' withArrow>
           <ToolbarRadioButton
             className={styles.toggle}
             aria-label='Italic'

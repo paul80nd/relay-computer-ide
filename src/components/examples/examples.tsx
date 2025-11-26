@@ -80,7 +80,7 @@ function Examples() {
             <AccordionHeader className={styles.accordionHeader}>Simple Examples</AccordionHeader>
             <AccordionPanel>
               {renderSectionHeader(
-                'These example programs are deliberately simple to demonstrate some common concepts and provide an introduction to the assembly language:'
+                'These example programs are deliberately simple to demonstrate some common concepts and provide an introduction to the assembly language:',
               )}
               {isDevMode && renderExample('counter', 'Countdown Timer', 'DEV ONLY: A simple counter program')}
               {renderExample('fibonacci', 'Fibonacci Series', 'Calculates the first 13 terms of the Fibonacci series')}
@@ -97,7 +97,7 @@ function Examples() {
               {renderExample(
                 'pi-bbp-v1',
                 'Pi Calculation (BBP)',
-                'Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.'
+                'Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.',
               )}
             </AccordionPanel>
           </AccordionItem>
@@ -107,7 +107,7 @@ function Examples() {
             <AccordionHeader className={styles.accordionHeader}>Mathematical Operations</AccordionHeader>
             <AccordionPanel>
               {renderSectionHeader(
-                "These example programs demonstrate how to perform common mathematical operations that aren't native to the relay computer:"
+                "These example programs demonstrate how to perform common mathematical operations that aren't native to the relay computer:",
               )}
               {renderExample('addition-long-se', 'Long Addition', 'Byte-by-byte long addition')}
               {renderExample('subtract-8', '8-bit Subtract', '')}
@@ -115,31 +115,31 @@ function Examples() {
               {renderExample(
                 'subtraction-long-se',
                 'Long Subtraction',
-                'Byte-by-byte long subtraction (performed by 2s complement then long addition)'
+                'Byte-by-byte long subtraction (performed by 2s complement then long addition)',
               )}
               {renderExample(
                 'multiply-8',
                 '8-bit Multiply',
-                'Multiplies two unsigned 8-bit numbers to produce an 8-bit result'
+                'Multiplies two unsigned 8-bit numbers to produce an 8-bit result',
               )}
               {isDevMode &&
                 renderExample(
                   'multiply-16',
                   '16-bit Multiply',
-                  'DEV ONLY: Multiplies two unsigned 8-bit numbers to produce a 16-bit result'
+                  'DEV ONLY: Multiplies two unsigned 8-bit numbers to produce a 16-bit result',
                 )}
               {renderExample(
                 'reciprocal-long-se',
                 'Long Reciprocal',
-                'Byte-by-byte long reciprocal using the non-restoring unsigned integer division method'
+                'Byte-by-byte long reciprocal using the non-restoring unsigned integer division method',
               )}
               {renderExample(
                 'reciprocal-long-se-v2',
                 'Long Reciprocal v2',
-                'Revised example of byte-by-byte long reciprocal now using the restoring unsigned integer division method'
+                'Revised example of byte-by-byte long reciprocal now using the restoring unsigned integer division method',
               )}
               {renderSectionHeader(
-                'Many of the examples above are also available in "Handy Routines" as reusable functions.'
+                'Many of the examples above are also available in "Handy Routines" as reusable functions.',
               )}
             </AccordionPanel>
           </AccordionItem>
@@ -149,7 +149,7 @@ function Examples() {
             <AccordionHeader className={styles.accordionHeader}>Handy Routines</AccordionHeader>
             <AccordionPanel>
               {renderSectionHeader(
-                'These programs provide (and demonstrate) reusable functions that could be used by other programs:'
+                'These programs provide (and demonstrate) reusable functions that could be used by other programs:',
               )}
               <div>
                 {renderExample('convert-endian', 'Convert Endianness', 'Endian conversion (reverse bytes)')}
@@ -157,12 +157,12 @@ function Examples() {
                 {renderExample(
                   'subtraction-long',
                   'Long Subtraction',
-                  'Byte-by-byte long subtraction (performed by 2s complement then long addition)'
+                  'Byte-by-byte long subtraction (performed by 2s complement then long addition)',
                 )}
                 {renderExample(
                   'reciprocal-long',
                   'Long Reciprocal',
-                  'Byte-by-byte long reciprocal using the restoring unsigned integer division method'
+                  'Byte-by-byte long reciprocal using the restoring unsigned integer division method',
                 )}
               </div>
             </AccordionPanel>

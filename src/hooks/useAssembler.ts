@@ -1,6 +1,6 @@
-import { assemble, type AssemblerResult } from "../assembler.ts";
-import { useEffect, useState } from "react";
-import useDebounce from "./useDebounce.ts";
+import { assemble, type AssemblerResult } from '../assembler.ts';
+import { useEffect, useState } from 'react';
+import useDebounce from './useDebounce.ts';
 
 export interface UseAssemblerOptions {
   /** Source code to assemble */

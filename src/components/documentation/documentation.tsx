@@ -321,7 +321,7 @@ function Documentation() {
         ),
       },
     ],
-    []
+    [],
   );
 
   return (

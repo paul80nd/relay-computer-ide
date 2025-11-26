@@ -100,7 +100,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
       }
       runningRef.current = false;
     },
-    []
+    [],
   );
 
   /** Instructions-per-refresh handling */
@@ -206,7 +206,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
       coreRef.current.flipPrimarySwitchBit(pos);
       commitSnapshot();
     },
-    [commitSnapshot]
+    [commitSnapshot],
   );
 
   /** Move current memory page back */

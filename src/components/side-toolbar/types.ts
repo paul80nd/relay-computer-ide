@@ -1,4 +1,4 @@
-import type { IPreferences } from "../../hooks/usePreferences.ts";
+import type { IPreferences } from '../../hooks/usePreferences.ts';
 
 export type SideToolbarProps = {
   /** Current preference state (panels, section, autoSave, etc.) */
@@ -8,4 +8,4 @@ export type SideToolbarProps = {
    * Update preferences, functional form to safely derive from the previous state.
    */
   onPrefsChange: (updater: (prev: IPreferences) => IPreferences) => void;
-}
+};

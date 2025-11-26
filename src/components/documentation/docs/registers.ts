@@ -16,7 +16,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     size: 8,
     canRead: true,
     canWrite: true,
-    description: 'General purpose 8-bit register.'
+    description: 'General purpose 8-bit register.',
   },
   b: {
     title: 'b',
@@ -24,8 +24,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     size: 8,
     canRead: true,
     canWrite: true,
-    description:
-      'General purpose 8-bit register. Directly feeds the ALU for all binary and unary operations.'
+    description: 'General purpose 8-bit register. Directly feeds the ALU for all binary and unary operations.',
   },
   c: {
     title: 'c',
@@ -33,7 +32,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     size: 8,
     canRead: true,
     canWrite: true,
-    description: 'General purpose 8-bit register. Directly feeds the ALU for all binary operations'
+    description: 'General purpose 8-bit register. Directly feeds the ALU for all binary operations',
   },
   d: {
     title: 'd',
@@ -41,7 +40,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     size: 8,
     canRead: true,
     canWrite: true,
-    description: 'General purpose 8-bit register.'
+    description: 'General purpose 8-bit register.',
   },
   m1: {
     title: 'm1',
@@ -49,7 +48,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     size: 8,
     canRead: true,
     canWrite: true,
-    description: 'General purpose 8-bit register. Forms high byte of 16-bit M register.'
+    description: 'General purpose 8-bit register. Forms high byte of 16-bit M register.',
   },
   m2: {
     title: 'm2',
@@ -57,7 +56,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     size: 8,
     canRead: true,
     canWrite: true,
-    description: 'General purpose 8-bit register. Forms low byte of 16-bit M register'
+    description: 'General purpose 8-bit register. Forms low byte of 16-bit M register',
   },
   x: {
     title: 'x',
@@ -65,7 +64,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     size: 8,
     canRead: true,
     canWrite: true,
-    description: 'General purpose 8-bit register. Forms high byte of 16-bit XY register.'
+    description: 'General purpose 8-bit register. Forms high byte of 16-bit XY register.',
   },
   y: {
     title: 'y',
@@ -73,7 +72,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     size: 8,
     canRead: true,
     canWrite: true,
-    description: 'General purpose 8-bit register. Forms low byte of 16-bit XY register.'
+    description: 'General purpose 8-bit register. Forms low byte of 16-bit XY register.',
   },
   m: {
     title: 'm',
@@ -82,7 +81,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     canRead: true,
     canWrite: false,
     description:
-      '16-bit read-only register. Formed from the 8-bit M1 and M2 registers. Typically used to reference a location in memory.'
+      '16-bit read-only register. Formed from the 8-bit M1 and M2 registers. Typically used to reference a location in memory.',
   },
   j: {
     title: 'j',
@@ -91,7 +90,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     canRead: true,
     canWrite: false,
     description:
-      '16-bit read-only register. Formed from the 8-bit J1 and J2 registers. Can only be loaded as part of a branching or load immediate instruction. Typically used for jumps and conditional branching.'
+      '16-bit read-only register. Formed from the 8-bit J1 and J2 registers. Can only be loaded as part of a branching or load immediate instruction. Typically used for jumps and conditional branching.',
   },
   xy: {
     title: 'xy',
@@ -100,7 +99,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     canRead: true,
     canWrite: true,
     description:
-      '16-bit general purpose register. Formed from the 8-bit X and Y registers. Typically used to hold a return address, indexing a memory location or as a general 16-bit register. Can be incremented with the `ixy` instruction.'
+      '16-bit general purpose register. Formed from the 8-bit X and Y registers. Typically used to hold a return address, indexing a memory location or as a general 16-bit register. Can be incremented with the `ixy` instruction.',
   },
   pc: {
     title: 'pc',
@@ -109,7 +108,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     canRead: true,
     canWrite: true,
     description:
-      'The program counter (a 16-bit read-only register). Points to the next instruction in memory to be performed. Loading a value in to this register effectively performs a jump.'
+      'The program counter (a 16-bit read-only register). Points to the next instruction in memory to be performed. Loading a value in to this register effectively performs a jump.',
   },
   as: {
     title: 'as',
@@ -118,7 +117,7 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     canRead: true,
     canWrite: false,
     description:
-      "16-bit read-only register formed from the 8-bit front panel switches. The upper 8-bits of this 'register' are always zero. Effectively this allows user input to be gated onto the address bus."
+      "16-bit read-only register formed from the 8-bit front panel switches. The upper 8-bits of this 'register' are always zero. Effectively this allows user input to be gated onto the address bus.",
   },
   ds: {
     title: 'ds',
@@ -127,6 +126,6 @@ export const registerDocs: Record<RegisterName, RegisterDoc> = {
     canRead: true,
     canWrite: false,
     description:
-      'The current value set on the 8-bit front panel switches. Effectively this allows user input to be gated onto the data bus.'
-  }
+      'The current value set on the 8-bit front panel switches. Effectively this allows user input to be gated onto the data bus.',
+  },
 };

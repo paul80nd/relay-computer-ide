@@ -58,7 +58,7 @@ function AppToolbar(props: AppToolbarProps): JSXElement {
   // Handle toolbar/menus changing panels/section
   const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
     onPrefsChange(
-      (prev: IPreferences): IPreferences => updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels)
+      (prev: IPreferences): IPreferences => updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels),
     );
   };
 

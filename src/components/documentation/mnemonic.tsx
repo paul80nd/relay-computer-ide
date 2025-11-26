@@ -78,8 +78,8 @@ export function Mnemonic(doc: MnemonicDoc) {
           flag === '*'
             ? `${name} flag is set or cleared according to the outcome of the instruction`
             : flag === '0'
-            ? `${name} flag is cleared`
-            : `Impacts ${name} flag`
+              ? `${name} flag is cleared`
+              : `Impacts ${name} flag`
         }
         withArrow
         relationship='description'
@@ -124,7 +124,7 @@ export function Mnemonic(doc: MnemonicDoc) {
               <Text className={styles.syntax} key={`${ii}_${i}`} weight={i == 0 ? 'semibold' : 'regular'}>
                 {p}
               </Text>
-            ))
+            )),
           )}
           action={
             <div className={styles.badges}>
@@ -137,7 +137,7 @@ export function Mnemonic(doc: MnemonicDoc) {
 
         <div className={styles.instrSummaries}>
           <Text as='p' className={styles.instrSummary}>
-            {vs.length > 0 ? doc.variant ?? doc.summary : doc.summary}
+            {vs.length > 0 ? (doc.variant ?? doc.summary) : doc.summary}
           </Text>
           {doc.description?.map((d, i) => (
             <Text as='p' key={i} className={styles.instDesc}>
@@ -148,12 +148,12 @@ export function Mnemonic(doc: MnemonicDoc) {
       </Card>
     );
 
-    const variants = vs.map((v,iii) => (
+    const variants = vs.map((v, iii) => (
       <Card className={styles.card} key={`${iii}`}>
         <CardHeader
           header={
             <div>
-              {v.syntax.map((s,ii) => (
+              {v.syntax.map((s, ii) => (
                 <div key={`${ii}`}>
                   {s.split(' ').map((p, i) => (
                     <Text className={styles.syntax} key={`${i}`} weight={i == 0 ? 'semibold' : 'regular'}>
@@ -195,7 +195,7 @@ export function Mnemonic(doc: MnemonicDoc) {
               <Text className={styles.syntax} key={i} weight={i == 0 ? 'semibold' : 'regular'}>
                 {p}
               </Text>
-            ))
+            )),
           )}
         />
         <div className={styles.instrSummaries}>

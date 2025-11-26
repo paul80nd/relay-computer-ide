@@ -93,7 +93,7 @@ function Export({ assembly }: ExportProps) {
         <ToastTitle>{title}</ToastTitle>
         <ToastBody>{body}</ToastBody>
       </Toast>,
-      { intent: 'success' }
+      { intent: 'success' },
     );
 
   const hasAssembled = assembly?.didAssemble ?? false;

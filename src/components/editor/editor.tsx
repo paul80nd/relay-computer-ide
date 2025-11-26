@@ -148,7 +148,7 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
     if (isEditorReady && onCodeChange) {
       onDidChangeModelContentRef.current?.dispose();
       onDidChangeModelContentRef.current = editorRef.current?.onDidChangeModelContent(() =>
-        onCodeChange(editorRef.current!.getValue())
+        onCodeChange(editorRef.current!.getValue()),
       );
     }
   }, [isEditorReady, onCodeChange]);
@@ -223,7 +223,7 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
       const text = await file.text();
       editorRef.current?.loadCode(text);
     },
-    [editorRef]
+    [editorRef],
   );
 
   return (

@@ -51,8 +51,8 @@ export async function saveAsTextFile(text: string): Promise<void> {
 }
 
 export async function pickTextFile(): Promise<{ name: string; text: string } | null> {
-  const extensions = ['rcasm']
-  const mimeTypes = ['text/plain']
+  const extensions = ['rcasm'];
+  const mimeTypes = ['text/plain'];
   const w = window as any;
 
   // Prefer File System Access API
@@ -81,7 +81,10 @@ export async function pickTextFile(): Promise<{ name: string; text: string } | n
   return new Promise(resolve => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = extensions.map(ext => `.${ext}`).concat(mimeTypes).join(',');
+    input.accept = extensions
+      .map(ext => `.${ext}`)
+      .concat(mimeTypes)
+      .join(',');
     input.onchange = async () => {
       const file = input.files?.[0];
       if (!file) return resolve(null);

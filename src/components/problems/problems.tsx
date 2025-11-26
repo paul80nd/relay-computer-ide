@@ -88,10 +88,10 @@ export default function Problems({ markers, onSelect }: Props) {
         s === monaco.MarkerSeverity.Error
           ? 0
           : s === monaco.MarkerSeverity.Warning
-          ? 1
-          : s === monaco.MarkerSeverity.Info
-          ? 2
-          : 3;
+            ? 1
+            : s === monaco.MarkerSeverity.Info
+              ? 2
+              : 3;
       const s = sevOrder(a.severity) - sevOrder(b.severity);
       if (s !== 0) return s;
       const line = (a.startLineNumber ?? 0) - (b.startLineNumber ?? 0);

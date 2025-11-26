@@ -1,7 +1,6 @@
-import type { IPreferences } from "../../hooks/usePreferences.ts";
+import type { IPreferences } from '../../hooks/usePreferences.ts';
 
 export type AppToolbarProps = {
-
   /** Current preference state (panels, section, autoSave, etc.) */
   prefs: IPreferences;
 
@@ -13,4 +12,4 @@ export type AppToolbarProps = {
 
   /** Whether there are unsaved changes */
   dirty: boolean;
-}
+};

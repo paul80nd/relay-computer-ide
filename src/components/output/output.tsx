@@ -77,7 +77,7 @@ function Output({ assembly }: OutputProps) {
       editorRef.current.setAssembly(assembly);
     },
     [assembly],
-    isEditorReady
+    isEditorReady,
   );
 
   // Subscribe to output-targeted commands

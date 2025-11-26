@@ -49,13 +49,17 @@ function StatusBar({ position, validation, assembly, autoSave, dirty }: StatusBa
           content={`Problems (${pluralize(validation.errors, 'error', 'errors')}, ${pluralize(
             validation.warnings,
             'warning',
-            'warnings'
+            'warnings',
           )})`}
           relationship='description'
           positioning='above-start'
           withArrow
         >
-          <ToolbarButton className={styles.item} appearance='transparent'  onClick={() => execute(panelCommands.togglePanel('panel'))}>
+          <ToolbarButton
+            className={styles.item}
+            appearance='transparent'
+            onClick={() => execute(panelCommands.togglePanel('panel'))}
+          >
             <ErrorCircle16Regular className={validation.errors === 0 ? undefined : styles.error} />
             <Caption1 className={validation.errors === 0 ? undefined : styles.error}>{validation.errors}</Caption1>
             &nbsp;

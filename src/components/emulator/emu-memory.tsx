@@ -102,7 +102,7 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
 
   // Current selected address (tracked memory location)
   const [currentAddr, setCurrentAddr] = useState<number | undefined>(undefined);
-  const currentValue = currentAddr ? memory[currentAddr] ?? 0 : undefined;
+  const currentValue = currentAddr ? (memory[currentAddr] ?? 0) : undefined;
 
   // Go to address controls
   const [gotoText, setGotoText] = useState('');
@@ -138,7 +138,7 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
         handleGoto();
       }
     },
-    [handleGoto]
+    [handleGoto],
   );
 
   // Follow PC / M
@@ -376,6 +376,10 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
 export default memo(EmulatorMemory, (prev, next) => {
   // Re-render only when visible slice or highlights change.
   return (
-    prev.offset === next.offset && prev.pc === next.pc && prev.m === next.m && prev.memory === next.memory && prev.version === next.version // same array ref
+    prev.offset === next.offset &&
+    prev.pc === next.pc &&
+    prev.m === next.m &&
+    prev.memory === next.memory &&
+    prev.version === next.version // same array ref
   );
 });

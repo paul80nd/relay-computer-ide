@@ -1,7 +1,7 @@
 body {
   background-color: white;
   color: black;
-  font-family: "Source Code Pro", monospace;
+  font-family: 'Source Code Pro', monospace;
 }
 
 .wrapper {
@@ -26,7 +26,7 @@ ul {
 }
 
 ul::after {
-  content: " ";
+  content: ' ';
   height: 4.5mm;
   width: 4mm;
   background-image: url('scis.png');
@@ -48,16 +48,15 @@ li.page {
   font-weight: 600;
 }
 
-
 li.footer,
 li.origin,
 li.title,
 li.desc {
   height: 3.2mm;
   margin-left: 8mm;
-  border: .5mm solid black;
+  border: 0.5mm solid black;
   width: 40mm;
-  padding: 1mm 0mm .5mm 0mm;
+  padding: 1mm 0mm 0.5mm 0mm;
   font-size: 2.8mm;
   line-height: 1;
   text-align: center;

@@ -132,7 +132,7 @@ export const App = () => {
       switch (command.type) {
         case 'app.new': {
           const ok = window.confirm(
-            'This will clear the editor (and clear the code saved in your browser storage). Continue?'
+            'This will clear the editor (and clear the code saved in your browser storage). Continue?',
           );
           if (!ok) return;
           editorRef.current?.loadCode(defaultTemplate);
