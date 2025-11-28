@@ -163,6 +163,7 @@ export class EmulatorCore {
     r.FC = r.FS = r.FZ = false;
     r.PS = 0;
     r.cycles = 0;
+    r.DVR = 0;
   }
 
   load(values: Uint8Array): void {
@@ -350,42 +351,80 @@ export class EmulatorCore {
   // DIVIDE 10111cod
   private execDIVIDE(op: number): ExecResult {
     const r = this.regs;
-    const isMod = (op & 0x02) === 0x02;
-    const isCont = (op & 0x04) === 0x04;
-    const toD = (op & 0x01) === 0x01;
-    let res = 0; let rem = 0;
-    if (isMod) {
-      if (r.C == 0) {
-        // Modulo by zero
-        res = r.B;
-        rem = r.B;
-      }
-      else if (isCont) {
-        // Remainder modulo
-        res = rem = r.DVR % r.C;
+    const isMod = (op & 0x02) === 0x02; // In integer mode: select remainder vs quotient to write
+    const isCont = (op & 0x04) === 0x04; // Continued fractional mode (byte-by-byte)
+    const toD = (op & 0x01) === 0x01; // Destination select: A vs D
+
+    let res = 0;
+    let rem = 0;
+
+    // Continued fractional byte mode:
+    // - Produce 8 fractional quotient bits using DVR (remainder) and C (divisor)
+    // - Ignore B; "bring down 0" each bit
+    // - isMod does not affect the operation here; we just produce the next byte of bits
+    if (isCont) {
+      const divisor = r.C & 0xff;
+
+      if (divisor === 0) {
+        // Safe no-op on divide-by-zero: output 0x00, keep remainder
+        res = 0x00;
+        rem = r.DVR & 0xff;
       } else {
-        // Quotient modulo
-        res = rem = r.B % r.C;
+        let nextRem = r.DVR & 0xff;
+        let outByte = 0;
+
+        // Generate 8 bits, MSB-first
+        for (let i = 7; i >= 0; i--) {
+          // Bring down 0 for fractional step (carryIn = 0)
+          nextRem = (nextRem << 1) & 0x1ff; // keep 9 bits to avoid overflow during compare
+          let bit = 0;
+          if ((nextRem & 0x1ff) >= divisor) {
+            nextRem = (nextRem - divisor) & 0x1ff;
+            bit = 1;
+          }
+          outByte |= (bit << i);
+        }
+
+        res = outByte & 0xff;
+        rem = nextRem & 0xff; // store the 8-bit remainder back
       }
+
+      if (toD) r.D = res; else r.A = res;
+      r.DVR = rem;
+
+      this.advPC(1);
+      this.tick(24);
+      return true;
     }
-    else {
-      if (r.C == 0) {
-        // Divide by zero
-        res = 0xFF;
-        rem = r.B;
-      }
-      else if (isCont) {
-        // Remainder divide
-        res = Math.floor(r.DVR / r.C);
-        rem = r.DVR % r.C;
+
+    // Integer divide/modulo (single-step)
+    // isMod selects which value is written (remainder vs quotient).
+    if (r.C === 0) {
+      // Divide/mod by zero behavior:
+      if (isMod) {
+        // Modulo by zero: pass-through B into both result and remainder
+        res = r.B & 0xff;
+        rem = r.B & 0xff;
       } else {
-        // Quotient divide
+        // Divide by zero: 0xFF quotient, remainder = B
+        res = 0xFF;
+        rem = r.B & 0xff;
+      }
+    } else {
+      if (isMod) {
+        // Save remainder
+        res = r.B % r.C;
+        rem = res;
+      } else {
+        // Save quotient, but keep remainder in DVR
         res = Math.floor(r.B / r.C);
         rem = r.B % r.C;
       }
     }
+
     if (toD) r.D = res; else r.A = res;
     r.DVR = rem;
+
     this.advPC(1);
     this.tick(24);
     return true;
