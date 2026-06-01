@@ -48,8 +48,18 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
 
   // Keep latest callbacks in refs to avoid re-subscribing when parent recreates them
   const onMountRef = useRef(onMount);
-  const onDidChangeModelContentRef = useRef<monaco.IDisposable | undefined>(undefined);
-  const onDidChangeCursorPositionRef = useRef<monaco.IDisposable | undefined>(undefined);
+  const onCodeChangeRef = useRef(onCodeChange);
+  const onPositionChangeRef = useRef(onPositionChange);
+  const onValidateRef = useRef(onValidate);
+  useEffect(() => {
+    onCodeChangeRef.current = onCodeChange;
+  });
+  useEffect(() => {
+    onPositionChangeRef.current = onPositionChange;
+  });
+  useEffect(() => {
+    onValidateRef.current = onValidate;
+  });
   const bus = useCommandBus();
 
   const [isEditorReady, setIsEditorReady] = useState(false);
@@ -92,8 +102,6 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
     setIsEditorReady(true);
 
     return () => {
-      onDidChangeModelContentRef?.current?.dispose();
-      onDidChangeCursorPositionRef?.current?.dispose();
       editorRef.current?.dispose();
       editorRef.current = null;
     };
@@ -135,47 +143,37 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
 
   /** onPositionChange */
   useEffect(() => {
-    if (isEditorReady && onPositionChange) {
-      onDidChangeCursorPositionRef.current?.dispose();
-      onDidChangeCursorPositionRef.current = editorRef.current?.onDidChangeCursorPosition(event => {
-        onPositionChange(event);
-      });
-    }
-  }, [isEditorReady, onPositionChange]);
+    if (!isEditorReady || !editorRef.current) return;
+    const disposable = editorRef.current.onDidChangeCursorPosition(event => {
+      onPositionChangeRef.current?.(event);
+    });
+    return () => disposable.dispose();
+  }, [isEditorReady]);
 
   //** onChange */
   useEffect(() => {
-    if (isEditorReady && onCodeChange) {
-      onDidChangeModelContentRef.current?.dispose();
-      onDidChangeModelContentRef.current = editorRef.current?.onDidChangeModelContent(() =>
-        onCodeChange(editorRef.current!.getValue())
-      );
-    }
-  }, [isEditorReady, onCodeChange]);
+    if (!isEditorReady || !editorRef.current) return;
+    const disposable = editorRef.current.onDidChangeModelContent(() => {
+      onCodeChangeRef.current?.(editorRef.current!.getValue());
+    });
+    return () => disposable.dispose();
+  }, [isEditorReady]);
 
   /**  onValidate */
   useEffect(() => {
-    if (isEditorReady) {
-      const changeMarkersListener = monaco.editor.onDidChangeMarkers(uris => {
-        const editorUri = editorRef.current!.getModel()?.uri;
-
-        if (editorUri) {
-          const currentEditorHasMarkerChanges = uris.find(uri => uri.path === editorUri.path);
-          if (currentEditorHasMarkerChanges) {
-            const markers = monaco.editor.getModelMarkers({
-              resource: editorUri,
-            });
-            onValidate?.(markers);
-          }
+    if (!isEditorReady) return;
+    const changeMarkersListener = monaco.editor.onDidChangeMarkers(uris => {
+      const editorUri = editorRef.current!.getModel()?.uri;
+      if (editorUri) {
+        const currentEditorHasMarkerChanges = uris.find(uri => uri.path === editorUri.path);
+        if (currentEditorHasMarkerChanges) {
+          const markers = monaco.editor.getModelMarkers({ resource: editorUri });
+          onValidateRef.current?.(markers);
         }
-      });
-
-      return () => changeMarkersListener?.dispose();
-    }
-    return () => {
-      // eslint happy
-    };
-  }, [isEditorReady, onValidate]);
+      }
+    });
+    return () => changeMarkersListener.dispose();
+  }, [isEditorReady]);
 
   // Drag-and-Drop handlers (inside the editor root)
   const handleDragOver = useCallback((e: React.DragEvent) => {
