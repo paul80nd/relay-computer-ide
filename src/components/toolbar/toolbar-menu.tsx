@@ -13,7 +13,7 @@ import {
   MenuGroup,
   MenuGroupHeader,
   MenuItemLink,
-  MenuItemRadio,
+  MenuItemRadio
 } from '@fluentui/react-components';
 import { useEffect, useMemo, useState } from 'react';
 import { Prefs, type SectionType } from '../../hooks/usePreferences';
@@ -26,8 +26,8 @@ const useStyles = makeStyles({
   menuTrigger: {
     padding: '0 .5rem',
     minWidth: 0,
-    fontWeight: tokens.fontWeightRegular,
-  },
+    fontWeight: tokens.fontWeightRegular
+  }
 });
 
 // Note: We reuse AppToolbarProps but only rely on:
@@ -52,28 +52,31 @@ function AppToolbarMenu(
 
   // Local state for File menu (save group)
   const [fileMenuCheckedValues, setFileMenuCheckedValues] = useState<Record<string, string[]>>({
-    save: autoSaveOn ? ['auto'] : [],
+    save: autoSaveOn ? ['auto'] : []
   });
 
   // Sync File menu 'save' group from prefState.autoSave
   useEffect(() => {
     setFileMenuCheckedValues(prev => ({
       ...prev,
-      save: autoSaveOn ? ['auto'] : [],
+      save: autoSaveOn ? ['auto'] : []
     }));
   }, [autoSaveOn]);
 
-  const handleFileMenuCheckedChange: MenuProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+  const handleFileMenuCheckedChange: MenuProps['onCheckedValueChange'] = (
+    _e,
+    { name, checkedItems }
+  ) => {
     setFileMenuCheckedValues(prev => ({
       ...prev,
-      [name]: checkedItems,
+      [name]: checkedItems
     }));
 
     if (name === 'save') {
       const autoEnabled = checkedItems.includes('auto');
       props.onPrefsChange(prev => ({
         ...prev,
-        autoSave: autoEnabled,
+        autoSave: autoEnabled
       }));
     }
   };
@@ -88,7 +91,11 @@ function AppToolbarMenu(
 
   return (
     <>
-      <Menu hasCheckmarks checkedValues={fileMenuCheckedValues} onCheckedValueChange={handleFileMenuCheckedChange}>
+      <Menu
+        hasCheckmarks
+        checkedValues={fileMenuCheckedValues}
+        onCheckedValueChange={handleFileMenuCheckedChange}
+      >
         <MenuTrigger>
           <ToolbarButton className={styles.menuTrigger} appearance='transparent'>
             File
@@ -96,11 +103,12 @@ function AppToolbarMenu(
         </MenuTrigger>
         <MenuPopover>
           <MenuList>
-            <MenuItem onClick={() => execute(appCommands.new())}>
-              New…
-            </MenuItem>
+            <MenuItem onClick={() => execute(appCommands.new())}>New…</MenuItem>
             <MenuDivider />
-            <MenuItem onClick={async () => await executeAsync(appCommands.open())} secondaryContent={isMac ? '⇧ ⌘ O':'Ctrl+Shift+O'}>
+            <MenuItem
+              onClick={async () => await executeAsync(appCommands.open())}
+              secondaryContent={isMac ? '⇧ ⌘ O' : 'Ctrl+Shift+O'}
+            >
               Open…
             </MenuItem>
             <MenuItem onClick={() => setSection('examples')}>Open from Examples…</MenuItem>
@@ -114,10 +122,16 @@ function AppToolbarMenu(
                 Save
               </MenuItem>
             )}
-            <MenuItem secondaryContent={isMac ? '⇧ ⌘ S' :'Ctrl+Shift+S'} onClick={async () => await executeAsync(appCommands.saveAs())}>
+            <MenuItem
+              secondaryContent={isMac ? '⇧ ⌘ S' : 'Ctrl+Shift+S'}
+              onClick={async () => await executeAsync(appCommands.saveAs())}
+            >
               Save As…
             </MenuItem>
-            <MenuItem onClick={() => setSection('export')} secondaryContent={isMac ? '⇧ ⌘ X' : 'Ctrl+Shift+X'}>
+            <MenuItem
+              onClick={() => setSection('export')}
+              secondaryContent={isMac ? '⇧ ⌘ X' : 'Ctrl+Shift+X'}
+            >
               Export…
             </MenuItem>
             <MenuDivider />
@@ -135,14 +149,23 @@ function AppToolbarMenu(
         </MenuTrigger>
         <MenuPopover>
           <MenuList>
-            <MenuItem onClick={() => doMonacoKeyboard('undo')} secondaryContent={isMac ? '⌘ Z' : 'Ctrl+Z'}>
+            <MenuItem
+              onClick={() => doMonacoKeyboard('undo')}
+              secondaryContent={isMac ? '⌘ Z' : 'Ctrl+Z'}
+            >
               Undo
             </MenuItem>
-            <MenuItem onClick={() => doMonacoKeyboard('redo')} secondaryContent={isMac ? '⇧ ⌘ Z' : 'Ctrl+Y'}>
+            <MenuItem
+              onClick={() => doMonacoKeyboard('redo')}
+              secondaryContent={isMac ? '⇧ ⌘ Z' : 'Ctrl+Y'}
+            >
               Redo
             </MenuItem>
             <MenuDivider />
-            <MenuItem onClick={() => doMonacoAction('actions.find')} secondaryContent={isMac ? '⌘ F' : 'Ctrl+F'}>
+            <MenuItem
+              onClick={() => doMonacoAction('actions.find')}
+              secondaryContent={isMac ? '⌘ F' : 'Ctrl+F'}
+            >
               Find
             </MenuItem>
             <MenuItem
@@ -182,12 +205,18 @@ function AppToolbarMenu(
               Shrink Selection
             </MenuItem>
             <MenuDivider />
-            <MenuItem onClick={() => doMonacoAction('editor.action.duplicateSelection')}>Duplicate Selection</MenuItem>
+            <MenuItem onClick={() => doMonacoAction('editor.action.duplicateSelection')}>
+              Duplicate Selection
+            </MenuItem>
           </MenuList>
         </MenuPopover>
       </Menu>
 
-      <Menu hasCheckmarks checkedValues={props.checkedValues} onCheckedValueChange={handleViewCheckedChange}>
+      <Menu
+        hasCheckmarks
+        checkedValues={props.checkedValues}
+        onCheckedValueChange={handleViewCheckedChange}
+      >
         <MenuTrigger>
           <ToolbarButton className={styles.menuTrigger} appearance='transparent'>
             View
@@ -195,11 +224,18 @@ function AppToolbarMenu(
         </MenuTrigger>
         <MenuPopover>
           <MenuList>
-            <MenuItem secondaryContent='F1' onClick={() => doMonacoAction('editor.action.quickCommand')}>
+            <MenuItem
+              secondaryContent='F1'
+              onClick={() => doMonacoAction('editor.action.quickCommand')}
+            >
               Command Palette…
             </MenuItem>
             <MenuDivider />
-            <Menu hasCheckmarks checkedValues={props.checkedValues} onCheckedValueChange={handleViewCheckedChange}>
+            <Menu
+              hasCheckmarks
+              checkedValues={props.checkedValues}
+              onCheckedValueChange={handleViewCheckedChange}
+            >
               <MenuTrigger disableButtonEnhancement>
                 <MenuItem>Appearance</MenuItem>
               </MenuTrigger>
@@ -218,19 +254,39 @@ function AppToolbarMenu(
               </MenuPopover>
             </Menu>
             <MenuDivider />
-            <MenuItemRadio name='section' value='examples' secondaryContent={isMac ? '⇧ ⌘ E' : 'Ctrl+Shift+E'}>
+            <MenuItemRadio
+              name='section'
+              value='examples'
+              secondaryContent={isMac ? '⇧ ⌘ E' : 'Ctrl+Shift+E'}
+            >
               Examples
             </MenuItemRadio>
-            <MenuItemRadio name='section' value='export' secondaryContent={isMac ? '⇧ ⌘ X' : 'Ctrl+Shift+X'}>
+            <MenuItemRadio
+              name='section'
+              value='export'
+              secondaryContent={isMac ? '⇧ ⌘ X' : 'Ctrl+Shift+X'}
+            >
               Export
             </MenuItemRadio>
-            <MenuItemRadio name='section' value='emulator' secondaryContent={isMac ? '⇧ ⌘ Y' : 'Ctrl+Shift+Y'}>
+            <MenuItemRadio
+              name='section'
+              value='emulator'
+              secondaryContent={isMac ? '⇧ ⌘ Y' : 'Ctrl+Shift+Y'}
+            >
               Emulator
             </MenuItemRadio>
-            <MenuItemRadio name='section' value='documentation' secondaryContent={isMac ? '⇧ ⌘ D' : 'Ctrl+Shift+D'}>
+            <MenuItemRadio
+              name='section'
+              value='documentation'
+              secondaryContent={isMac ? '⇧ ⌘ D' : 'Ctrl+Shift+D'}
+            >
               Documentation
             </MenuItemRadio>
-            <MenuItemRadio name='section' value='welcome' secondaryContent={isMac ? '⇧ ⌘ W' : 'Ctrl+Shift+W'}>
+            <MenuItemRadio
+              name='section'
+              value='welcome'
+              secondaryContent={isMac ? '⇧ ⌘ W' : 'Ctrl+Shift+W'}
+            >
               Welcome
             </MenuItemRadio>
             <MenuDivider />
@@ -271,7 +327,10 @@ function AppToolbarMenu(
               Go to References
             </MenuItem>
             <MenuDivider />
-            <MenuItem secondaryContent={isMac ? '⌃ G' : 'Ctrl+G'} onClick={() => execute(editorCommands.gotoLine())}>
+            <MenuItem
+              secondaryContent={isMac ? '⌃ G' : 'Ctrl+G'}
+              onClick={() => execute(editorCommands.gotoLine())}
+            >
               Go to Line/Column…
             </MenuItem>
             <MenuItem
@@ -281,7 +340,10 @@ function AppToolbarMenu(
               Go to Symbol…
             </MenuItem>
             <MenuDivider />
-            <MenuItem secondaryContent='F8' onClick={() => doMonacoAction('editor.action.marker.next')}>
+            <MenuItem
+              secondaryContent='F8'
+              onClick={() => doMonacoAction('editor.action.marker.next')}
+            >
               Next Problem
             </MenuItem>
             <MenuItem
@@ -342,7 +404,10 @@ function AppToolbarMenu(
             <MenuGroup>
               <MenuGroupHeader>Getting Started</MenuGroupHeader>
               <MenuItem onClick={() => setSection('welcome')}>Welcome</MenuItem>
-              <MenuItem secondaryContent='F1' onClick={() => doMonacoAction('editor.action.quickCommand')}>
+              <MenuItem
+                secondaryContent='F1'
+                onClick={() => doMonacoAction('editor.action.quickCommand')}
+              >
                 Show All Commands
               </MenuItem>
               <MenuItem onClick={() => setSection('documentation')}>Documentation</MenuItem>

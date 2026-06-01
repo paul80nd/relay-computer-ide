@@ -6,23 +6,23 @@ const useStyles = makeStyles({
     height: '100%',
     minHeight: 0,
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'column'
   },
   header: {
     textTransform: 'uppercase',
     color: tokens.colorNeutralForeground3,
-    padding: `${tokens.spacingVerticalM} ${tokens.spacingHorizontalL} ${tokens.spacingVerticalNone}`,
+    padding: `${tokens.spacingVerticalM} ${tokens.spacingHorizontalL} ${tokens.spacingVerticalNone}`
   },
   content: {
     minHeight: 0,
     flexGrow: 1,
-    overflowY: 'auto',
+    overflowY: 'auto'
   },
   footer: {
     color: tokens.colorStatusWarningForeground1,
     padding: `${tokens.spacingVerticalSNudge} ${tokens.spacingHorizontalL} ${tokens.spacingVerticalMNudge}`,
-    lineHeight: tokens.lineHeightBase100,
-  },
+    lineHeight: tokens.lineHeightBase100
+  }
 });
 
 export function SectionFooter({ children }: { children: React.ReactNode }) {

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import useDebounce from "./useDebounce";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import useDebounce from './useDebounce';
 
 export interface UseCodeStorageOptions {
   /** localStorage key for persisting source code (default: 'code') */
@@ -22,7 +22,6 @@ export interface UseCodeStorageResult {
   dirty: boolean;
 }
 
-
 /**
  * Manages editor source code, initial load from localStorage, and optional auto-save.
  */
@@ -31,7 +30,7 @@ export function useCodeStorage(options: UseCodeStorageOptions = {}): UseCodeStor
     storageKey = 'code',
     autoSave = true,
     defaultCode = '',
-    autoSaveDebounceMs = 500,
+    autoSaveDebounceMs = 500
   } = options;
 
   const [code, setCode] = useState<string>(() => {
@@ -48,7 +47,9 @@ export function useCodeStorage(options: UseCodeStorageOptions = {}): UseCodeStor
   // Keep the latest code in a ref so save() and the beforeunload flush
   // don't need to re-bind when code changes.
   const codeRef = useRef(code);
-  useEffect(() => { codeRef.current = code; });
+  useEffect(() => {
+    codeRef.current = code;
+  });
 
   // Auto-save: write the debounced code to localStorage instead of on every keystroke.
   // Skip the first run so the just-loaded value isn't immediately written back.

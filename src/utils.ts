@@ -18,10 +18,10 @@ export async function saveAsTextFile(text: string): Promise<void> {
         types: [
           {
             description: 'RCASM source',
-            accept: { [mimeType]: extensions.map(ext => `.${ext}`) },
-          },
+            accept: { [mimeType]: extensions.map(ext => `.${ext}`) }
+          }
         ],
-        excludeAcceptAllOption: false,
+        excludeAcceptAllOption: false
       });
       const writable = await handle.createWritable();
       await writable.write(new Blob([text], { type: mimeType }));
@@ -51,8 +51,8 @@ export async function saveAsTextFile(text: string): Promise<void> {
 }
 
 export async function pickTextFile(): Promise<{ name: string; text: string } | null> {
-  const extensions = ['rcasm']
-  const mimeTypes = ['text/plain']
+  const extensions = ['rcasm'];
+  const mimeTypes = ['text/plain'];
   const w = window as any;
 
   // Prefer File System Access API
@@ -63,10 +63,10 @@ export async function pickTextFile(): Promise<{ name: string; text: string } | n
         types: [
           {
             description: 'RCASM source',
-            accept: { [mimeTypes[0]]: extensions.map(ext => `.${ext}`) },
-          },
+            accept: { [mimeTypes[0]]: extensions.map(ext => `.${ext}`) }
+          }
         ],
-        excludeAcceptAllOption: false,
+        excludeAcceptAllOption: false
       });
       const file = await handle.getFile();
       const text = await file.text();
@@ -81,7 +81,10 @@ export async function pickTextFile(): Promise<{ name: string; text: string } | n
   return new Promise(resolve => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = extensions.map(ext => `.${ext}`).concat(mimeTypes).join(',');
+    input.accept = extensions
+      .map(ext => `.${ext}`)
+      .concat(mimeTypes)
+      .join(',');
     input.onchange = async () => {
       const file = input.files?.[0];
       if (!file) return resolve(null);

@@ -6,22 +6,21 @@ export const conf = {
     lineComment: ';'
   },
   brackets: [
-    ["{", "}"],
-    ["(", ")"]
+    ['{', '}'],
+    ['(', ')']
   ],
   autoClosingPairs: [
-    { "open": "{", "close": "}" },
-    { "open": "(", "close": ")" },
-    { "open": "'", "close": "'", "notIn": ["string", "comment"] },
-    { "open": "\"", "close": "\"", "notIn": ["string"] }
+    { open: '{', close: '}' },
+    { open: '(', close: ')' },
+    { open: "'", close: "'", notIn: ['string', 'comment'] },
+    { open: '"', close: '"', notIn: ['string'] }
   ],
   surroundingPairs: [
-    { "open": "{", "close": "}" },
-    { "open": "(", "close": ")" }
+    { open: '{', close: '}' },
+    { open: '(', close: ')' }
   ],
-  wordPattern: /(-?\d*\.\d\w*)|([a-zA-Z_][\w]*)/,
+  wordPattern: /(-?\d*\.\d\w*)|([a-zA-Z_][\w]*)/
   //    "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)"
-
 } as languages.LanguageConfiguration;
 
 export const language = {

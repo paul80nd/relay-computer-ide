@@ -8,12 +8,16 @@ export function assemble(code: string): AssemblerResult {
   let dasm = '';
   let labelDict = undefined;
   if (didAssemble) {
-    dasm = rcasm.disassemble(prg, {
-      isInstruction: debugInfo?.info().isInstruction,
-      isData: debugInfo?.info().isData,
-      dataLength: debugInfo?.info().dataLength
-    }).join('\n');
-    labelDict = Object.fromEntries(labels.map(l => [l.addr.toString(16).padStart(4, '0').toUpperCase(), { name: l.name }]));
+    dasm = rcasm
+      .disassemble(prg, {
+        isInstruction: debugInfo?.info().isInstruction,
+        isData: debugInfo?.info().isData,
+        dataLength: debugInfo?.info().dataLength
+      })
+      .join('\n');
+    labelDict = Object.fromEntries(
+      labels.map(l => [l.addr.toString(16).padStart(4, '0').toUpperCase(), { name: l.name }])
+    );
   } else {
     dasm = `❌ Assembly failed (${pluralize(errors.length, 'error', 'errors')})`;
   }
@@ -23,7 +27,7 @@ export function assemble(code: string): AssemblerResult {
     dasm: dasm,
     pcToLocs: debugInfo?.pcToLocs,
     labels: labelDict
-  }
+  };
 }
 
 export type AssemblerResult = {
@@ -41,7 +45,7 @@ export type AssemblerResult = {
       name: string;
     };
   };
-}
+};
 
 /** Exchange a given assembly address for the nearest originating source code line */
 export function exchangeAddressForSourceLine(
@@ -67,7 +71,10 @@ export function exchangeAddressForSourceLine(
 }
 
 /** Exchange a given source code line number for the approprate assembly address */
-export function exchangeSourceLineNumberForAddress(asm: AssemblerResult, sourceLineNumber: number): number | undefined {
+export function exchangeSourceLineNumberForAddress(
+  asm: AssemblerResult,
+  sourceLineNumber: number
+): number | undefined {
   const pcToLocs = asm.pcToLocs;
   if (!pcToLocs) return undefined;
 

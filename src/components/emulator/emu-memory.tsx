@@ -14,7 +14,7 @@ import {
   Tooltip,
   makeStyles,
   tokens,
-  type ToolbarProps,
+  type ToolbarProps
 } from '@fluentui/react-components';
 import { CaretLeft16Filled, CaretRight16Filled } from '@fluentui/react-icons';
 import { toBin, toDec, toHex } from './fmt';
@@ -25,13 +25,13 @@ const useStyles = makeStyles({
     fontWeight: tokens.fontWeightRegular,
     fontSize: tokens.fontSizeBase200,
     color: tokens.colorNeutralForeground2,
-    lineHeight: tokens.lineHeightBase200,
+    lineHeight: tokens.lineHeightBase200
   },
   memoryTable: {
     flexGrow: 1,
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     borderSpacing: 0,
-    borderCollapse: 'collapse',
+    borderCollapse: 'collapse'
   },
   memTh: {
     textAlign: 'center',
@@ -39,18 +39,21 @@ const useStyles = makeStyles({
     fontWeight: tokens.fontWeightMedium,
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     backgroundColor: tokens.colorNeutralBackground2,
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground2
   },
   memTd: {
     textAlign: 'center',
     backgroundColor: tokens.colorNeutralBackground1,
     borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
-    cursor: 'default',
+    cursor: 'default'
   },
-  pcMarker: { backgroundColor: tokens.colorBrandBackground, outline: `1px solid ${tokens.colorBrandStroke1}` },
+  pcMarker: {
+    backgroundColor: tokens.colorBrandBackground,
+    outline: `1px solid ${tokens.colorBrandStroke1}`
+  },
   mMarker: {
     backgroundColor: tokens.colorStatusSuccessBackground3,
-    outline: `1px solid ${tokens.colorStatusSuccessBorderActive}`,
+    outline: `1px solid ${tokens.colorStatusSuccessBorderActive}`
   },
   pcAndMMarker: {
     backgroundImage: `linear-gradient(135deg,
@@ -58,9 +61,14 @@ const useStyles = makeStyles({
       ${tokens.colorBrandBackground} 50%,
       ${tokens.colorStatusSuccessBackground3} 50%,
       ${tokens.colorStatusSuccessBackground3} 100%)`,
-    outline: '1px solid lightGray',
+    outline: '1px solid lightGray'
   },
-  toolbarItem: { color: tokens.colorNeutralForeground3, padding: '0 .4rem', minWidth: '2rem', marginRight: '.2rem' },
+  toolbarItem: {
+    color: tokens.colorNeutralForeground3,
+    padding: '0 .4rem',
+    minWidth: '2rem',
+    marginRight: '.2rem'
+  }
 });
 
 export type MemoryTableProps = {
@@ -95,14 +103,22 @@ function isAddrVisible(addr: number, offset: number) {
   return addr >= offset && addr < offset + PAGE_SIZE;
 }
 
-function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOffset }: MemoryTableProps) {
+function EmulatorMemory({
+  memory,
+  pc,
+  m,
+  offset,
+  onPrevPage,
+  onNextPage,
+  onSetOffset
+}: MemoryTableProps) {
   const styles = useStyles();
   const rows = useMemo(() => [...Array(8).keys()], []);
   const cols = useMemo(() => [...Array(16).keys()], []);
 
   // Current selected address (tracked memory location)
   const [currentAddr, setCurrentAddr] = useState<number | undefined>(undefined);
-  const currentValue = currentAddr ? memory[currentAddr] ?? 0 : undefined;
+  const currentValue = currentAddr ? (memory[currentAddr] ?? 0) : undefined;
 
   // Go to address controls
   const [gotoText, setGotoText] = useState('');
@@ -123,7 +139,10 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
     return null;
   };
 
-  const setOffset = useCallback((next: number) => onSetOffset?.(clampOffsetToPage(next)), [onSetOffset]);
+  const setOffset = useCallback(
+    (next: number) => onSetOffset?.(clampOffsetToPage(next)),
+    [onSetOffset]
+  );
 
   const handleGoto = useCallback(() => {
     const addr = parseAddr(gotoText);
@@ -143,11 +162,14 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
 
   // Follow PC / M
   const [toolbarChecked, setToolbarChecked] = useState<Record<string, string[]>>({
-    follow: ['none'], // default selection
+    follow: ['none'] // default selection
   });
   const followMode = (toolbarChecked.follow?.[0] as FollowMode) ?? 'none';
 
-  const onFollowCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+  const onFollowCheckedChange: ToolbarProps['onCheckedValueChange'] = (
+    _e,
+    { name, checkedItems }
+  ) => {
     // Expect name === 'follow'
     setToolbarChecked(prev => ({ ...prev, [name]: checkedItems }));
   };
@@ -228,7 +250,13 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
                   <td
                     key={c}
                     className={`${styles.memTd} ${
-                      isM && isPC ? styles.pcAndMMarker : isM ? styles.mMarker : isPC ? styles.pcMarker : ''
+                      isM && isPC
+                        ? styles.pcAndMMarker
+                        : isM
+                          ? styles.mMarker
+                          : isPC
+                            ? styles.pcMarker
+                            : ''
                     }`}
                     onClick={() => setCurrentAddr(addr)}
                     role='gridcell'
@@ -252,7 +280,12 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
               >
                 {/* Left group: jump to memory location */}
                 <ToolbarGroup role='presentation'>
-                  <Popover withArrow trapFocus open={gotoOpen} onOpenChange={(_, data) => setGotoOpen(data.open)}>
+                  <Popover
+                    withArrow
+                    trapFocus
+                    open={gotoOpen}
+                    onOpenChange={(_, data) => setGotoOpen(data.open)}
+                  >
                     <PopoverTrigger disableButtonEnhancement>
                       <ToolbarButton className={styles.toolbarItem} appearance='subtle'>
                         <Caption1> Goto...</Caption1>
@@ -376,6 +409,10 @@ function EmulatorMemory({ memory, pc, m, offset, onPrevPage, onNextPage, onSetOf
 export default memo(EmulatorMemory, (prev, next) => {
   // Re-render only when visible slice or highlights change.
   return (
-    prev.offset === next.offset && prev.pc === next.pc && prev.m === next.m && prev.memory === next.memory && prev.version === next.version // same array ref
+    prev.offset === next.offset &&
+    prev.pc === next.pc &&
+    prev.m === next.m &&
+    prev.memory === next.memory &&
+    prev.version === next.version // same array ref
   );
 });

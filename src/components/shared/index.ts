@@ -1,3 +1,3 @@
-import { Section, SectionContent, SectionFooter } from "./section";
+import { Section, SectionContent, SectionFooter } from './section';
 
 export { Section, SectionContent, SectionFooter };

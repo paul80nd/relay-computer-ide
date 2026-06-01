@@ -1,5 +1,5 @@
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js'
-import type { IEditorApi } from "./types.ts";
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
+import type { IEditorApi } from './types.ts';
 
 export class EditorApi implements IEditorApi {
   private editor: monaco.editor.IStandaloneCodeEditor;
@@ -33,12 +33,21 @@ export class EditorApi implements IEditorApi {
     this.editor.trigger('keyboard', id, {});
   }
 
-  public get onDidChangeCursorPosition() { return this.editor.onDidChangeCursorPosition; }
-  public get onDidChangeModelContent() { return this.editor.onDidChangeModelContent; }
+  public get onDidChangeCursorPosition() {
+    return this.editor.onDidChangeCursorPosition;
+  }
+  public get onDidChangeModelContent() {
+    return this.editor.onDidChangeModelContent;
+  }
 
-  getValue() { return this.editor.getValue(); }
-  getModel() { return this.editor.getModel(); }
+  getValue() {
+    return this.editor.getValue();
+  }
+  getModel() {
+    return this.editor.getModel();
+  }
 
-  dispose(): void { this.editor.dispose() };
+  dispose(): void {
+    this.editor.dispose();
+  }
 }
-

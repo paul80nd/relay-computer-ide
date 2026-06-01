@@ -1,7 +1,7 @@
 import {
   AssemblerResult,
   exchangeAddressForSourceLine,
-  exchangeSourceLineNumberForAddress,
+  exchangeSourceLineNumberForAddress
 } from '../src/assembler';
 
 function asmWith(pcToLocs: AssemblerResult['pcToLocs']): AssemblerResult {
@@ -21,7 +21,7 @@ describe('exchangeAddressForSourceLine', () => {
   test('returns the source line for an exact PC match', () => {
     const asm = asmWith({
       0x100: [{ lineNo: 10, numBytes: 1 }],
-      0x101: [{ lineNo: 11, numBytes: 2 }],
+      0x101: [{ lineNo: 11, numBytes: 2 }]
     });
     expect(exchangeAddressForSourceLine(asm, 0x101)).toBe(11);
   });
@@ -29,7 +29,7 @@ describe('exchangeAddressForSourceLine', () => {
   test('falls back to the nearest PC when no exact match exists', () => {
     const asm = asmWith({
       0x100: [{ lineNo: 10, numBytes: 1 }],
-      0x110: [{ lineNo: 20, numBytes: 1 }],
+      0x110: [{ lineNo: 20, numBytes: 1 }]
     });
     // 0x108 is equidistant; reduce keeps the first (prev) — 0x100.
     expect(exchangeAddressForSourceLine(asm, 0x108)).toBe(10);
@@ -40,7 +40,7 @@ describe('exchangeAddressForSourceLine', () => {
   test('handles address before the first PC', () => {
     const asm = asmWith({
       0x100: [{ lineNo: 10, numBytes: 1 }],
-      0x110: [{ lineNo: 20, numBytes: 1 }],
+      0x110: [{ lineNo: 20, numBytes: 1 }]
     });
     expect(exchangeAddressForSourceLine(asm, 0x000)).toBe(10);
   });
@@ -48,7 +48,7 @@ describe('exchangeAddressForSourceLine', () => {
   test('handles address after the last PC', () => {
     const asm = asmWith({
       0x100: [{ lineNo: 10, numBytes: 1 }],
-      0x110: [{ lineNo: 20, numBytes: 1 }],
+      0x110: [{ lineNo: 20, numBytes: 1 }]
     });
     expect(exchangeAddressForSourceLine(asm, 0xfff0)).toBe(20);
   });
@@ -57,8 +57,8 @@ describe('exchangeAddressForSourceLine', () => {
     const asm = asmWith({
       0x100: [
         { lineNo: 7, numBytes: 1 },
-        { lineNo: 42, numBytes: 1 },
-      ],
+        { lineNo: 42, numBytes: 1 }
+      ]
     });
     expect(exchangeAddressForSourceLine(asm, 0x100)).toBe(7);
   });
@@ -77,7 +77,7 @@ describe('exchangeSourceLineNumberForAddress', () => {
     const asm = asmWith({
       0x100: [{ lineNo: 10, numBytes: 1 }],
       0x101: [{ lineNo: 11, numBytes: 2 }],
-      0x103: [{ lineNo: 12, numBytes: 1 }],
+      0x103: [{ lineNo: 12, numBytes: 1 }]
     });
     expect(exchangeSourceLineNumberForAddress(asm, 11)).toBe(0x101);
   });
@@ -86,15 +86,15 @@ describe('exchangeSourceLineNumberForAddress', () => {
     const asm = asmWith({
       0x200: [
         { lineNo: 7, numBytes: 1 },
-        { lineNo: 42, numBytes: 1 },
-      ],
+        { lineNo: 42, numBytes: 1 }
+      ]
     });
     expect(exchangeSourceLineNumberForAddress(asm, 42)).toBe(0x200);
   });
 
   test('returns undefined when no PC maps to the requested source line', () => {
     const asm = asmWith({
-      0x100: [{ lineNo: 10, numBytes: 1 }],
+      0x100: [{ lineNo: 10, numBytes: 1 }]
     });
     expect(exchangeSourceLineNumberForAddress(asm, 99)).toBeUndefined();
   });

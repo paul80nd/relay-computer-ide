@@ -5,12 +5,12 @@ import { Section, SectionContent } from '../shared';
 const useStyles = makeStyles({
   contentHeader: {
     padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL} 0`,
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground2
   },
   para: {
     marginTop: 0,
-    marginBottom: tokens.spacingVerticalS,
-  },
+    marginBottom: tokens.spacingVerticalS
+  }
 });
 
 function Welcome() {
@@ -21,8 +21,8 @@ function Welcome() {
       <SectionContent>
         <div className={styles.contentHeader}>
           <p className={styles.para}>
-            This is an &apos;Integrated Development Environment&apos; (IDE) for writing programs in an assembly language
-            specific to my relay computer.
+            This is an &apos;Integrated Development Environment&apos; (IDE) for writing programs in
+            an assembly language specific to my relay computer.
           </p>
           <p className={styles.para}>
             More details on my relay computer can be found at&nbsp;

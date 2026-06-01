@@ -1,7 +1,12 @@
 // TypeScript / TSX
 import { makeStyles, tokens, Text } from '@fluentui/react-components';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
-import { Dismiss12Filled, ErrorCircle16Regular, Warning16Regular, Info16Regular } from '@fluentui/react-icons';
+import {
+  Dismiss12Filled,
+  ErrorCircle16Regular,
+  Warning16Regular,
+  Info16Regular
+} from '@fluentui/react-icons';
 import { useMemo } from 'react';
 
 type Props = {
@@ -14,7 +19,7 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    overflow: 'hidden',
+    overflow: 'hidden'
   },
   header: {
     display: 'flex',
@@ -25,15 +30,15 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground2,
     fontSize: tokens.fontSizeBase200,
     fontWeight: tokens.fontWeightMedium,
-    flexShrink: 0,
+    flexShrink: 0
   },
   counts: {
     display: 'flex',
-    gap: '12px',
+    gap: '12px'
   },
   list: {
     overflow: 'auto',
-    flex: 1,
+    flex: 1
   },
   row: {
     display: 'grid',
@@ -45,21 +50,23 @@ const useStyles = makeStyles({
     borderBottom: `1px solid ${tokens.colorNeutralStroke3}`,
     color: tokens.colorNeutralForeground1,
     ':hover': {
-      backgroundColor: tokens.colorNeutralBackground3Hover,
-    },
+      backgroundColor: tokens.colorNeutralBackground3Hover
+    }
   },
   empty: {
     padding: '8px',
-    color: tokens.colorNeutralForeground3,
+    color: tokens.colorNeutralForeground3
   },
   iconError: { color: tokens.colorStatusDangerForeground1, paddingTop: '2px' },
   iconWarning: { color: tokens.colorStatusWarningForeground1, paddingTop: '2px' },
-  iconInfo: { color: tokens.colorPaletteBlueForeground2, paddingTop: '2px' },
+  iconInfo: { color: tokens.colorPaletteBlueForeground2, paddingTop: '2px' }
 });
 
 function severityIcon(sev: number, classes: ReturnType<typeof useStyles>) {
-  if (sev === monaco.MarkerSeverity.Error) return <ErrorCircle16Regular className={classes.iconError} />;
-  if (sev === monaco.MarkerSeverity.Warning) return <Warning16Regular className={classes.iconWarning} />;
+  if (sev === monaco.MarkerSeverity.Error)
+    return <ErrorCircle16Regular className={classes.iconError} />;
+  if (sev === monaco.MarkerSeverity.Warning)
+    return <Warning16Regular className={classes.iconWarning} />;
   if (sev === monaco.MarkerSeverity.Info) return <Info16Regular className={classes.iconInfo} />;
   return <Dismiss12Filled className={classes.iconInfo} />;
 }
@@ -88,10 +95,10 @@ export default function Problems({ markers, onSelect }: Props) {
         s === monaco.MarkerSeverity.Error
           ? 0
           : s === monaco.MarkerSeverity.Warning
-          ? 1
-          : s === monaco.MarkerSeverity.Info
-          ? 2
-          : 3;
+            ? 1
+            : s === monaco.MarkerSeverity.Info
+              ? 2
+              : 3;
       const s = sevOrder(a.severity) - sevOrder(b.severity);
       if (s !== 0) return s;
       const line = (a.startLineNumber ?? 0) - (b.startLineNumber ?? 0);
@@ -134,7 +141,9 @@ export default function Problems({ markers, onSelect }: Props) {
                   {m.startLineNumber}:{m.startColumn}
                 </Text>
               </div>
-              <div style={{ color: tokens.colorNeutralForeground3 }}>{/* Only one file open; omit filename */}</div>
+              <div style={{ color: tokens.colorNeutralForeground3 }}>
+                {/* Only one file open; omit filename */}
+              </div>
             </div>
           ))}
         </div>

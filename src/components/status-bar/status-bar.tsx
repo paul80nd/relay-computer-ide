@@ -5,7 +5,7 @@ import {
   Toolbar,
   ToolbarButton,
   ToolbarGroup,
-  Tooltip,
+  Tooltip
 } from '@fluentui/react-components';
 import { Warning16Regular, ErrorCircle16Regular } from '@fluentui/react-icons';
 import type { StatusBarProps } from './types';
@@ -19,11 +19,11 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground3,
     backgroundColor: tokens.colorNeutralBackground2,
     padding: '0 .5rem 0 3.75rem',
-    minHeight: '1.5rem',
+    minHeight: '1.5rem'
   },
   item: { color: tokens.colorNeutralForeground3, padding: '0 .4rem', minWidth: '2rem' },
   error: { color: tokens.colorStatusDangerForeground1 },
-  warning: { color: tokens.colorStatusWarningForeground1 },
+  warning: { color: tokens.colorStatusWarningForeground1 }
 });
 
 function StatusBar({ position, validation, assembly, autoSave, dirty }: StatusBarProps) {
@@ -55,9 +55,15 @@ function StatusBar({ position, validation, assembly, autoSave, dirty }: StatusBa
           positioning='above-start'
           withArrow
         >
-          <ToolbarButton className={styles.item} appearance='transparent'  onClick={() => execute(panelCommands.togglePanel('panel'))}>
+          <ToolbarButton
+            className={styles.item}
+            appearance='transparent'
+            onClick={() => execute(panelCommands.togglePanel('panel'))}
+          >
             <ErrorCircle16Regular className={validation.errors === 0 ? undefined : styles.error} />
-            <Caption1 className={validation.errors === 0 ? undefined : styles.error}>{validation.errors}</Caption1>
+            <Caption1 className={validation.errors === 0 ? undefined : styles.error}>
+              {validation.errors}
+            </Caption1>
             &nbsp;
             <Warning16Regular className={validation.warnings === 0 ? undefined : styles.warning} />
             <Caption1 className={validation.warnings === 0 ? undefined : styles.warning}>
@@ -67,7 +73,12 @@ function StatusBar({ position, validation, assembly, autoSave, dirty }: StatusBa
         </Tooltip>
         <Caption1 className={styles.item}>{renderSaveLabel()}</Caption1>
         {position && (
-          <Tooltip content='Goto Line/Column' relationship='description' positioning='above' withArrow>
+          <Tooltip
+            content='Goto Line/Column'
+            relationship='description'
+            positioning='above'
+            withArrow
+          >
             <ToolbarButton
               className={styles.item}
               appearance='transparent'

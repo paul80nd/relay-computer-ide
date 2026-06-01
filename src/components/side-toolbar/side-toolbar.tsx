@@ -11,7 +11,7 @@ import {
   QuestionCircleRegular,
   QuestionCircleFilled,
   BookInformationFilled,
-  BookInformationRegular,
+  BookInformationRegular
 } from '@fluentui/react-icons';
 import {
   Toolbar,
@@ -20,13 +20,13 @@ import {
   ToolbarToggleButton,
   makeStyles,
   ToolbarGroup,
-  ToolbarRadioButton,
+  ToolbarRadioButton
 } from '@fluentui/react-components';
 import {
   type IPreferences,
   mapPrefsToCheckedValues,
   Prefs,
-  updatePrefsFromCheckedValues,
+  updatePrefsFromCheckedValues
 } from '../../hooks/usePreferences';
 import type { SideToolbarProps } from './types.ts';
 
@@ -40,14 +40,14 @@ const useStyles = makeStyles({
   toolbar: {
     justifyContent: 'space-between',
     backgroundColor: tokens.colorNeutralBackground2,
-    padding: '0.3rem .7rem',
+    padding: '0.3rem .7rem'
   },
   toggle: {
     backgroundColor: tokens.colorNeutralBackground2,
     color: tokens.colorNeutralForeground4,
-    padding: '.7rem .8rem',
+    padding: '.7rem .8rem'
   },
-  icon: { minWidth: '1.9rem', minHeight: '1.9rem' },
+  icon: { minWidth: '1.9rem', minHeight: '1.9rem' }
 });
 
 function SideToolbar(props: SideToolbarProps): JSXElement {
@@ -57,9 +57,13 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
   const checkedValues = mapPrefsToCheckedValues(prefs, Prefs.Panels);
 
   // Apply changes from the side toolbar to prefs
-  const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (_e, { name, checkedItems }) => {
+  const handleCheckedChange: ToolbarProps['onCheckedValueChange'] = (
+    _e,
+    { name, checkedItems }
+  ) => {
     onPrefsChange(
-      (prev: IPreferences): IPreferences => updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels)
+      (prev: IPreferences): IPreferences =>
+        updatePrefsFromCheckedValues(prev, name, checkedItems, Prefs.Panels)
     );
   };
 
@@ -102,7 +106,7 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
             value='emulator'
           />
         </Tooltip>
-         <Tooltip content='Documentation' relationship='description' positioning='after' withArrow>
+        <Tooltip content='Documentation' relationship='description' positioning='after' withArrow>
           <ToolbarRadioButton
             className={styles.toggle}
             aria-label='Italic'
@@ -124,7 +128,12 @@ function SideToolbar(props: SideToolbarProps): JSXElement {
         </Tooltip>
       </ToolbarGroup>
       <ToolbarGroup role='presentation'>
-        <Tooltip content='Toggle Assembler Output' relationship='description' positioning='after' withArrow>
+        <Tooltip
+          content='Toggle Assembler Output'
+          relationship='description'
+          positioning='after'
+          withArrow
+        >
           <ToolbarToggleButton
             className={styles.toggle}
             icon={<DiagramRegular className={styles.icon} />}

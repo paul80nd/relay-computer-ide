@@ -32,29 +32,29 @@ const useStyles = makeStyles({
     width: '100vw',
     overflow: 'hidden',
     gap: '2px',
-    backgroundColor: tokens.colorNeutralBackground3,
+    backgroundColor: tokens.colorNeutralBackground3
   },
   main: {
     display: 'flex',
     flexDirection: 'row',
     flexGrow: '1',
     minHeight: 0,
-    gap: '2px',
+    gap: '2px'
   },
   editor: {
     flexGrow: 1,
-    minWidth: 0,
+    minWidth: 0
   },
   panel: {
     backgroundColor: tokens.colorNeutralBackground2,
     display: 'flex',
     flexDirection: 'column',
     minHeight: 0,
-    overflow: 'hidden',
+    overflow: 'hidden'
   },
   resizeHandle: {
-    flexBasis: '2px',
-  },
+    flexBasis: '2px'
+  }
 });
 
 const defaultTemplate = [
@@ -65,7 +65,7 @@ const defaultTemplate = [
   ';  from the examples folder top left',
   '; *****************************************************',
   '',
-  '',
+  ''
 ].join('\n');
 
 export const App = () => {
@@ -82,7 +82,7 @@ export const App = () => {
   const { code, onCodeChange, save, dirty } = useCodeStorage({
     storageKey: 'code',
     autoSave,
-    defaultCode: defaultTemplate,
+    defaultCode: defaultTemplate
   });
 
   // Debounced assembly from the current code
@@ -110,7 +110,10 @@ export const App = () => {
     return bus.subscribe('panel', command => {
       // Show secondary sidebar
       if (command.type === 'panel.toggle' && command.panel === 'sidebar-s') {
-        setPrefs(prev => ({ ...prev, panels: { ...prev.panels, secondary: !prev.panels.secondary } }));
+        setPrefs(prev => ({
+          ...prev,
+          panels: { ...prev.panels, secondary: !prev.panels.secondary }
+        }));
       }
       if (command.type === 'panel.toggle' && command.panel === 'panel') {
         setPrefs(prev => ({ ...prev, panels: { ...prev.panels, bottom: !prev.panels.bottom } }));
@@ -118,9 +121,12 @@ export const App = () => {
       // Show section
       if (command.type === 'panel.showSection') {
         setPrefs(prev => {
-          const next = prev.section === command.section ? prev : { ...prev, section: command.section };
+          const next =
+            prev.section === command.section ? prev : { ...prev, section: command.section };
           // Ensure primary panel is visible
-          return next.panels.primary ? next : { ...next, panels: { ...next.panels, primary: true } };
+          return next.panels.primary
+            ? next
+            : { ...next, panels: { ...next.panels, primary: true } };
         });
       }
       return;
@@ -139,9 +145,15 @@ export const App = () => {
   const assemblyRef = useRef(assembly);
   const saveRef = useRef(save);
   const codeRef = useRef(code);
-  useEffect(() => { assemblyRef.current = assembly; });
-  useEffect(() => { saveRef.current = save; });
-  useEffect(() => { codeRef.current = code; });
+  useEffect(() => {
+    assemblyRef.current = assembly;
+  });
+  useEffect(() => {
+    saveRef.current = save;
+  });
+  useEffect(() => {
+    codeRef.current = code;
+  });
 
   /** App command handling */
   useEffect(() => {
@@ -186,7 +198,10 @@ export const App = () => {
         case 'app.jumpToAssembled': {
           const assembly = assemblyRef.current;
           if (assembly) {
-            const address = exchangeSourceLineNumberForAddress(assembly, command.fromSourceLineNumber);
+            const address = exchangeSourceLineNumberForAddress(
+              assembly,
+              command.fromSourceLineNumber
+            );
             if (address) {
               bus.execute(outputCommands.gotoAddress(address));
             }
@@ -265,7 +280,7 @@ export const App = () => {
           event.preventDefault();
           setPrefs(prev => ({
             ...prev,
-            panels: { ...prev.panels, bottom: !prev.panels.bottom },
+            panels: { ...prev.panels, bottom: !prev.panels.bottom }
           }));
           return;
         }
@@ -273,7 +288,7 @@ export const App = () => {
           event.preventDefault();
           setPrefs(prev => ({
             ...prev,
-            panels: { ...prev.panels, secondary: !prev.panels.secondary },
+            panels: { ...prev.panels, secondary: !prev.panels.secondary }
           }));
           return;
         }
@@ -284,7 +299,8 @@ export const App = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [bus]);
 
-  const onEditorPositionChanged = (e: monaco.editor.ICursorPositionChangedEvent) => setPosition(e.position);
+  const onEditorPositionChanged = (e: monaco.editor.ICursorPositionChangedEvent) =>
+    setPosition(e.position);
 
   const styles = useStyles();
 
@@ -350,12 +366,23 @@ export const App = () => {
                 {prefs.panels.bottom && (
                   <>
                     <PanelResizeHandle className={styles.resizeHandle} />
-                    <Panel id='bottom' order={2} defaultSize={20} minSize={20} className={styles.panel}>
+                    <Panel
+                      id='bottom'
+                      order={2}
+                      defaultSize={20}
+                      minSize={20}
+                      className={styles.panel}
+                    >
                       <Problems
                         markers={markers}
                         onSelect={marker => {
                           // Jump to the marker location in the editor
-                          bus.execute(editorCommands.gotoLine(marker.startLineNumber ?? 1, marker.startColumn ?? 1));
+                          bus.execute(
+                            editorCommands.gotoLine(
+                              marker.startLineNumber ?? 1,
+                              marker.startColumn ?? 1
+                            )
+                          );
                         }}
                       />
                     </Panel>
@@ -373,7 +400,13 @@ export const App = () => {
             )}
           </PanelGroup>
         </div>
-        <StatusBar position={position} validation={validation} assembly={assembly} autoSave={autoSave} dirty={dirty} />
+        <StatusBar
+          position={position}
+          validation={validation}
+          assembly={assembly}
+          autoSave={autoSave}
+          dirty={dirty}
+        />
       </div>
     </CommandBusProvider>
   );

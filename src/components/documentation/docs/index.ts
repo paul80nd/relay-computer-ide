@@ -34,5 +34,4 @@ export type RegisterName =
   | 'as'
   | 'ds';
 
-
 export type AddressingMode = 'dr' | 'ar' | 'mIndirect' | 'imm';

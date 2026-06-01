@@ -11,7 +11,7 @@ const useStyles = makeStyles({
     position: 'relative',
     width: '100%',
     height: '100%',
-    minHeight: 0,
+    minHeight: 0
   },
   overlay: {
     position: 'absolute',
@@ -20,7 +20,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
-    pointerEvents: 'none', // clicks pass through unless we want to intercept
+    pointerEvents: 'none' // clicks pass through unless we want to intercept
   },
   dropZone: {
     border: `2px dashed ${tokens.colorPaletteBlueBorderActive}`,
@@ -32,13 +32,13 @@ const useStyles = makeStyles({
     fontSize: '14px',
     pointerEvents: 'auto', // accept drops
     minWidth: '320px',
-    textAlign: 'center',
+    textAlign: 'center'
   },
   hint: {
     marginTop: '6px',
     color: tokens.colorNeutralForeground3,
-    fontSize: '12px',
-  },
+    fontSize: '12px'
+  }
 });
 
 function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValidate }: EditorProps) {
@@ -73,7 +73,10 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
 
     if (!editorRef.current) {
       const editor = monaco.editor.create(containerRef.current, {
-        theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light',
+        theme:
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'vs-dark'
+            : 'vs-light',
         value: initialCode,
         language: 'rcasm',
         lineNumbers: 'on',
@@ -81,7 +84,7 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
         padding: { top: 15 },
         automaticLayout: true,
         scrollBeyondLastLine: true,
-        tabFocusMode: false,
+        tabFocusMode: false
       });
 
       // Register "Go to Assembled" action once
@@ -93,7 +96,7 @@ function Editor({ initialCode, onCodeChange, onMount, onPositionChange, onValida
         run: (ed: monaco.editor.ICodeEditor) => {
           const pos = ed.getPosition();
           if (pos) bus.execute(appCommands.jumpToAssembled(pos.lineNumber));
-        },
+        }
       });
 
       editorRef.current = new EditorApi(editor);

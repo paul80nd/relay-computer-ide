@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -10,9 +10,9 @@ export default defineConfig({
         manualChunks: {
           react: ['react', 'react-dom'],
           monaco: ['monaco-editor'],
-          fluent: ['@fluentui/react-components'],
-        },
-      },
-    },
-  },
-})
+          fluent: ['@fluentui/react-components']
+        }
+      }
+    }
+  }
+});
