@@ -88,9 +88,38 @@ export default function Emulator({ assembly }: EmulatorProps) {
       name: w.name,
       addr: nameToAddr.get(w.name),
       length: w.length,
-      requested: w.requested
+      requested: w.requested,
+      endian: w.endian
     }));
   }, [assembly]);
+
+  // Per-page version of the visible memory window. EmulatorMemory only
+  // re-renders when bytes inside this page actually change, even though
+  // commitSnapshot fires the parent every commit.
+  const memPageVersion = coreRef.current.getPageVersion(memoryOffset >> 7);
+
+  // Combined version across all pages touched by any active watch. Re-renders
+  // the watches table only when one of those pages was written. A single
+  // scalar avoids prop-array churn through the memo comparator.
+  const watchesVersion = useMemo(() => {
+    let max = 0;
+    for (const w of watchEntries) {
+      if (w.addr === undefined) continue;
+      const startPage = (w.addr & 0x7fff) >> 7;
+      const endPage = ((w.addr + w.length - 1) & 0x7fff) >> 7;
+      for (let p = startPage; p <= endPage; p++) {
+        const v = coreRef.current.getPageVersion(p);
+        if (v > max) max = v;
+      }
+    }
+    return max;
+    // memVersion is intentionally a dep even though it isn't read in the body:
+    // it forces the memo to re-evaluate on every commit so the new max is
+    // computed from the latest page-version array. The recomputed scalar then
+    // either matches the previous one (memo bails downstream) or differs
+    // (downstream re-renders).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchEntries, memVersion]);
 
   const rafRef = useRef<number | null>(null);
   const commitSnapshot = useCallback(() => {
@@ -373,7 +402,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
           {/* Memory table */}
           <div className={classes.tablesRow}>
             <EmulatorMemory
-              version={memVersion}
+              version={memPageVersion}
               memory={coreRef.current.getMemory()}
               pc={snapshot.PC}
               m={snapshot.M}
@@ -388,7 +417,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
           {watchEntries.length > 0 && (
             <div className={classes.tablesRow}>
               <EmulatorWatches
-                version={memVersion}
+                version={watchesVersion}
                 memory={coreRef.current.getMemory()}
                 watches={watchEntries}
               />

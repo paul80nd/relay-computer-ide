@@ -7,6 +7,7 @@ export type WatchEntry = {
   addr: number | undefined;
   length: number;
   requested: number;
+  endian: 'be' | 'le';
 };
 
 export type WatchesProps = {
@@ -72,6 +73,13 @@ const useStyles = makeStyles({
   truncatedName: {
     color: tokens.colorStatusWarningForeground1,
     cursor: 'help'
+  },
+  endianBadge: {
+    marginLeft: '6px',
+    fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+    fontSize: '10px',
+    color: tokens.colorNeutralForeground3,
+    cursor: 'help'
   }
 });
 
@@ -115,6 +123,14 @@ function EmulatorWatches({ memory, watches }: WatchesProps) {
                 >
                   {w.name}
                 </span>
+                {w.endian === 'le' && (
+                  <span
+                    className={styles.endianBadge}
+                    title='little-endian — bytes shown MSB first (highest address on the left)'
+                  >
+                    LE
+                  </span>
+                )}
               </td>
               <td className={styles.addrCell}>
                 <code className={styles.code}>{unknown ? '????' : toHex(w.addr!, 4)}</code>
@@ -128,7 +144,11 @@ function EmulatorWatches({ memory, watches }: WatchesProps) {
                     </td>
                   );
                 }
-                const v = memory[(w.addr! + i) & 0xffff] ?? 0;
+                // For LE display we reverse the in-memory order so the value
+                // reads MSB→LSB left-to-right, matching how the source comments
+                // typically write the expected value.
+                const byteIdx = w.endian === 'le' ? w.length - 1 - i : i;
+                const v = memory[(w.addr! + byteIdx) & 0xffff] ?? 0;
                 return (
                   <td key={i} className={styles.byteCell}>
                     <code className={styles.code}>{toHex(v, 2)}</code>

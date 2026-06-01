@@ -109,58 +109,58 @@ describe('extractWatches', () => {
 
   test('parses a single name:length watch', () => {
     expect(extractWatches(';@watch foo:5')).toEqual([
-      { name: 'foo', length: 5, requested: 5 }
+      { name: 'foo', length: 5, requested: 5, endian: 'be' }
     ]);
   });
 
   test('parses multiple watches with comma and whitespace separators', () => {
     expect(extractWatches(';@watch pi:9, psum:10 fra:7,frb:7')).toEqual([
-      { name: 'pi', length: 9, requested: 9 },
-      { name: 'psum', length: 10, requested: 10 },
-      { name: 'fra', length: 7, requested: 7 },
-      { name: 'frb', length: 7, requested: 7 }
+      { name: 'pi', length: 9, requested: 9, endian: 'be' },
+      { name: 'psum', length: 10, requested: 10, endian: 'be' },
+      { name: 'fra', length: 7, requested: 7, endian: 'be' },
+      { name: 'frb', length: 7, requested: 7, endian: 'be' }
     ]);
   });
 
   test('defaults length to 1 when missing or non-numeric', () => {
     expect(extractWatches(';@watch foo')).toEqual([
-      { name: 'foo', length: 1, requested: 1 }
+      { name: 'foo', length: 1, requested: 1, endian: 'be' }
     ]);
     expect(extractWatches(';@watch foo:abc')).toEqual([
-      { name: 'foo', length: 1, requested: 1 }
+      { name: 'foo', length: 1, requested: 1, endian: 'be' }
     ]);
   });
 
   test('clamps over-12 length to 12 and preserves requested', () => {
     expect(extractWatches(';@watch big:30')).toEqual([
-      { name: 'big', length: 12, requested: 30 }
+      { name: 'big', length: 12, requested: 30, endian: 'be' }
     ]);
   });
 
   test('clamps below-1 length to 1', () => {
     expect(extractWatches(';@watch tiny:0')).toEqual([
-      { name: 'tiny', length: 1, requested: 0 }
+      { name: 'tiny', length: 1, requested: 0, endian: 'be' }
     ]);
     expect(extractWatches(';@watch tiny:-5')).toEqual([
-      { name: 'tiny', length: 1, requested: -5 }
+      { name: 'tiny', length: 1, requested: -5, endian: 'be' }
     ]);
   });
 
   test('directive is case-insensitive', () => {
     expect(extractWatches(';@WATCH foo:3')).toEqual([
-      { name: 'foo', length: 3, requested: 3 }
+      { name: 'foo', length: 3, requested: 3, endian: 'be' }
     ]);
     expect(extractWatches(';@Watch foo:3')).toEqual([
-      { name: 'foo', length: 3, requested: 3 }
+      { name: 'foo', length: 3, requested: 3, endian: 'be' }
     ]);
   });
 
   test('tolerates whitespace between semicolon and @watch', () => {
     expect(extractWatches('; @watch foo:3')).toEqual([
-      { name: 'foo', length: 3, requested: 3 }
+      { name: 'foo', length: 3, requested: 3, endian: 'be' }
     ]);
     expect(extractWatches('  ;  @watch  foo:3  ')).toEqual([
-      { name: 'foo', length: 3, requested: 3 }
+      { name: 'foo', length: 3, requested: 3, endian: 'be' }
     ]);
   });
 
@@ -172,13 +172,33 @@ describe('extractWatches', () => {
       ';@watch second:9'
     ].join('\n');
     expect(extractWatches(code)).toEqual([
-      { name: 'first', length: 2, requested: 2 }
+      { name: 'first', length: 2, requested: 2, endian: 'be' }
     ]);
   });
 
   test('ignores non-watch annotation lines', () => {
     expect(extractWatches(';@highlight foo:5\n;@watch bar:3')).toEqual([
-      { name: 'bar', length: 3, requested: 3 }
+      { name: 'bar', length: 3, requested: 3, endian: 'be' }
+    ]);
+  });
+
+  test('parses :le and :be endianness suffixes', () => {
+    expect(extractWatches(';@watch pi:9:be, psum:10:le')).toEqual([
+      { name: 'pi', length: 9, requested: 9, endian: 'be' },
+      { name: 'psum', length: 10, requested: 10, endian: 'le' }
+    ]);
+  });
+
+  test('endianness suffix is case-insensitive', () => {
+    expect(extractWatches(';@watch foo:4:LE, bar:4:Be')).toEqual([
+      { name: 'foo', length: 4, requested: 4, endian: 'le' },
+      { name: 'bar', length: 4, requested: 4, endian: 'be' }
+    ]);
+  });
+
+  test('unknown endianness suffix falls back to be', () => {
+    expect(extractWatches(';@watch foo:4:xx')).toEqual([
+      { name: 'foo', length: 4, requested: 4, endian: 'be' }
     ]);
   });
 });

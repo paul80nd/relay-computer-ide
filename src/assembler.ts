@@ -36,9 +36,13 @@ export function assemble(code: string): AssemblerResult {
 // Each token is "<labelName>:<byteLength>". Separators may be whitespace and/or
 // commas. Length is clamped to [1, 12] so the watches block always fits the
 // emulator display. Returns undefined when no directive is present.
+export type WatchEndian = 'be' | 'le';
+
 export function extractWatches(
   code: string
-): { name: string; length: number; requested: number }[] | undefined {
+):
+  | { name: string; length: number; requested: number; endian: WatchEndian }[]
+  | undefined {
   for (const line of code.split('\n')) {
     const m = /^\s*;\s*@watch\s+(.+?)\s*$/i.exec(line);
     if (!m) continue;
@@ -46,11 +50,14 @@ export function extractWatches(
       .split(/[\s,]+/)
       .filter(Boolean)
       .map(tok => {
-        const [name, len] = tok.split(':');
-        const parsed = parseInt(len ?? '', 10);
+        // Tokens are name[:length[:endian]]; unknown trailing parts are ignored.
+        const parts = tok.split(':');
+        const name = parts[0];
+        const parsed = parseInt(parts[1] ?? '', 10);
         const requested = Number.isFinite(parsed) ? parsed : 1;
         const length = Math.max(1, Math.min(12, requested));
-        return { name, length, requested };
+        const endian: WatchEndian = parts[2]?.toLowerCase() === 'le' ? 'le' : 'be';
+        return { name, length, requested, endian };
       })
       .filter(w => w.name);
   }
@@ -72,7 +79,7 @@ export type AssemblerResult = {
       name: string;
     };
   };
-  watches?: { name: string; length: number; requested: number }[];
+  watches?: { name: string; length: number; requested: number; endian: WatchEndian }[];
 };
 
 /** Exchange a given assembly address for the nearest originating source code line */

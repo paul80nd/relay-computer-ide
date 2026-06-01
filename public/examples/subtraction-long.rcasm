@@ -37,7 +37,8 @@
         hlt
 
 ; Initial values in memory (bytes are little-endian ordered)
-; Values are aligned to ease visability in memory viewer
+; Values are aligned to ease visibility in memory viewer
+; @watch sa:10:le
 
         !align 16
 sa:     !byte 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0x03

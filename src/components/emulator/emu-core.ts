@@ -59,9 +59,17 @@ export type StepTrace = {
 
 type TraceFn = (t: StepTrace) => void;
 
+// 128-byte memory pages, matching the emulator memory grid layout. Per-page
+// version counters let consumers detect writes that affect a specific window
+// (visible memory page, watched address range) and skip re-render otherwise.
+// `memVersion` is kept in parallel as the global re-render trigger so the
+// React parent runs and re-reads per-page versions on each commit.
+const PAGE_SHIFT = 7;
+
 export class EmulatorCore {
   private memory: Uint8Array;
   private memVersion = 0;
+  private pageVersions: Uint32Array;
   private regs: Snapshot;
   private trace?: TraceFn;
 
@@ -76,6 +84,7 @@ export class EmulatorCore {
 
   constructor(size = 32768, trace?: TraceFn) {
     this.memory = new Uint8Array(size);
+    this.pageVersions = new Uint32Array(size >> PAGE_SHIFT);
     this.trace = trace;
     this.regs = {
       A: 0,
@@ -166,6 +175,36 @@ export class EmulatorCore {
     return this.memVersion;
   }
 
+  /**
+   * Monotonic counter for the 128-byte page at index `page` (i.e. `addr >> 7`).
+   * Bumps on every write that touches a byte in that page. Out-of-range pages
+   * return 0 (Uint32Array index returns undefined → nullish coalesced).
+   */
+  getPageVersion(page: number): number {
+    return this.pageVersions[page] ?? 0;
+  }
+
+  private bumpPage(addr: number) {
+    this.pageVersions[(addr & 0x7fff) >> PAGE_SHIFT]++;
+  }
+
+  private bumpAllPages() {
+    for (let i = 0; i < this.pageVersions.length; i++) this.pageVersions[i]++;
+  }
+
+  private bumpPageRange(start: number, len: number) {
+    if (len <= 0) return;
+    const startPage = (start & 0x7fff) >> PAGE_SHIFT;
+    const endPage = ((start + len - 1) & 0x7fff) >> PAGE_SHIFT;
+    if (endPage >= startPage) {
+      for (let p = startPage; p <= endPage; p++) this.pageVersions[p]++;
+    } else {
+      // wrap-around range
+      for (let p = startPage; p < this.pageVersions.length; p++) this.pageVersions[p]++;
+      for (let p = 0; p <= endPage; p++) this.pageVersions[p]++;
+    }
+  }
+
   getSnapshot(): Readonly<Snapshot> {
     const r = this.regs;
     return Object.freeze({
@@ -190,6 +229,7 @@ export class EmulatorCore {
   reset(): void {
     this.memory.fill(0);
     this.memVersion++; // memory content changed
+    this.bumpAllPages();
     const r = this.regs;
     r.A = r.B = r.C = r.D = 0;
     r.I = r.PC = 0;
@@ -219,6 +259,7 @@ export class EmulatorCore {
     }
 
     this.memVersion++; // program bytes written
+    this.bumpPageRange(start, progLen);
     this.regs.PC = offset & 0xffff;
   }
 
@@ -305,6 +346,7 @@ export class EmulatorCore {
     this.advPC(1);
     mem[r.M & 0x7fff] = v & 0xff;
     this.memVersion++; // memory changed
+    this.bumpPage(r.M);
     this.tick(12);
     return true;
   }

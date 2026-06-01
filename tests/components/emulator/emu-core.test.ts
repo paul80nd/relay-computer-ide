@@ -268,3 +268,69 @@ describe('Instruction behavior', () => {
     expect(core.step()).toBe(false); // HALT
   });
 });
+
+describe('Per-page version tracking', () => {
+  test('all pages start at 0 on a freshly constructed core', () => {
+    const core = new EmulatorCore();
+    expect(core.getPageVersion(0)).toBe(0);
+    expect(core.getPageVersion(50)).toBe(0);
+    expect(core.getPageVersion(255)).toBe(0);
+  });
+
+  test('reset bumps every page exactly once', () => {
+    const core = new EmulatorCore();
+    core.reset();
+    expect(core.getPageVersion(0)).toBe(1);
+    expect(core.getPageVersion(100)).toBe(1);
+    expect(core.getPageVersion(255)).toBe(1);
+    core.reset();
+    expect(core.getPageVersion(0)).toBe(2);
+    expect(core.getPageVersion(255)).toBe(2);
+  });
+
+  test('load bumps the pages spanned by the program (in addition to the reset bump)', () => {
+    const core = new EmulatorCore();
+    // Load a small program at the start of page 2 (0x0100 >> 7 == 2).
+    core.load(program(0x0100, HALT));
+    // load() calls reset() (all pages +1), then writes program bytes
+    // touching only page 2 (+1 more).
+    expect(core.getPageVersion(2)).toBe(2);
+    expect(core.getPageVersion(0)).toBe(1);
+    expect(core.getPageVersion(255)).toBe(1);
+  });
+
+  test('load with wrap-around bumps both the start and wrapped end pages', () => {
+    const core = new EmulatorCore();
+    // 4 bytes from 0x7ffe: 0x7ffe, 0x7fff in page 255, then wraps to page 0.
+    core.load(program(0x7ffe, HALT, HALT, HALT, HALT));
+    expect(core.getPageVersion(255)).toBe(2); // reset + program
+    expect(core.getPageVersion(0)).toBe(2); // reset + wrapped program
+    expect(core.getPageVersion(100)).toBe(1); // reset only
+  });
+
+  test('STORE bumps only the page containing the target address', () => {
+    const core = new EmulatorCore();
+    // SETA(5), MOV8(M.hi <- A) -> M = 0x0500. STORE(0) writes A to 0x0500.
+    // 0x0500 >> 7 == 10.
+    core.load(program(0x0000, SETA(0x05), MOV8(4, 0), STORE(0), HALT));
+    const targetPage = 0x0500 >> 7;
+    const untouchedPage = 50;
+    const beforeTarget = core.getPageVersion(targetPage);
+    const beforeUntouched = core.getPageVersion(untouchedPage);
+
+    let safety = 10;
+    while (core.step() && safety-- > 0) {
+      /* run to HALT */
+    }
+
+    expect(core.getPageVersion(targetPage)).toBe(beforeTarget + 1);
+    expect(core.getPageVersion(untouchedPage)).toBe(beforeUntouched);
+  });
+
+  test('out-of-range page index returns 0 rather than throwing or NaN', () => {
+    const core = new EmulatorCore();
+    core.reset();
+    expect(core.getPageVersion(-1)).toBe(0);
+    expect(core.getPageVersion(9999)).toBe(0);
+  });
+});
