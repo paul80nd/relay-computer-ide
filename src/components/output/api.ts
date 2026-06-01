@@ -1,6 +1,5 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js'
 import type { AssemblerResult } from '../../assembler.ts';
-import { setCurrentAssembly } from '../../workers.ts';
 
 export class OutputApi {
 
@@ -13,7 +12,6 @@ export class OutputApi {
   /** Set the assembler result */
   setAssembly(assembly: AssemblerResult): void {
     this.editor.setValue(assembly.dasm);
-    setCurrentAssembly(assembly); // Global instance for codelens providers
   }
 
   /** Jump to the line for the given address */

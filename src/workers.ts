@@ -29,11 +29,22 @@ worker.postMessage({ type: 'browser/boot', mode: 'foreground' });
 const s = lsp.createTransportToWorker(worker);//.log();
 new lsp.MonacoLspClient(s);
 
-// Global assembly cache - needed for code lens providers
+// Global assembly cache - needed for code lens providers.
+// Populated by useAssembler so the cache stays in sync regardless of Output's mount state.
 let currentAssembly: AssemblerResult | undefined;
 export function setCurrentAssembly(a?: AssemblerResult) { currentAssembly = a; }
-let jumpToSourceCommandId: string | null;
-export function setJumpToSourceCommandId(id: string | null) { jumpToSourceCommandId = id; }
+
+// Stable global command id for the rcdsm CodeLens jump-to-source action.
+// Registered once below so the command exists even when Output has never mounted.
+// The actual dispatch is installed by the App via setJumpToSourceHandler.
+export const jumpToSourceCommandId = 'rcdsm.jumpToSource';
+let jumpToSourceHandler: ((address: number) => void) | undefined;
+export function setJumpToSourceHandler(h?: (address: number) => void) { jumpToSourceHandler = h; }
+monaco.editor.registerCommand(jumpToSourceCommandId, (_accessor, addrText: string) => {
+  if (!addrText) return;
+  const addr = parseInt(addrText, 16);
+  jumpToSourceHandler?.(addr);
+});
 
 // Add labels code lens
 monaco.languages.registerCodeLensProvider("rcdsm", {
@@ -52,7 +63,7 @@ monaco.languages.registerCodeLensProvider("rcdsm", {
         range: new monaco.Range(idx+1,1,idx+1,1),
         id: `${addr}:${label.name}`,
         command: {
-          id: jumpToSourceCommandId ?? '',
+          id: jumpToSourceCommandId,
           title: label.name,
           arguments: [addr]
         },

@@ -19,6 +19,7 @@ import { useAssembler } from './hooks/useAssembler.ts';
 import { useCodeStorage } from './hooks/useCodeStorage.ts';
 import { CommandBusProvider, useCreateCommandBus } from './hooks/useCommandBus.ts';
 import { exchangeAddressForSourceLine, exchangeSourceLineNumberForAddress } from './assembler.ts';
+import { setJumpToSourceHandler } from './workers.ts';
 import Documentation from './components/documentation/documentation.tsx';
 import Problems from './components/problems/index.ts';
 import { saveAsTextFile, pickTextFile } from './utils.ts';
@@ -125,6 +126,13 @@ export const App = () => {
       return;
     });
   }, [bus, setPrefs]);
+
+  /** Wire the global rcdsm CodeLens jump-to-source command to dispatch through the bus.
+   *  Lives at the App level so the command works regardless of whether Output is mounted. */
+  useEffect(() => {
+    setJumpToSourceHandler(addr => bus.execute(appCommands.jumpToSource(addr)));
+    return () => setJumpToSourceHandler(undefined);
+  }, [bus]);
 
   /** App command handling */
   useEffect(() => {

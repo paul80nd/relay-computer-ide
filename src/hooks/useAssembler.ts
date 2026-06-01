@@ -1,6 +1,7 @@
 import { assemble, type AssemblerResult } from "../assembler.ts";
 import { useEffect, useState } from "react";
 import useDebounce from "./useDebounce.ts";
+import { setCurrentAssembly } from "../workers.ts";
 
 export interface UseAssemblerOptions {
   /** Source code to assemble */
@@ -32,16 +33,19 @@ export function useAssembler(options: UseAssemblerOptions): UseAssemblerResult {
     // Treat empty code as "no assembly"
     if (debouncedCode.trim().length === 0) {
       setAssembly(undefined);
+      setCurrentAssembly(undefined);
       return;
     }
 
     try {
       const result = assemble(debouncedCode);
       setAssembly(result);
+      setCurrentAssembly(result);
     } catch (err) {
       console.error('Error assembling code', err);
       // In case of failure, clear the current assembly to avoid stale output
       setAssembly(undefined);
+      setCurrentAssembly(undefined);
     }
   }, [debouncedCode]);
 

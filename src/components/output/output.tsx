@@ -5,7 +5,6 @@ import useUpdate from '../../hooks/useUpdate';
 import { useCommandBus } from '../../hooks/useCommandBus';
 import { OutputApi } from './api';
 import { appCommands } from '../../commands';
-import { setJumpToSourceCommandId } from '../../workers';
 
 function Output({ assembly }: OutputProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -47,15 +46,6 @@ function Output({ assembly }: OutputProps) {
           bus.execute(appCommands.jumpToSource(addr));
         },
       });
-
-      // Register CodeLens jump from label
-      const commandId = editor.addCommand(0, (_, addrText: string) => {
-        if (addrText) {
-          const addr = parseInt(addrText, 16);
-          bus.execute(appCommands.jumpToSource(addr));
-        }
-      });
-      setJumpToSourceCommandId(commandId); // Global required for code lens
 
       editorRef.current = new OutputApi(editor);
     }
