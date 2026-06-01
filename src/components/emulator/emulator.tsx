@@ -384,6 +384,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
                     content={`Primary switch ${bit}`}
                     withArrow
                     appearance='inverted'
+                    positioning='below'
                   >
                     <button
                       key={bit}

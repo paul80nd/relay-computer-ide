@@ -31,6 +31,31 @@
         ldi a,-1         ; = 0xFF (divide by zero)
         jsr test_div_d  ; test
 
+; Unsigned Integer Modulo Tests
+
+
+        ldi m,255§17    ; 255 % 17
+        ldi b,0         ; = 0 (exact)
+        mov d,b
+        jsr test_mod_a  ; test
+
+        ldi m,123§14    ; 123 % 14
+        ldi a,11         ; = 11
+        jsr test_mod_d  ; test
+
+        ldi m,15§235    ; 15 % 235
+        ldi a,15        ; = 15 (fractional remainder)
+        jsr test_mod_d  ; test
+
+        ldi m,0§3       ; 0 % 3
+        ldi b,0         ; = 0
+        mov d,b
+        jsr test_mod_a  ; test
+
+        ldi m,7§0       ; 7 % 0
+        ldi a,7         ; = 7 (divide by zero)
+        jsr test_mod_d  ; test
+
 ; Halting here means the tests passed.
 pass:   hlt
 
@@ -55,6 +80,34 @@ test_div_d: {
         mov b,m1
         mov c,m2
         div d
+        mov b,a
+        mov c,d
+        cmp
+        bne fail
+        rts
+}
+
+; *************************************************
+;  Test unsigned modulo (A = M1%M2, check A==D)
+; *************************************************
+test_mod_a: {
+        mov b,m1
+        mov c,m2
+        mod
+        mov b,a
+        mov c,d
+        cmp
+        bne fail
+        rts
+}
+
+; *************************************************
+;  Test unsigned division (D = M1%M2, check D==A)
+; *************************************************
+test_mod_d: {
+        mov b,m1
+        mov c,m2
+        mod d
         mov b,a
         mov c,d
         cmp
