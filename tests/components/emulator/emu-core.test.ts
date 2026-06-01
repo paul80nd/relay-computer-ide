@@ -82,12 +82,12 @@ describe('Instruction behavior', () => {
 
     // Step 1
     expect(core.step()).toBe(true);
-    let s1 = core.getSnapshot();
+    const s1 = core.getSnapshot();
     expect(s1).toMatchObject({ A: 0x03, B: 0x00, PC: (start + 1) & 0xffff, cycles: 8 });
 
     // Step 2
     expect(core.step()).toBe(true);
-    let s2 = core.getSnapshot();
+    const s2 = core.getSnapshot();
     expect(s2).toMatchObject({ B: 0xff, cycles: 16 }); // -1 as 8-bit
 
     // Step 3
