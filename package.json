@@ -14,7 +14,7 @@
   },
   "private": true,
   "dependencies": {
-    "@fluentui/react-components": "^9.72.6",
+    "@fluentui/react-components": "^9.72.11",
     "@paul80nd/rcasm": "1.20.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
