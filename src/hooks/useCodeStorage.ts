@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import useDebounce from "./useDebounce";
 
 export interface UseCodeStorageOptions {
   /** localStorage key for persisting source code (default: 'code') */
@@ -7,6 +8,8 @@ export interface UseCodeStorageOptions {
   autoSave?: boolean;
   /** Optional default code when nothing is in storage */
   defaultCode?: string;
+  /** Debounce delay for auto-save writes, in ms (default: 500) */
+  autoSaveDebounceMs?: number;
 }
 
 export interface UseCodeStorageResult {
@@ -28,6 +31,7 @@ export function useCodeStorage(options: UseCodeStorageOptions = {}): UseCodeStor
     storageKey = 'code',
     autoSave = true,
     defaultCode = '',
+    autoSaveDebounceMs = 500,
   } = options;
 
   const [code, setCode] = useState<string>(() => {
@@ -41,17 +45,39 @@ export function useCodeStorage(options: UseCodeStorageOptions = {}): UseCodeStor
     setDirty(true);
   };
 
-  // Auto-save behavior
+  // Keep the latest code in a ref so save() and the beforeunload flush
+  // don't need to re-bind when code changes.
+  const codeRef = useRef(code);
+  useEffect(() => { codeRef.current = code; });
+
+  // Auto-save: write the debounced code to localStorage instead of on every keystroke.
+  // Skip the first run so the just-loaded value isn't immediately written back.
+  const debouncedCode = useDebounce(code, autoSaveDebounceMs);
+  const didMountRef = useRef(false);
+  useEffect(() => {
+    const isFirstRun = !didMountRef.current;
+    didMountRef.current = true;
+    if (!autoSave) return;
+    if (isFirstRun) return;
+    localStorage.setItem(storageKey, debouncedCode);
+    setDirty(false);
+  }, [autoSave, debouncedCode, storageKey]);
+
+  // Flush any pending auto-save before the tab unloads, so changes typed inside
+  // the debounce window aren't lost.
   useEffect(() => {
     if (!autoSave) return;
-    localStorage.setItem(storageKey, code);
-    setDirty(false);
-  }, [autoSave, code, storageKey]);
+    const handler = () => {
+      localStorage.setItem(storageKey, codeRef.current);
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [autoSave, storageKey]);
 
   const save = useCallback(() => {
-    localStorage.setItem(storageKey, code);
+    localStorage.setItem(storageKey, codeRef.current);
     setDirty(false);
-  }, [code, storageKey]);
+  }, [storageKey]);
 
   return { code, onCodeChange, save, dirty };
 }
