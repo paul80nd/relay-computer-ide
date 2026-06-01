@@ -1,8 +1,10 @@
 import { instructionDocs } from './instructions';
 import { directiveDocs } from './directives';
+import { emulatorDocs } from './emulator';
 
 export * from './instructions';
 export * from './directives';
+export * from './emulator';
 export * from './registers';
 
 export interface MnemonicDoc {
@@ -15,7 +17,8 @@ export interface MnemonicDoc {
 
 export const mnemonicDocs = {
   ...instructionDocs,
-  ...directiveDocs
+  ...directiveDocs,
+  ...emulatorDocs
 };
 
 export type RegisterName =

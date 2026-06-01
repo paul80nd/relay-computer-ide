@@ -26,8 +26,35 @@ export function assemble(code: string): AssemblerResult {
     bytes: prg,
     dasm: dasm,
     pcToLocs: debugInfo?.pcToLocs,
-    labels: labelDict
+    labels: labelDict,
+    watches: extractWatches(code)
   };
+}
+
+// Source-level directive: a comment line of the form
+//   ;@watch pi:9, psum:10, fra:7 frb:7 frc:7 frd:7
+// Each token is "<labelName>:<byteLength>". Separators may be whitespace and/or
+// commas. Length is clamped to [1, 12] so the watches block always fits the
+// emulator display. Returns undefined when no directive is present.
+export function extractWatches(
+  code: string
+): { name: string; length: number; requested: number }[] | undefined {
+  for (const line of code.split('\n')) {
+    const m = /^\s*;\s*@watch\s+(.+?)\s*$/i.exec(line);
+    if (!m) continue;
+    return m[1]
+      .split(/[\s,]+/)
+      .filter(Boolean)
+      .map(tok => {
+        const [name, len] = tok.split(':');
+        const parsed = parseInt(len ?? '', 10);
+        const requested = Number.isFinite(parsed) ? parsed : 1;
+        const length = Math.max(1, Math.min(12, requested));
+        return { name, length, requested };
+      })
+      .filter(w => w.name);
+  }
+  return undefined;
 }
 
 export type AssemblerResult = {
@@ -45,6 +72,7 @@ export type AssemblerResult = {
       name: string;
     };
   };
+  watches?: { name: string; length: number; requested: number }[];
 };
 
 /** Exchange a given assembly address for the nearest originating source code line */

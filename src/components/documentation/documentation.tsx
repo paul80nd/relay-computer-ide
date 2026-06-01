@@ -329,6 +329,22 @@ function Documentation() {
             <Mnemonic {...mnemonics['opc']} />
           </>
         )
+      },
+      {
+        title: 'Watches',
+        section: 'Emulator Directives',
+        content: (
+          <>
+            <Commentary>
+              <Text>
+                Emulator directives are comment-line annotations recognised by the IDE rather than
+                the assembler. They have no effect on the assembled output and are ignored by the
+                wider Relay Computer toolchain.
+              </Text>
+            </Commentary>
+            <Mnemonic {...mnemonics['@watch']} />
+          </>
+        )
       }
     ],
     []

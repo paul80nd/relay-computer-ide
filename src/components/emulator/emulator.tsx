@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   Tooltip,
@@ -14,6 +14,7 @@ import type { EmulatorProps } from './types';
 import { Section, SectionContent, SectionFooter } from '../shared';
 import EmulatorDiagram from './emu-diagram';
 import EmulatorMemory from './emu-memory';
+import EmulatorWatches from './emu-watches';
 import { EmulatorCore, type Snapshot } from './emu-core';
 
 const useStyles = makeStyles({
@@ -73,6 +74,23 @@ export default function Emulator({ assembly }: EmulatorProps) {
   const [ipr, setIprState] = useState(iprRef.current);
   const [statusText, setStatusText] = useState('Ready');
   const [memVersion, setMemVersion] = useState(0);
+
+  // Resolve ;@watch directive entries against the assembler's label table.
+  // Unknown labels and over-12 length requests are surfaced (not dropped) so
+  // the watches view can flag them — easier to spot a stale rename or a typo.
+  const watchEntries = useMemo(() => {
+    const watches = assembly?.watches;
+    if (!watches) return [];
+    const nameToAddr = new Map<string, number>(
+      Object.entries(assembly?.labels ?? {}).map(([hex, { name }]) => [name, parseInt(hex, 16)])
+    );
+    return watches.map(w => ({
+      name: w.name,
+      addr: nameToAddr.get(w.name),
+      length: w.length,
+      requested: w.requested
+    }));
+  }, [assembly]);
 
   const rafRef = useRef<number | null>(null);
   const commitSnapshot = useCallback(() => {
@@ -365,6 +383,17 @@ export default function Emulator({ assembly }: EmulatorProps) {
               onSetOffset={setMemoryOffsetClamped}
             />
           </div>
+
+          {/* Watches table (from ;@watch directive) */}
+          {watchEntries.length > 0 && (
+            <div className={classes.tablesRow}>
+              <EmulatorWatches
+                version={memVersion}
+                memory={coreRef.current.getMemory()}
+                watches={watchEntries}
+              />
+            </div>
+          )}
         </div>
       </SectionContent>
       <SectionFooter>

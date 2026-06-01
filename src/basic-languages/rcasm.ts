@@ -86,6 +86,10 @@ export const language = {
       // whitespace
       [/[ \t\r\n]+/, ''],
 
+      // IDE/emulator directives (e.g. ;@watch). Must precede the generic comment
+      // rule so the whole line is tokenised as a meta-annotation, not a comment.
+      [/;\s*@\w+.*$/, 'annotation'],
+
       // Comments
       [/;.*$/, 'comment'],
 
