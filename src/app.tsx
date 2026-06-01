@@ -289,11 +289,17 @@ export const App = () => {
   const styles = useStyles();
 
   async function loadExample(name: string): Promise<void> {
-    const fileName = name.endsWith('.rcasm') ? name : `${name}.rcasm`;
-    const url = `/examples/${fileName}`;
+    // Reject anything outside the example-slug shape so a bus payload can't reach for
+    // paths like `../something` or fetch unrelated assets under the same origin.
+    const slug = name.endsWith('.rcasm') ? name.slice(0, -'.rcasm'.length) : name;
+    if (!/^[a-z0-9-]+$/.test(slug)) {
+      console.warn(`Rejected example name: ${name}`);
+      return;
+    }
+    const url = `/examples/${slug}.rcasm`;
     try {
       const response = await fetch(url);
-      if (!response.ok) throw new Error(`Failed to load example: ${fileName}`);
+      if (!response.ok) throw new Error(`Failed to load example: ${slug}.rcasm`);
       const text = await response.text();
       editorRef.current?.loadCode(text);
     } catch (err) {
