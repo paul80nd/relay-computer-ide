@@ -53,9 +53,11 @@ export function exchangeAddressForSourceLine(
 
   let locs = pcToLocs[address];
   if (!locs) {
-    const closestAddr = Object.keys(pcToLocs)
-      .map(Number)
-      .reduce((prev, curr) => (Math.abs(curr - address) < Math.abs(prev - address) ? curr : prev));
+    const pcs = Object.keys(pcToLocs).map(Number);
+    if (pcs.length === 0) return undefined;
+    const closestAddr = pcs.reduce((prev, curr) =>
+      Math.abs(curr - address) < Math.abs(prev - address) ? curr : prev
+    );
     locs = pcToLocs[closestAddr];
   }
 
