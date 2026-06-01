@@ -105,13 +105,15 @@ function AppToolbarMenu(
             </MenuItem>
             <MenuItem onClick={() => setSection('examples')}>Open from Examples…</MenuItem>
             <MenuDivider />
-            <MenuItem
-              secondaryContent={isMac ? '⌘ S' : 'Ctrl+S'}
-              disabled={autoSaveOn || !props.dirty}
-              onClick={() => execute(appCommands.save())}
-            >
-              Save
-            </MenuItem>
+            {!autoSaveOn && (
+              <MenuItem
+                secondaryContent={isMac ? '⌘ S' : 'Ctrl+S'}
+                disabled={!props.dirty}
+                onClick={() => execute(appCommands.save())}
+              >
+                Save
+              </MenuItem>
+            )}
             <MenuItem secondaryContent={isMac ? '⇧ ⌘ S' :'Ctrl+Shift+S'} onClick={async () => await executeAsync(appCommands.saveAs())}>
               Save As…
             </MenuItem>
