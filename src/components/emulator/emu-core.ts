@@ -14,6 +14,7 @@ export type Snapshot = {
   PS: number;
   CLS: string;
   cycles: number;
+  DVR: number;
 };
 
 const InstructionKind = {
@@ -27,7 +28,8 @@ const InstructionKind = {
   HALT: 7,
   INCXY: 8,
   GOTO: 9,
-  UNKNOWN: 10
+  UNKNOWN: 10,
+  DIVIDE: 11
 } as const;
 type InstructionKind = (typeof InstructionKind)[keyof typeof InstructionKind];
 
@@ -44,7 +46,8 @@ const KindToCls: Record<InstructionKind, string> = {
   [InstructionKind.HALT]: 'MISC',
   [InstructionKind.INCXY]: 'INCXY',
   [InstructionKind.GOTO]: 'GOTO',
-  [InstructionKind.UNKNOWN]: '???'
+  [InstructionKind.UNKNOWN]: '???',
+  [InstructionKind.DIVIDE]: 'INCXY'
 };
 
 export type StepTrace = {
@@ -101,7 +104,8 @@ export class EmulatorCore {
       FC: false,
       PS: 0,
       CLS: 'MOV8',
-      cycles: 0
+      cycles: 0,
+      DVR: 0
     };
     this.initDecodeTables();
   }
@@ -222,7 +226,8 @@ export class EmulatorCore {
       FC: r.FC,
       PS: r.PS,
       CLS: r.CLS,
-      cycles: r.cycles
+      cycles: r.cycles,
+      DVR: r.DVR
     });
   }
 
@@ -281,6 +286,7 @@ export class EmulatorCore {
     if ((op & 0xfe) === 0xac) return InstructionKind.LDSW; // 1010110-
     if ((op & 0xfe) === 0xae) return InstructionKind.HALT; // 1010111-
     if ((op & 0xff) === 0xb0) return InstructionKind.INCXY; // 10110000
+    if ((op & 0xf8) === 0xb8) return InstructionKind.DIVIDE; // 1011 1---
     if ((op & 0xc0) === 0xc0) return InstructionKind.GOTO; // 11------
     return InstructionKind.UNKNOWN;
   }
@@ -422,6 +428,47 @@ export class EmulatorCore {
     return true;
   }
 
+  // DIVIDE 10111cod
+  private execDIVIDE(op: number): ExecResult {
+    const r = this.regs;
+    const isMod = (op & 0x02) === 0x02;
+    const isCont = (op & 0x04) === 0x04;
+    const toD = (op & 0x01) === 0x01;
+    let res = 0;
+    let rem = 0;
+    if (r.C == 0) {
+      // Divide by zero
+      res = 0xff;
+      rem = r.B;
+    } else {
+      if (isMod) {
+        if (isCont) {
+          // Remainder modulo
+          res = rem = r.DVR % r.C;
+        } else {
+          // Quotient modulo
+          res = rem = r.B % r.C;
+        }
+      } else {
+        if (isCont) {
+          // Remainder divide
+          res = Math.floor(r.DVR / r.C);
+          rem = r.DVR % r.C;
+        } else {
+          // Quotient divide
+          res = Math.floor(r.B / r.C);
+          rem = r.B % r.C;
+        }
+      }
+    }
+    if (toD) r.D = res;
+    else r.A = res;
+    r.DVR = rem;
+    this.advPC(1);
+    this.tick(24);
+    return true;
+  }
+
   step(): ExecResult {
     const r = this.regs;
     const pc0 = r.PC;
@@ -463,6 +510,9 @@ export class EmulatorCore {
         break;
       case InstructionKind.GOTO:
         cont = this.execGOTO(op);
+        break;
+      case InstructionKind.DIVIDE:
+        cont = this.execDIVIDE(op);
         break;
       default:
         cont = false;
