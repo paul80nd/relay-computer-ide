@@ -90,6 +90,7 @@ carry:  ; For the carry scenario we need to add 1 to the byte. It's
 
 ; Initial values in memory (bytes are little-endian ordered)
 ; Values are aligned to ease visibility in memory viewer
+; @watch sa:10:le
 
         !align 16
 sa:     !byte 0xFA, 0x1D, 0x67, 0xF9, 0x1D, 0x67, 0xF9, 0x1D, 0x67, 0x01

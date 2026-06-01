@@ -11,7 +11,8 @@
         jmp start
 
         ; Reserve space for result in memory. Value is aligned
-        ; and initialised to 1s to ease visability in emulator
+        ; and initialised to 1s to ease visibility in emulator
+        ; @watch ra:10
 
         !fill 3, 0x00
 ra:     !fill 10, 0x11

@@ -30,7 +30,8 @@
         hlt
 
 ; Initial values in memory - values will be reversed in-place
-; Values are aligned to ease visability in memory viewer
+; Values are aligned to ease visibility in memory viewer
+; @watch ca:4, cb:7, cc:10
 
         !align 16
 ca:     !byte 0x12, 0x34, 0x56, 0x78

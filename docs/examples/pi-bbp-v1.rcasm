@@ -49,6 +49,8 @@
 ;  can be removed to shorten the assembled output.
 ; ***************************************************************
 
+; @watch psum:10:le, psexp:10:le, fra:7:le, frb:7:le, frc:7:le, frd:7:le
+
         org 0x07
 pi:     !fill 9,0xaa    ; final result of Pi [9 byte Big Endian Q4.68] (area marked with 0xaa for visibility)
 psum:   !fill 10,0      ; intermediate sum of Pi [10 byte Little Endian Q4.76]
