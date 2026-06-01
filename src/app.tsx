@@ -134,6 +134,15 @@ export const App = () => {
     return () => setJumpToSourceHandler(undefined);
   }, [bus]);
 
+  // Keep latest reactive values in refs so the `app` subscriber doesn't need to
+  // re-subscribe (and risk racing in-flight async handlers) on every change.
+  const assemblyRef = useRef(assembly);
+  const saveRef = useRef(save);
+  const codeRef = useRef(code);
+  useEffect(() => { assemblyRef.current = assembly; });
+  useEffect(() => { saveRef.current = save; });
+  useEffect(() => { codeRef.current = code; });
+
   /** App command handling */
   useEffect(() => {
     return bus.subscribe('app', async command => {
@@ -153,11 +162,11 @@ export const App = () => {
           return;
         }
         case 'app.save': {
-          save();
+          saveRef.current();
           return;
         }
         case 'app.saveAs': {
-          await saveAsTextFile(code);
+          await saveAsTextFile(codeRef.current);
           return;
         }
         case 'app.loadExample': {
@@ -165,7 +174,7 @@ export const App = () => {
           return;
         }
         case 'app.jumpToSource': {
-          // Jump to the nearest source code line for the given assembled address
+          const assembly = assemblyRef.current;
           if (assembly) {
             const lineNo = exchangeAddressForSourceLine(assembly, command.fromAddress);
             if (lineNo) {
@@ -175,7 +184,7 @@ export const App = () => {
           return;
         }
         case 'app.jumpToAssembled': {
-          // Jump to the address for the given source code line number
+          const assembly = assemblyRef.current;
           if (assembly) {
             const address = exchangeSourceLineNumberForAddress(assembly, command.fromSourceLineNumber);
             if (address) {
@@ -185,7 +194,7 @@ export const App = () => {
         }
       }
     });
-  }, [bus, assembly, save]);
+  }, [bus]);
 
   const onEditorValidated = (newMarkers: monaco.editor.IMarker[]) => {
     const v: StatusBarValidation = { errors: 0, warnings: 0 };
