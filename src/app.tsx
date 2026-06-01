@@ -4,7 +4,7 @@ import SideToolbar from './components/side-toolbar';
 import Editor from './components/editor';
 import Output from './components/output';
 import { useEffect, useRef, useState } from 'react';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { Panel, Group, Separator, useDefaultLayout } from 'react-resizable-panels';
 import { usePreferences, Prefs } from './hooks/usePreferences';
 import Welcome from './components/welcome';
 import Emulator from './components/emulator';
@@ -337,24 +337,42 @@ export const App = () => {
     return <Welcome />;
   }
 
+  const horizontalPanelLayout = useDefaultLayout({
+    groupId: 'horizontal-layout',
+    storage: localStorage
+  });
+
+  const verticalPanelLayout = useDefaultLayout({
+    groupId: 'vertical-layout',
+    storage: localStorage
+  });
+
   return (
     <CommandBusProvider value={bus}>
       <div className={styles.container}>
         <AppToolbar prefs={prefs} onPrefsChange={setPrefs} dirty={dirty} />
         <div className={styles.main}>
           <SideToolbar prefs={prefs} onPrefsChange={setPrefs} />
-          <PanelGroup direction='horizontal' autoSaveId='layout-horizontal'>
+          <Group
+            orientation='horizontal'
+            defaultLayout={horizontalPanelLayout.defaultLayout}
+            onLayoutChanged={horizontalPanelLayout.onLayoutChanged}
+          >
             {prefs.panels.primary && (
               <>
-                <Panel id='left' defaultSize={25} minSize={25} className={styles.panel} order={1}>
+                <Panel id='left' defaultSize='25%' minSize='25%' className={styles.panel}>
                   {renderSection()}
                 </Panel>
-                <PanelResizeHandle className={styles.resizeHandle} />
+                <Separator className={styles.resizeHandle} />
               </>
             )}
-            <Panel order={2} id='middle'>
-              <PanelGroup direction='vertical' autoSaveId='layout-vertical'>
-                <Panel id='editor' minSize={33} order={1} data-tabster='{"uncontrolled": {}}'>
+            <Panel id='middle'>
+              <Group
+                orientation='vertical'
+                defaultLayout={verticalPanelLayout.defaultLayout}
+                onLayoutChanged={verticalPanelLayout.onLayoutChanged}
+              >
+                <Panel id='editor' minSize='33%' data-tabster='{"uncontrolled": {}}'>
                   <Editor
                     initialCode={code}
                     onCodeChange={onCodeChange}
@@ -365,14 +383,8 @@ export const App = () => {
                 </Panel>
                 {prefs.panels.bottom && (
                   <>
-                    <PanelResizeHandle className={styles.resizeHandle} />
-                    <Panel
-                      id='bottom'
-                      order={2}
-                      defaultSize={20}
-                      minSize={20}
-                      className={styles.panel}
-                    >
+                    <Separator className={styles.resizeHandle} />
+                    <Panel id='bottom' defaultSize='20%' minSize='20%' className={styles.panel}>
                       <Problems
                         markers={markers}
                         onSelect={marker => {
@@ -388,17 +400,17 @@ export const App = () => {
                     </Panel>
                   </>
                 )}
-              </PanelGroup>
+              </Group>
             </Panel>
             {prefs.panels.secondary && (
               <>
-                <PanelResizeHandle className={styles.resizeHandle} />
-                <Panel id='right' defaultSize={20} minSize={20} className={styles.panel} order={3}>
+                <Separator className={styles.resizeHandle} />
+                <Panel id='right' defaultSize='20%' minSize='20%' className={styles.panel}>
                   <Output assembly={assembly} />
                 </Panel>
               </>
             )}
-          </PanelGroup>
+          </Group>
         </div>
         <StatusBar
           position={position}
