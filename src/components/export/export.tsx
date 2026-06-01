@@ -46,39 +46,47 @@ function exportToClipboard(bytes?: Uint8Array, notify?: (title: string, body: st
   }
 }
 
-function exportToPaperTape(dasm?: string) {
+// Track open export popups so a reused popup can be updated via a hash change instead
+// of being closed and reopened (avoids a flash).
+const openExportPopups = new Map<string, Window>();
+
+// Open or update an export popup. The payload is written to localStorage under a random
+// key; the popup page (tape.html / ldsht.html) reads the key from its own `location.hash`
+// and renders. This removes all parent-side load-event timing and DOM injection, and
+// works uniformly across browsers — both fresh and reused popups go through the same
+// path. The popup script removes its localStorage entry after reading it.
+function openExportPopup(windowName: string, href: string, dasm: string): Window | null {
+  const key = Math.random().toString(36).slice(2, 10);
+  const payload = `${key}@@@${dasm.replace(/\n/gi, '|')}`;
+  localStorage.setItem('rcide_export_' + key, payload);
+
+  const existing = openExportPopups.get(windowName);
+  if (existing && !existing.closed) {
+    existing.location.hash = '#k=' + key;
+    existing.focus();
+    return existing;
+  }
+
+  const wi = window.open(`${href}#k=${key}`, windowName);
+  if (!wi) {
+    localStorage.removeItem('rcide_export_' + key);
+    return null;
+  }
+  openExportPopups.set(windowName, wi);
+  return wi;
+}
+
+function exportToPaperTape(dasm?: string, notify?: (title: string, body: string) => void) {
   if (!dasm) return;
-  const wi = window.open('', 'tape', '');
-  if (wi) {
-    wi.location.href = 'tape/tape.html';
-    // Wait for window instance to be created
-    setTimeout(() => {
-      const prgId = Math.random().toString(36).slice(2, 10);
-      const name = '';
-      const desc = '';
-      wi.document.body.innerText = `${prgId}@${name}@${desc}@${dasm.replace(/\n/gi, '|')}`;
-      var script = document.createElement('script');
-      script.src = 'tape.js';
-      wi.document.head.appendChild(script);
-    }, 500);
+  if (!openExportPopup('tape', 'tape/tape.html', dasm) && notify) {
+    notify('Popup Blocked', 'Allow popups for this site to export to paper tape.');
   }
 }
 
-function exportToLoadSheet(dasm?: string) {
+function exportToLoadSheet(dasm?: string, notify?: (title: string, body: string) => void) {
   if (!dasm) return;
-  const wi = window.open('', 'loadsheet', '');
-  if (wi) {
-    wi.location.href = 'loadsheet/ldsht.html';
-    // Wait for window instance to be created
-    setTimeout(() => {
-      const prgId = Math.random().toString(36).slice(2, 10);
-      const name = '';
-      const desc = '';
-      wi.document.body.innerText = `${prgId}@${name}@${desc}@${dasm.replace(/\n/gi, '|')}`;
-      var script = document.createElement('script');
-      script.src = 'ldsht.js';
-      wi.document.head.appendChild(script);
-    }, 500);
+  if (!openExportPopup('loadsheet', 'loadsheet/ldsht.html', dasm) && notify) {
+    notify('Popup Blocked', 'Allow popups for this site to export to load sheet.');
   }
 }
 
@@ -135,7 +143,7 @@ function Export({ assembly }: ExportProps) {
                       disabled={!hasAssembled}
                       appearance='secondary'
                       style={{ minWidth: 0 }}
-                      onClick={() => exportToPaperTape(assembly?.dasm)}
+                      onClick={() => exportToPaperTape(assembly?.dasm, notify)}
                     >
                       Export
                     </Button>
@@ -155,7 +163,7 @@ function Export({ assembly }: ExportProps) {
                       disabled={!hasAssembled}
                       appearance='secondary'
                       style={{ minWidth: 0 }}
-                      onClick={() => exportToLoadSheet(assembly?.dasm)}
+                      onClick={() => exportToLoadSheet(assembly?.dasm, notify)}
                     >
                       Export
                     </Button>

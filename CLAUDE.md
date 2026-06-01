@@ -32,5 +32,5 @@ Consumers should read `assembly` from `useAssembler` (debounced 300 ms) rather t
 
 ## Repo layout gotchas
 
-- `docs/` is the published GitHub Pages copy of `public/` (examples, LSP worker bundle, loadsheet, tape). Keep them in sync when changing assets under `public/`.
+- `docs/` is the published GitHub Pages snapshot. **Do not edit `docs/` directly** — each push to `main` re-publishes whatever is under `docs/`, so an accidental edit there ships immediately. Release flow: run `npm run build` to produce `dist/`, then copy `dist/` over `docs/` as the deploy step. Day-to-day changes belong in `src/` and `public/` (examples, LSP worker bundle, loadsheet, tape); they only reach `docs/` via a build+copy release.
 - The RCASM LSP worker bundle is shipped as a static asset at `public/lsp/rcasm/server.js`; it is not built from this repo.
