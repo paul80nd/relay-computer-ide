@@ -434,35 +434,38 @@ export class EmulatorCore {
     const isMod = (op & 0x02) === 0x02;
     const isCont = (op & 0x04) === 0x04;
     const toD = (op & 0x01) === 0x01;
-    let res = 0;
-    let rem = 0;
-    if (r.C == 0) {
-      // Divide by zero
-      res = 0xff;
-      rem = r.B;
-    } else {
-      if (isMod) {
-        if (isCont) {
-          // Remainder modulo
-          res = rem = r.DVR % r.C;
-        } else {
-          // Quotient modulo
-          res = rem = r.B % r.C;
-        }
+    let res = 0; let rem = 0;
+    if (isMod) {
+      if (r.C == 0) {
+        // Modulo by zero
+        res = r.B;
+        rem = r.B;
+      }
+      else if (isCont) {
+        // Remainder modulo
+        res = rem = r.DVR % r.C;
       } else {
-        if (isCont) {
-          // Remainder divide
-          res = Math.floor(r.DVR / r.C);
-          rem = r.DVR % r.C;
-        } else {
-          // Quotient divide
-          res = Math.floor(r.B / r.C);
-          rem = r.B % r.C;
-        }
+        // Quotient modulo
+        res = rem = r.B % r.C;
       }
     }
-    if (toD) r.D = res;
-    else r.A = res;
+    else {
+      if (r.C == 0) {
+        // Divide by zero
+        res = 0xFF;
+        rem = r.B;
+      }
+      else if (isCont) {
+        // Remainder divide
+        res = Math.floor(r.DVR / r.C);
+        rem = r.DVR % r.C;
+      } else {
+        // Quotient divide
+        res = Math.floor(r.B / r.C);
+        rem = r.B % r.C;
+      }
+    }
+    if (toD) r.D = res; else r.A = res;
     r.DVR = rem;
     this.advPC(1);
     this.tick(24);
