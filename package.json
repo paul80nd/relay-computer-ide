@@ -4,6 +4,9 @@
   "description": "Relay Computer IDE",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
