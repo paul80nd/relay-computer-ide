@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    // TS 6 no longer auto-includes every @types/* package the way <=5.9 did,
+    // so the jest/node ambient globals used by the test suite must be listed
+    // explicitly. Kept intentionally minimal to match the loose compilation
+    // ts-jest previously got from the (empty) root tsconfig.json.
+    "types": ["jest", "node"]
+  }
+}

@@ -1,7 +1,7 @@
 // JavaScript (ESM)
 import { createDefaultPreset } from 'ts-jest';
 
-const tsJestTransformCfg = createDefaultPreset().transform;
+const tsJestTransformCfg = createDefaultPreset({ tsconfig: 'tsconfig.spec.json' }).transform;
 
 /** @type {import('jest').Config} */
 const config = {
