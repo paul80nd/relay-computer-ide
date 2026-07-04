@@ -5,7 +5,7 @@ export function assemble(code: string): AssemblerResult {
   const { prg, errors, labels, debugInfo } = rcasm.assemble(code);
 
   const didAssemble = errors.length === 0;
-  let dasm = '';
+  let dasm: string;
   let labelDict = undefined;
   if (didAssemble) {
     dasm = rcasm
