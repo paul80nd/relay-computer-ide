@@ -1,5 +1,5 @@
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+import * as monaco from 'monaco-editor';
+import editorWorker from 'monaco-editor/editor/editor.worker?worker';
 import { lsp } from 'monaco-editor';
 
 import type { AssemblerResult } from './assembler';
