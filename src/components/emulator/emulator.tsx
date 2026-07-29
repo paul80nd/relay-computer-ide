@@ -140,7 +140,14 @@ export default function Emulator({ assembly }: EmulatorProps) {
   /** Un-mounting clean up */
   useEffect(
     () => () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        // Null the ref (not just cancel): commitSnapshot early-returns while
+        // rafRef is non-null, so a cancelled-but-not-cleared id would wedge it
+        // permanently. This matters under StrictMode's mount→cleanup→remount,
+        // where the same instance's refs survive the simulated unmount.
+        rafRef.current = null;
+      }
       if (timeoutRef.current !== null) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
