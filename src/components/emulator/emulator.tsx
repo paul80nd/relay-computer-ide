@@ -16,6 +16,7 @@ import EmulatorDiagram from './emu-diagram';
 import EmulatorMemory from './emu-memory';
 import EmulatorWatches from './emu-watches';
 import { EmulatorCore, type Snapshot } from './emu-core';
+import { createRafScheduler, type RafScheduler } from './raf-scheduler';
 
 const useStyles = makeStyles({
   content: {
@@ -121,11 +122,16 @@ export default function Emulator({ assembly }: EmulatorProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchEntries, memVersion]);
 
-  const rafRef = useRef<number | null>(null);
+  // Single-flight rAF gate for UI commits. Owns its own handle bookkeeping so a
+  // cancelled frame always clears cleanly — see raf-scheduler.ts. This matters
+  // under StrictMode's mount→cleanup→remount, where the same instance's refs
+  // survive the simulated unmount: a cancelled-but-not-cleared handle used to
+  // wedge commits permanently, freezing the emulator UI after loading an example.
+  const schedulerRef = useRef<RafScheduler | null>(null);
+  if (schedulerRef.current === null) schedulerRef.current = createRafScheduler();
+
   const commitSnapshot = useCallback(() => {
-    if (rafRef.current !== null) return;
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = null;
+    schedulerRef.current!.request(() => {
       const snap = coreRef.current.getSnapshot();
       setSnapshot(snap);
       setMemVersion(coreRef.current.getMemoryVersion());
@@ -140,14 +146,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
   /** Un-mounting clean up */
   useEffect(
     () => () => {
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        // Null the ref (not just cancel): commitSnapshot early-returns while
-        // rafRef is non-null, so a cancelled-but-not-cleared id would wedge it
-        // permanently. This matters under StrictMode's mount→cleanup→remount,
-        // where the same instance's refs survive the simulated unmount.
-        rafRef.current = null;
-      }
+      schedulerRef.current?.cancel();
       if (timeoutRef.current !== null) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
