@@ -4,7 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-- `npm test` — Jest (ts-jest, ESM). Currently only `tests/components/emulator/*` is covered.
+- `npm test` — Jest (ts-jest, ESM). Covers `EmulatorCore` (`tests/components/emulator/`), assembler helpers (`tests/assembler.test.ts`) and end-to-end runs of every `public/examples/*.rcasm` (`tests/examples/`).
+- Example programs: expected results and exact `cycles` (the efficiency measure) live in `tests/examples/example-specs.ts`. Correctness values come from each example's documented output; when an optimisation changes cycles, update the number deliberately. Adding a new `.rcasm` without a spec (or an entry in `skippedExamples`) fails the suite.
 - Single test: `npx jest tests/components/emulator/emu-core.test.ts` (or `-t "<pattern>"`).
 - ESLint config is the flat `eslint.config.js`; the `.eslintrc.json` at the root is stale Angular config and is not used.
 
