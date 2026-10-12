@@ -325,6 +325,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
                 onClick={() => {
                   const r = step();
                   commitSnapshot();
+                  setStatusText(toCycleStatus(coreRef.current.getSnapshot().cycles));
                   if (!r) runningRef.current = false;
                 }}
                 disabled={running || !canRun}
