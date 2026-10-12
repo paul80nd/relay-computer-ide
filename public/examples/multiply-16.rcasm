@@ -23,7 +23,7 @@
 loop:   mov b,m1        ; Shift M1 left (non-circular)
         rol
         mov c,a
-        ldi b, -15      ; B=11111110
+        ldi b, -2       ; B=11111110
         and
         mov m1,a
         mov b,m2        ; carry MSB of M2 into M1 if set
@@ -35,7 +35,7 @@ loop:   mov b,m1        ; Shift M1 left (non-circular)
 jmp1:   mov b,m2        ; Shift M2 left (non-circular)
         rol
         mov c,a
-        ldi b, -15      ; B=11111110
+        ldi b, -2       ; B=11111110
         and
         mov m2,a
 
