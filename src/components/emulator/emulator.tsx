@@ -17,6 +17,7 @@ import EmulatorMemory from './emu-memory';
 import EmulatorWatches from './emu-watches';
 import { EmulatorCore, type Snapshot } from './emu-core';
 import { createRafScheduler, type RafScheduler } from './raf-scheduler';
+import { toCycleStatus } from './fmt';
 
 const useStyles = makeStyles({
   content: {
@@ -136,9 +137,11 @@ export default function Emulator({ assembly }: EmulatorProps) {
       setSnapshot(snap);
       setMemVersion(coreRef.current.getMemoryVersion());
 
-      // Only auto-update status while running
+      // Only auto-update status while running (so a frame scheduled by reset
+      // doesn't overwrite its message). Runs that end set their final status
+      // directly, as by the time this frame fires runningRef is already false.
       if (runningRef.current) {
-        setStatusFromCycles(snap.cycles);
+        setStatusText(toCycleStatus(snap.cycles));
       }
     });
   }, []);
@@ -163,17 +166,6 @@ export default function Emulator({ assembly }: EmulatorProps) {
     setIprState(clamped);
     localStorage.setItem('emu_ipr', String(clamped));
   }, []);
-
-  /** Set current status from number of cycles emulated */
-  const setStatusFromCycles = (cycles: number) => {
-    const d = Math.floor(cycles / 12);
-    const h = Math.floor(d / 3600);
-    const m = Math.floor((d - h * 3600) / 60);
-    const s = d - h * 3600 - m * 60;
-    setStatusText(
-      `${cycles} cycles, ${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s runtime`
-    );
-  };
 
   /** Reset emulator state (and reload asembled code if available) */
   const reset = useCallback(() => {
@@ -220,6 +212,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
       runningRef.current = false;
       setRunning(false);
       timeoutRef.current = null;
+      setStatusText(toCycleStatus(coreRef.current.getSnapshot().cycles));
     }
     // Commit a snapshot for UI
     commitSnapshot();
@@ -253,6 +246,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
   const stop = useCallback(() => {
     runningRef.current = false;
     setRunning(false);
+    setStatusText(toCycleStatus(coreRef.current.getSnapshot().cycles));
   }, []);
 
   /** Flip a bit of the primary switches control */
@@ -331,6 +325,7 @@ export default function Emulator({ assembly }: EmulatorProps) {
                 onClick={() => {
                   const r = step();
                   commitSnapshot();
+                  setStatusText(toCycleStatus(coreRef.current.getSnapshot().cycles));
                   if (!r) runningRef.current = false;
                 }}
                 disabled={running || !canRun}
