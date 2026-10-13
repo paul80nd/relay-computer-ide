@@ -59,7 +59,7 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
         pi: hex('32 43 f6 a8 88 5a 30 8d 31'),
         psum: le('32 43 f6 a8 88 5a 30 8d 31 39')
       },
-      cycles: 543786
+      cycles: 543674
     }
   ],
 
@@ -123,7 +123,7 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
         cb: hex('8c c0 66 cc e9 73 f6'),
         cc: hex('67 9c 66 45 b3 59 a6 f6 43 32')
       },
-      cycles: 2496
+      cycles: 2000
     }
   ],
 

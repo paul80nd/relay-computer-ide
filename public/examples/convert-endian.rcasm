@@ -10,7 +10,7 @@
 ;     32 43 f6 a6 59 b3 45 66 9c 67 (cc)
 ;  -> 67 9c 66 45 b3 59 a6 f6 43 32
 ;
-;  Expected duration: 3m28s at default clock speed
+;  Expected duration: 2m47s at default clock speed
 ; *****************************************************
 
 ; Perform each conversion in turn by calling reverse function
@@ -45,7 +45,7 @@ cc:     !byte 0x32, 0x43, 0xf6, 0xa6, 0x59, 0xb3, 0x45, 0x66, 0x9c, 0x67
 ;  Byte-by-byte endian conversion (reverse bytes)
 ;
 ;   M: Location of value start
-;   B: Length of value
+;   B: Length of value (at least 1)
 ;
 ;  Value will be converted in-place and must be within
 ;  single memory page.
@@ -54,56 +54,47 @@ cc:     !byte 0x32, 0x43, 0xf6, 0xa6, 0x59, 0xb3, 0x45, 0x66, 0x9c, 0x67
 ; *****************************************************
 reverse: {
 
-        ; Set up first and last byte pointers (A and D)
-        mov a,m2        ; A is just M2
-        mov c,m2        ; D is M2+C-1
-        add d
+        ; Set up the address of the first byte (A) and the distance
+        ; from it to the last byte (C = B - 1)
+        mov c,b
         ldi b,-1
-        mov c,d
         add d
+        mov c,d
+        mov a,m2
 
         ; Registers are in the following state
-        ;  A = low address of first byte
-        ;  D = low address of last byte
-        ;  M = address of first byte
+        ;  A = low address of first byte of pair
+        ;  C = distance from first to last byte of pair
+        ;  M = address of first byte of pair
         ; XY = return address
 
-        ; On entry to the loop M is pointing at 1st of pair.
-        ; M2 = A and D is low address of 2nd of pair.
-        ; We now just need to swap them via B and C registers.
-loop:   ldr b
-        mov m2,d
-        ldr c
-        str b
-        mov m2,a
-        str c
-
-        ; We now need to increment A and decrement D
-        mov b,a
-        inc a
-        ldi b,-1
-        mov c,d
+        ; The last byte of the pair is always the first plus the
+        ; distance so we don't need to keep a pointer to it.
+loop:   mov b,a         ; D = low address of last byte of pair
         add d
 
-        ; We now take A from D however this needs a bit of
-        ; juggling to keep in registers
-        mov c,d         ; take A and D to ALU
-        mov b,a
-        not d           ; negate B via D
-        mov b,d
-        inc d
-        mov b,d
-        add d           ; subtract
-        mov d,c         ; restore D
-
-        ; If result is less than or equal to 0 we're done
-        ; Even swaps set sign flag and odds zero flag hence ble.
-        ble rtn
-
-        ; Otherwise we're going for another loop so set M2 = A
+        ; M is pointing at the first of the pair and D at the last.
+        ; We now just need to swap them via B and D.
+        ldr b
+        mov m2,d
+        ldr d
+        str b
         mov m2,a
-        jmp loop
+        str d
+
+        ; Step A (and M) on to the next pair, which is 2 closer together.
+        ; Subtracting 2 from the distance (by adding -2) sets the carry
+        ; if it was at least 2, meaning there's another pair to swap.
+        ; For an odd length the middle byte ends up swapped with itself
+        ; which is harmless.
+        mov b,a
+        inc a
+        mov m2,a
+        ldi b,-2
+        add d
+        mov c,d
+        bcs loop
 
         ; Jump to return address held in XY register
-rtn:    rts
+        rts
 }
