@@ -75,20 +75,20 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
       name: '40,405 - 22,941 = 17,464',
       preload: { C: 0x9d, D: 0xd5, XY: 0x599d },
       regs: { C: 0x44, D: 0x38 },
-      cycles: 176
+      cycles: 168
     },
     {
       name: '40,405 - 22,813 = 17,592',
       preload: { C: 0x9d, D: 0xd5, XY: 0x591d },
       regs: { C: 0x44, D: 0xb8 },
-      cycles: 176
+      cycles: 168
     },
     {
       // Both documented examples carry out of the low byte; this one doesn't
       name: '40,405 - 23,008 = 17,397 (no low byte carry)',
       preload: { C: 0x9d, D: 0xd5, XY: 0x59e0 },
       regs: { C: 0x43, D: 0xf5 },
-      cycles: 152
+      cycles: 144
     }
   ],
 
