@@ -92,7 +92,7 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
     }
   ],
 
-  'multiply-8': [{ name: '13 x 17 = 221', regs: { A: 221 }, cycles: 1066 }],
+  'multiply-8': [{ name: '13 x 17 = 221', regs: { A: 221 }, cycles: 954 }],
 
   'multiply-16': [
     {
