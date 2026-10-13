@@ -15,7 +15,7 @@
 ;    ff 45 d1 74 5d 17 45 d1 74 5e (~sd+1)
 ;  = 00 ac ef 6d c4 35 3f 38 92 58
 ;
-;  Expected duration: 11m37s at default clock speed
+;  Expected duration: 9m51s at default clock speed
 ; *****************************************************
 
 ; Perform each subtraction in turn by calling function
@@ -70,27 +70,53 @@ long_sub: {
         str c
         ldi m,rtn+2
         str d
-        mov c,x         ; Set end address of subtrahend in D
+        mov c,x         ; Set address of last subtrahend byte in D
+        add d
+        ldi b,-1
+        mov c,d
         add d
         clr m1          ; clear M1 = zero page
 
         ; Registers are now in the following state
         ;  Y = minuend zero page address
         ;  X = subtrahend zero page address
-        ;  D = zp address after subtrahend
+        ;  D = zp address of last subtrahend byte
         ; M1 = zero page
 
-        ; To simplify the main loop we'll be using ones-complement.
-        ; Therefore to give a correct minuend we increment it by one now.
+        ; We subtract by adding the ones-complement of the subtrahend with
+        ; a carry in to the first byte (A - B = A + ~B + 1). There's no
+        ; add-with-carry so we have two copies of the loop: one that adds
+        ; a carry in from the byte before (loop_c) and one without (loop).
+        ; Each ends by stepping the pointers itself so that switching
+        ; between them needs no extra jumps.
+
+        ; Add the 1s complement of the subtrahend byte plus the carry in
+loop_c: mov m2,x        ; C <- ~subtrahend byte + 1 (m1x)
+        ldr b
+        not
+        mov b,a
+        inc
+        mov c,a
+        bcs next_c      ; subtrahend byte was 0 so minuend byte unchanged and still carrying
         mov m2,y        ; B <- minuend byte (m1y)
         ldr b
+        add             ; A = B + C
+        str a           ; A -> minuend byte (m1y)
+        bcs next_c      ; If add caused carry add it in to the next byte
+
+        ; no carry so increment pointers and carry on without a carry in
+        ixy             ; Y++ (minuend)
+        mov b,x         ; X++ (subtrahend)
         inc
-        str a           ; A -> minuend byte (m1x)
-        bcs carry1      ; If inc caused carry ripple it through minuend
+        mov x,a
+        mov c,d         ; compare old X with last subtrahend byte
+        cmp
+        bne loop
 
-loop:   ; Main loop of byte-by-byte subtraction
+        ; Jump to return address (set earlier)
+rtn:    jmp *
 
-        ; Take 1s complement of subtrahend
+loop:   ; Take 1s complement of subtrahend
         mov m2,x        ; B <- subtrahend byte (m1x)
         ldr b
         not             ; A = ~B
@@ -100,53 +126,37 @@ loop:   ; Main loop of byte-by-byte subtraction
         mov m2,y        ; B <- minuend byte (m1y)
         ldr b
         add             ; A = B + C
-        str a           ; A -> minuend byte (m1x)
+        str a           ; A -> minuend byte (m1y)
+        bcs next_c      ; If add caused carry add it in to the next byte
 
-        ; Branch if addition caused carry
-        bcs carry2
-
-        ; increment x and y pointers
- cont:  ixy             ; Y++ (minuend)
+        ; increment x and y pointers and loop until past the last subtrahend byte
+        ixy             ; Y++ (minuend)
         mov b,x         ; X++ (subtrahend)
         inc
         mov x,a
-
-        ; compare with target
-        mov c,d
-        mov b,a
+        mov c,d         ; compare old X with last subtrahend byte
         cmp
         bne loop
+        jmp rtn
 
-        ; Jump to return address (set earlier)
-rtn:    jmp *
-
-carry1: ; Handles a carry following the initial increment
-
-        mov b,m2        ; Incement m2 (to point at next byte in minuend)
+        ; with a carry so increment pointers and carry on with a carry in
+next_c: ixy             ; Y++ (minuend)
+        mov b,x         ; X++ (subtrahend)
         inc
-        mov m2,a
+        mov x,a
+        mov c,d         ; compare old X with last subtrahend byte
+        cmp
+        bne loop_c
 
-        ldr b           ; Increment minuend byte (m1y)
-        inc
-        str a
-
-        bcs carry1      ; Go again if caused carry
-        jmp loop        ; Otherwise done and can enter main loop
-
-carry2: ; Handles a carry following a byte-to-byte-addition
-        ; This is very similar to the carry above and could be a
-        ; subroutine but we're using the XY register.
-        ; We could use the same trick at 'rtn' but this way trades
-        ; memory against additional instructions to load the return addresses.
-
-        mov b,m2        ; increment m2 (to point at next byte in minuend)
-        inc
-        mov m2,a
-
-        ldr b           ; increment minuend byte (m1x)
+        ; A carry out of the last byte goes in to the byte following the
+        ; minuend. It's possible though that could cause a carry in that
+        ; byte and so on so we iterate here until no carry.
+carry:  mov m2,y        ; increment minuend byte (m1y)
+        ldr b
         inc
         str a
-
-        bcs carry2      ; Go again if caused carry
-        jmp cont        ; Otherwise done and can continue
+        ixy             ; Y++ (doesn't change flags)
+        bcs carry       ; Go again if caused carry
+        jmp rtn         ; Otherwise done
 }
+

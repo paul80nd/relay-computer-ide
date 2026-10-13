@@ -59,7 +59,7 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
         pi: hex('32 43 f6 a8 88 5a 30 8d 31'),
         psum: le('32 43 f6 a8 88 5a 30 8d 31 39')
       },
-      cycles: 541442
+      cycles: 528546
     }
   ],
 
@@ -129,7 +129,7 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
 
   'addition-long': [{ mem: { sa: le('32 43 f6 a6 59 b3 45 66 9c 67') }, cycles: 6506 }],
 
-  'subtraction-long': [{ mem: { sa: le('00 ac ef 6d c4 35 3f 38 92 58') }, cycles: 8364 }],
+  'subtraction-long': [{ mem: { sa: le('00 ac ef 6d c4 35 3f 38 92 58') }, cycles: 7094 }],
 
   'reciprocal-long': [
     {
