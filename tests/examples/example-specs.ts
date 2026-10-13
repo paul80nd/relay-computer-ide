@@ -99,11 +99,11 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
       name: '221 x 179 = 39,559',
       preload: { XY: (221 << 8) | 179 },
       regs: { M: 39559 },
-      cycles: 2210
+      cycles: 1114
     },
-    { name: '255 x 255 = 65,025', preload: { XY: 0xffff }, regs: { M: 65025 }, cycles: 2498 },
-    { name: '3 x 5 = 15', preload: { XY: 0x0305 }, regs: { M: 15 }, cycles: 1938 },
-    { name: '128 x 2 = 256', preload: { XY: 0x8002 }, regs: { M: 256 }, cycles: 1882 }
+    { name: '255 x 255 = 65,025', preload: { XY: 0xffff }, regs: { M: 65025 }, cycles: 1450 },
+    { name: '3 x 5 = 15', preload: { XY: 0x0305 }, regs: { M: 15 }, cycles: 914 },
+    { name: '128 x 2 = 256', preload: { XY: 0x8002 }, regs: { M: 256 }, cycles: 834 }
   ],
 
   'addition-long-se': [{ mem: { sa: le('f1 23 b1 08 69 82 7c c7') }, cycles: 1668 }],
