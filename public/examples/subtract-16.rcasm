@@ -16,24 +16,23 @@
         mov x,a
         ixy             ; increment XY
 
-; Calculate M1 = X + C (higher byte)
+; Calculate A = X + C (higher byte)
         mov b,x
         add
-        mov m1, a
 
 ; Calculate D = Y + D (lower byte)
         mov b,d
         mov c,y
         add d
 
-; Restore C = M1 (higher byte result)
-        mov c, m1
+; Move the higher byte result to C (moves don't change the flags)
+        mov c,a
 
 ; Done if no carry on lower byte
         bcs carry
         hlt
 
-; Otherwise need to incrment C
+; Otherwise need to increment C
 carry:  mov b,c
         inc
         mov c,a

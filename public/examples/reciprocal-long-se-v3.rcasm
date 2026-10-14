@@ -1,0 +1,131 @@
+; ************************************************************
+;  Third version of byte-by-byte long reciprocal still using
+;  the restoring unsigned integer division method
+;
+;    01 / 7d   (1/125 to 10 bytes)
+;  = 02 0c 49 ba 5e 35 3f 7c ed 91
+;
+;  Changes over the v2 version (saving 4m58s):
+;    * rotated remainder to double it (saving 54s)
+;    * kept -V in C and fell through on keep (saving 3m27s)
+;    * skipped the quotient shift on the first bit (saving 13s)
+;    * counted bytes up to zero instead of comparing the
+;      address with the end (saving 24s)
+;
+;  The biggest saving comes from removing a jump from every bit:
+;  a jump costs as much as three ALU operations.
+;
+;  v2 expected duration:        16m29s at default clock speed
+;  Revised expected duration:   11m31s at default clock speed
+; ************************************************************
+
+        jmp start
+
+        ; Reserve space for result in memory. Value is aligned
+        ; and initialised to 1s to ease visibility in emulator
+        ; @watch ra:10
+
+        !fill 3, 0x00
+ra:     !fill 10, 0x11
+
+        ; Set up the reciprocal parameters for (M2) = 1 / M1
+        ;    M1: Divisor value (max 128)
+        ;    M2: Location to store result (zero page)
+        ;     B: Number of bytes to calculate result to
+        ; Note we use the special '§' operator to pack two 8-bit
+        ; values into the 16-bit M register in the form M1§M2
+
+start:  ldi m,125§ra       ; ra = 1/125 (10 bytes)
+        ldi b,10
+
+        ; Terms
+        ;   A = remainder (register A - ongoing)
+        ;   Q = quotient (register D - current byte)
+        ;  -V = negated divisor (register C - constant throughout)
+
+        ; Prepare for the first loop iteration.
+        ; Result is built up byte-by-byte in the A loop and
+        ; within that bit-by-bit in the B loop.
+
+        not d           ; Set byte counter Y = -B (counts up to zero)
+        mov b,d
+        inc d
+        mov y,d
+
+        mov b,m1        ; Calculate -V into C
+        not d
+        mov b,d
+        inc d
+        mov c,d
+        ldi a,1         ; A = 1
+        clr m1          ; M1 = 0 (zero page)
+
+        ; Registers are now in the following state
+        ;   A = 1 = remainder with 1 'shifted' in (A)
+        ;   C = Negative divisor value (-V)
+        ;  M1 = 0 (zero page)
+        ;  M2 = result location (zero page)
+        ;   Y = Negated count of bytes still to calculate
+
+a_loop: ; A loop building reciprocal byte-by-byte
+        clr d           ; D = 0 (Q)
+
+        ; B loop building next reciprocal byte bit-by-bit.
+
+        ; As the remainder is always below V (at most 128) its top bit is
+        ; clear, so rotating it left doubles it exactly. That frees C to hold
+        ; -V for the whole run, so the trial subtraction needs no reload.
+
+        ; If 2A - V is negative the quotient bit is 0 and we restore 2A from
+        ; B. Otherwise the quotient bit is 1 and we keep 2A - V, which we
+        ; copy into B first so that the shared restore leaves it in place.
+        ; Both paths end at the same instruction, so neither needs a jump.
+
+        ; The first bit needs no shift of Q as it's still zero.
+        mov b,a         ; A = 2A - V (B = 2A)
+        rol
+        mov b,a
+        add
+        bmi b_neg       ; Restore if negative
+        mov b,d         ; Otherwise set Q bit = 1
+        inc d
+        mov b,a         ;  and keep 2A - V
+ b_neg: mov a,b
+
+b_loop: !for i in range(7) {
+
+        ; Shift Q left (the new bit is 0 unless set below)
+        mov b,d         ; Q << 1
+        rol d
+
+        ; Shift remainder and perform trial subtraction of V
+        mov b,a         ; A = 2A - V (B = 2A)
+        rol
+        mov b,a
+        add
+        bmi _neg        ; Restore if negative
+        mov b,d         ; Otherwise set Q bit = 1
+        inc d
+        mov b,a         ;  and keep 2A - V
+  _neg: mov a,b
+}
+
+        ; D now contains our complete byte so we'll store it in memory.
+        str d
+
+        ; We can now bump M2 to point at the next location in memory and count
+        ; the byte off. Incrementing Y sets the zero flag when it reaches zero,
+        ; so the count is also the loop test.
+        mov b,m2        ; bump M2
+        inc d
+        mov m2,d
+        mov b,y         ; Y++, loop until it reaches zero
+        inc d
+        mov y,d
+        bne a_loop
+
+        ; Reciprocal is complete to the required precision so we can
+        ; point M at the result (for visibility in the emulator) and
+        ; then we're done and can halt
+done:   ldi m,ra
+        hlt

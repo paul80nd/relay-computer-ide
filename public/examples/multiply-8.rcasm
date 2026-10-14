@@ -2,22 +2,25 @@
 ; Multiply Program
 ;
 ; Multiplies two unsigned 8-bit numbers to produce an 8-bit result.
-; The arguments are taken from B and C and the result is placed in X.
+; The arguments are taken from B and C and the result is placed in A.
 ; Overflow is ignored.
 ;**********************************************************************
 
-; Operates on the principle of long binary multiplication. For example:
+; Operates on the principle of long binary multiplication, working from
+; the most significant bit of B. For each bit X is doubled and then C is
+; added if the bit is set. B is kept inverted in Y (~B) and rotated left
+; so that each bit in turn lands in the sign flag. For example:
 ; B:   00010001  (17)
 ; C: * 00001101  (13)
 ;    ================
-; X:   00000000  Y: [0]0010001  (00001101 x 0)
-; X:   00000000  Y: [0]0100010  (00001101 x 0)
-; X:   00000000  Y: [0]1000100  (00001101 x 0)
-; X:   00001101  Y: [1]0001000  (00001101 x 1)
-; X:   00011010  Y: [0]0010001  (00001101 x 0)
-; X:   00110100  Y: [0]0100010  (00001101 x 0)
-; X:   01101000  Y: [0]1000100  (00001101 x 0)
-; X:   11011101  Y: [1]0001000  (00001101 x 1)
+; X:   00000000  Y: 11101110   (bit 7 of B is 0)
+; X:   00000000  Y: 11011101   (bit 6 is 0)
+; X:   00000000  Y: 10111011   (bit 5 is 0)
+; X:   00001101  Y: 01110111   (bit 4 is 1 so add C)
+; X:   00011010  Y: 11101110   (bit 3 is 0)
+; X:   00110100  Y: 11011101   (bit 2 is 0)
+; X:   01101000  Y: 10111011   (bit 1 is 0)
+; X:   11011101  Y: 01110111   (bit 0 is 1 so add C)
 ;    =================
 ;    = 11011101  (221)
 
@@ -28,40 +31,43 @@
         add
         mov b, a
 
-; Initialise calculation
-        mov y,b
-        clr x
-
-; If MSB of B set then X = C
-        not
+; Initialise calculation. We only have a 'branch if sign set' (bmi) so
+; B is kept inverted in Y. A set bit of B then means a clear sign flag
+; and the branch skips the add when the bit of B is clear.
+        not             ; Y = ~B (sign flag is the inverted MSB of B)
+        mov y,a
+        clr x           ; X = 0 (result, moves don't change the flags)
         bmi else
-        mov x,c
+        mov x,c         ; If MSB of B set then X = C
 
-; Set counter in D to -7
+; Set counter in D to -7 (for the remaining 7 bits)
 else:   ldi a,-7
         mov d,a
 
-; Rotate X and Y then add C to X if MSB of Y set
-loop:   mov b,x         ; Rotate X
+; Rotate X then add C to X if the next bit of B is set
+loop:   mov b,x         ; Rotate X (doubles it while the product fits)
         rol
         mov x,a
 
-        mov b,y         ; Rotate Y
+        mov b,y         ; Rotate ~B, its next bit lands in the sign flag
         rol
         mov y,a
+        bmi skip        ; If that bit of B is clear skip the add
 
-        mov b,y         ; If MSB of Y set
-        not
-        bmi else2
-
-        mov b,x         ; then X = X + C
+        mov b,x         ; else X = X + C
         add
         mov x,a
 
-else2:  mov b,d         ; D = D + 1
+skip:   mov b,d         ; D = D + 1
         inc d
         bne loop        ; go again if not zero
 
         mov a,x         ; Move result to A
         hlt
 
+; Unrolling this loop (writing the body out 7 times, e.g. with !for)
+; takes 17 x 13 from 954 to 514 cycles. Removing the counter saves 40
+; cycles a bit (two instructions plus a 24-cycle branch). It also frees
+; D, so the result and ~B can both stay in A and D, the two registers
+; the ALU writes to, with no moves in or out. The cost is code size:
+; 75 bytes rather than 33.

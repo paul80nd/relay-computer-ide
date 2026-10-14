@@ -114,6 +114,11 @@ function Examples() {
                 'Pi Calculation (BBP)',
                 'Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.'
               )}
+              {renderExample(
+                'pi-bbp-v2',
+                'Pi Calculation (BBP) v2',
+                'The same calculation with its subroutines optimised for speed, with a table of what each change saved.'
+              )}
             </AccordionPanel>
           </AccordionItem>
 
@@ -154,6 +159,11 @@ function Examples() {
                 'reciprocal-long-se-v2',
                 'Long Reciprocal v2',
                 'Revised example of byte-by-byte long reciprocal now using the restoring unsigned integer division method'
+              )}
+              {renderExample(
+                'reciprocal-long-se-v3',
+                'Long Reciprocal v3',
+                'Third version of byte-by-byte long reciprocal, removing a jump from every bit of the restoring division'
               )}
               {renderSectionHeader(
                 'Many of the examples above are also available in "Handy Routines" as reusable functions.'

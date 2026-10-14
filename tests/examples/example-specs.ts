@@ -63,6 +63,16 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
     }
   ],
 
+  'pi-bbp-v2': [
+    {
+      mem: {
+        pi: hex('32 43 f6 a8 88 5a 30 8d 31'),
+        psum: le('32 43 f6 a8 88 5a 30 8d 31 39')
+      },
+      cycles: 402786
+    }
+  ],
+
   // ---- Mathematical operations ----
 
   'subtract-8': [
@@ -75,35 +85,35 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
       name: '40,405 - 22,941 = 17,464',
       preload: { C: 0x9d, D: 0xd5, XY: 0x599d },
       regs: { C: 0x44, D: 0x38 },
-      cycles: 176
+      cycles: 168
     },
     {
       name: '40,405 - 22,813 = 17,592',
       preload: { C: 0x9d, D: 0xd5, XY: 0x591d },
       regs: { C: 0x44, D: 0xb8 },
-      cycles: 176
+      cycles: 168
     },
     {
       // Both documented examples carry out of the low byte; this one doesn't
       name: '40,405 - 23,008 = 17,397 (no low byte carry)',
       preload: { C: 0x9d, D: 0xd5, XY: 0x59e0 },
       regs: { C: 0x43, D: 0xf5 },
-      cycles: 152
+      cycles: 144
     }
   ],
 
-  'multiply-8': [{ name: '13 x 17 = 221', regs: { A: 221 }, cycles: 1066 }],
+  'multiply-8': [{ name: '13 x 17 = 221', regs: { A: 221 }, cycles: 954 }],
 
   'multiply-16': [
     {
       name: '221 x 179 = 39,559',
       preload: { XY: (221 << 8) | 179 },
       regs: { M: 39559 },
-      cycles: 2210
+      cycles: 1114
     },
-    { name: '255 x 255 = 65,025', preload: { XY: 0xffff }, regs: { M: 65025 }, cycles: 2498 },
-    { name: '3 x 5 = 15', preload: { XY: 0x0305 }, regs: { M: 15 }, cycles: 1938 },
-    { name: '128 x 2 = 256', preload: { XY: 0x8002 }, regs: { M: 256 }, cycles: 1882 }
+    { name: '255 x 255 = 65,025', preload: { XY: 0xffff }, regs: { M: 65025 }, cycles: 1450 },
+    { name: '3 x 5 = 15', preload: { XY: 0x0305 }, regs: { M: 15 }, cycles: 914 },
+    { name: '128 x 2 = 256', preload: { XY: 0x8002 }, regs: { M: 256 }, cycles: 834 }
   ],
 
   'addition-long-se': [{ mem: { sa: le('f1 23 b1 08 69 82 7c c7') }, cycles: 1668 }],
@@ -114,6 +124,8 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
 
   'reciprocal-long-se-v2': [{ mem: { ra: hex('02 0c 49 ba 5e 35 3f 7c ed 91') }, cycles: 11874 }],
 
+  'reciprocal-long-se-v3': [{ mem: { ra: hex('02 0c 49 ba 5e 35 3f 7c ed 91') }, cycles: 8298 }],
+
   // ---- Handy routines ----
 
   'convert-endian': [
@@ -123,13 +135,13 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
         cb: hex('8c c0 66 cc e9 73 f6'),
         cc: hex('67 9c 66 45 b3 59 a6 f6 43 32')
       },
-      cycles: 2496
+      cycles: 2000
     }
   ],
 
-  'addition-long': [{ mem: { sa: le('32 43 f6 a6 59 b3 45 66 9c 67') }, cycles: 7194 }],
+  'addition-long': [{ mem: { sa: le('32 43 f6 a6 59 b3 45 66 9c 67') }, cycles: 6506 }],
 
-  'subtraction-long': [{ mem: { sa: le('00 ac ef 6d c4 35 3f 38 92 58') }, cycles: 8364 }],
+  'subtraction-long': [{ mem: { sa: le('00 ac ef 6d c4 35 3f 38 92 58') }, cycles: 6788 }],
 
   'reciprocal-long': [
     {
@@ -139,7 +151,7 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
         rc: hex('05 b0 5b 05 b0 5b 05 b0'),
         rd: hex('02 0c 49 ba 5e 35 3f 7c ed 91')
       },
-      cycles: 33314
+      cycles: 23458
     }
   ]
 };

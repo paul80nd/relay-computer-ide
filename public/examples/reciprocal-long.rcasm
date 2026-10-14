@@ -14,7 +14,7 @@
 ;    01 / 7d            (rd = 1/125 to 10 bytes)
 ;  = 02 0c 49 ba 5e 35 3f 7c ed 91
 ;
-;  Expected duration:   46m16s at default clock speed
+;  Expected duration:   32m34s at default clock speed
 ; *****************************************************
 
 ; Perform each reciprocal in turn by calling function
@@ -55,7 +55,7 @@ rc:     !fill 8, 0x33
 ; *****************************************************
 ;  Byte-by-byte Long Reciprocal: (M) = 1 / M1
 ;
-;    M1: Divisor value (max 127)
+;    M1: Divisor value (max 128)
 ;    M2: Location to store result (zero page)
 ;     B: Number of bytes to calculate result to
 ;
@@ -70,7 +70,7 @@ long_rcp: {
         ; Terms
         ;   A = remainder (register A - ongoing)
         ;   Q = quotient (register D - current byte)
-        ;   V = divisor (register X)
+        ;  -V = negated divisor (register C - constant throughout)
 
         ; Because we'll be using XY as a general register we write the
         ; return address directly in to the jump instruction at rtn.
@@ -83,83 +83,72 @@ long_rcp: {
         ldi m,rtn+2
         str d
         mov m2,y        ; Set result location
-        mov c,y         ; Set end address in Y (M2+B)
-        add d
+
+        not d           ; Set byte counter Y = -B (counts up to zero)
+        mov b,d
+        inc d
         mov y,d
 
-        ; We now prepare for the first loop iteration. Result is built up byte-by-byte
-        ; in the A loop and within that bit-by-bit in an unrolled B loop.
-        mov b,x         ; Negate -V in X
+        mov b,x         ; Set C = -V
         not d
         mov b,d
         inc d
-        mov x,d
-        clr d           ; D = 0 (Q)
+        mov c,d
         ldi a,1         ; A = 1
         clr m1          ; M1 = 0 (zero page)
 
         ; Registers are now in the following state
         ;   A = 1 = remainder with 1 'shifted' in (A)
-        ;   D = Initial quotient of 0 (Q)
+        ;   C = Negated divisor value (-V)
         ;  M1 = 0 (zero page)
         ;  M2 = result location (zero page)
-        ;   X = Negated divisor value (-V)
-        ;   Y = address after result (zero page)
+        ;   Y = Negated count of bytes still to calculate
 
 a_loop: ; A loop building reciprocal byte-by-byte
+        clr d           ; D = 0 (Q)
 
-        ; B loop building next reciprocal byte bit-by-bit
-b_loop: !for i in range(8) {
-
-        ; Shift remainder and perform trial subtraction of V
-        ; If negative then C=0 and restore else C=1 and keep
-        mov b,a         ; A << 1 (via x2)
-        mov c,a
-        add a
-        mov b,a         ; A = A + -V
-        mov c,x
+        ; B loop building next reciprocal byte bit-by-bit. As the remainder
+        ; is always below V (at most 128) rotating it left doubles it exactly.
+        ; If 2A - V is negative the quotient bit is 0 and we restore 2A from
+        ; B. Otherwise the quotient bit is 1 and we keep 2A - V, which we
+        ; copy into B first so that the shared restore leaves it in place.
+        ; The first bit needs no shift of Q as it's still zero.
+        mov b,a         ; A = 2A - V (B = 2A)
+        rol
+        mov b,a
         add
-        bmi _neg        ; Restore and set C to 0 if negative
-        ldi b,1         ; Otherwise keep result and set C to 1
-        mov c,b
-        jmp _set
+        bmi b_neg
+        mov b,d         ; Q bit = 1
+        inc d
+        mov b,a         ; Keep 2A - V
+b_neg:  mov a,b
 
-        ; If A - V was negative we restore the remainder and clear C
-  _neg: mov a,b
-        clr c
-
-        ; We can now shift Q left and apply the 1 or 0 in register C
-  _set: mov b,d         ; (Q << 1) + C
+b_loop: !for i in range(7) {
+        mov b,d         ; Q << 1
         rol d
-        mov b,d
-        add d
+        mov b,a         ; A = 2A - V (B = 2A)
+        rol
+        mov b,a
+        add
+        bmi _neg
+        mov b,d         ; Q bit = 1
+        inc d
+        mov b,a         ; Keep 2A - V
+  _neg: mov a,b
 }
 
         ; D now contains our complete byte so we'll store it in memory.
         str d
 
-        ; We can now bump M2 to point at the next location in memory and check if we've
-        ; completed the reciprocal by checking the end address in Y. Note that the 'beq *'
-        ; will be replaced by the actual return address at the beginning of this routine.
-        ; We do this because we want to use register XY which would otherwise hold the address.
-        mov b, m2       ; bump M2
+        ; We can now bump M2 to point at the next location in memory and count
+        ; the byte off. Note that the 'jmp *' will be replaced by the actual
+        ; return address at the beginning of this routine.
+        mov b,m2        ; bump M2
         inc d
         mov m2,d
-        mov b,d         ; Check if gone past last byte (M2=Y)
-        mov c,y
-        eor d
-rtn:    beq *           ; Done if so
-
-        ; We're now heading for the next byte of the overall result
-        clr d           ; Set up next quotient (Q)
-
-        ; By this point our registers are in the following state:
-        ;   A = remainder so far (A)
-        ;   D = Initial quotient of zero (Q)
-        ;  M1 = 0 (zero page)
-        ;  M2 = next byte result location (zero page)
-        ;   X = Negated divisor value (-V)
-        ;   Y = address after overall result (zero page)
-        ; i.e. we're good to loop
-        jmp a_loop
+        mov b,y         ; Y++, loop until it reaches zero
+        inc d
+        mov y,d
+        bne a_loop
+rtn:    jmp *
 }

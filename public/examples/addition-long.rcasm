@@ -14,7 +14,7 @@
 ;  + 00 00 00 32 6f e6 de a6 0f b8 (se)
 ;  = 32 43 f6 a6 59 b3 45 66 9c 67
 ;
-;  Expected duration: 9m59s at default clock speed
+;  Expected duration: 9m02s at default clock speed
 ; *****************************************************
 
 ; Perform each addition in turn by calling long add function
@@ -78,19 +78,23 @@ long_add: {
         str c
         ldi m,rtn+2
         str d
-        mov c,x         ; Set end address of addend in D
+        mov c,x         ; Set address of last addend byte in D
+        add d
+        ldi b,-1
+        mov c,d
         add d
         clr m1          ; clear M1 = zero page
-
-        ; Although register XY is typically used for indexing memory
-        ; here we cheat a little and use it for tracking two locations.
-        ; This does mean though the addresses must be in the same page.
 
         ; Registers are now in the following state
         ;  Y = augend zero page address
         ;  X = addend zero page address
-        ;  D = zp address after addend
+        ;  D = zp address of last addend byte
         ; M1 = zero page
+
+        ; There's no add-with-carry so we have two copies of the loop: one
+        ; without a carry in (loop) and one that adds a carry in from the
+        ; byte before (loop_c). Each ends by stepping the pointers itself
+        ; so that switching between them needs no extra jumps.
 
         ; add two bytes together
 loop:   mov m2,x        ; C <- addend byte (m1x)
@@ -98,36 +102,61 @@ loop:   mov m2,x        ; C <- addend byte (m1x)
         mov m2,y        ; B <- augend byte (m1y)
         ldr b
         add             ; A = B + C
-        str a           ; A -> augend byte (m1x)
-        bcs carry       ; If add caused carry ripple it through augend
+        str a           ; A -> augend byte (m1y)
+        bcs next_c      ; If add caused carry add it in to the next byte
 
-        ; increment x and y pointers
-cont:   ixy             ; Y++ (augend)
+        ; increment x and y pointers and loop until past the last addend byte
+        ixy             ; Y++ (augend)
         mov b,x         ; X++ (addend)
         inc
         mov x,a
-
-        ; compare with target
-        mov c,d
-        mov b,a
+        mov c,d         ; compare old X with last addend byte
         cmp
         bne loop
 
         ; Jump to return address (set earlier)
 rtn:    jmp *
 
-carry:  ; For the carry scenario we need to add 1 to the byte. It's
-        ; possible though that could cause a carry in that byte and
-        ; so on so we iterate here until no carry.
-
-        mov b,m2        ; increment m2 (to point at next byte in augend)
+        ; add two bytes together plus the carry in
+loop_c: mov m2,x        ; C <- addend byte + 1 (m1x)
+        ldr b
         inc
-        mov m2,a
+        mov c,a
+        bcs next_c      ; addend byte was ff so augend byte unchanged and still carrying
+        mov m2,y        ; B <- augend byte (m1y)
+        ldr b
+        add             ; A = B + C
+        str a           ; A -> augend byte (m1y)
+        bcs next_c      ; If add caused carry add it in to the next byte
 
-        ldr b           ; increment augend byte (m1y)
+        ; no carry so increment pointers and carry on without a carry in
+        ixy             ; Y++ (augend)
+        mov b,x         ; X++ (addend)
+        inc
+        mov x,a
+        mov c,d         ; compare old X with last addend byte
+        cmp
+        bne loop
+        jmp rtn
+
+        ; with a carry so increment pointers and carry on with a carry in
+next_c: ixy             ; Y++ (augend)
+        mov b,x         ; X++ (addend)
+        inc
+        mov x,a
+        mov c,d         ; compare old X with last addend byte
+        cmp
+        bne loop_c
+
+        ; For a carry out of the last addend byte we need to add 1 to the
+        ; next augend byte. It's possible though that could cause a carry in
+        ; that byte and so on so we iterate here until no carry.
+carry:  mov m2,y        ; increment augend byte (m1y)
+        ldr b
         inc
         str a
-
+        ixy             ; Y++ (doesn't change flags)
         bcs carry       ; Go again if caused carry
-        jmp cont        ; Otherwise done and can continue
+        jmp rtn         ; Otherwise done
 }
+
