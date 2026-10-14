@@ -230,6 +230,19 @@ start:  ; Perform the 16 BBP iterations as an unrolled k loop
 ;  Most have separate examples available with demo & comments
 ; ***************************************************************
 
+; Subroutines that need XY as a general register can't keep their
+; return address there, so they write it directly in to their
+; 'rtn: jmp *' instruction instead. On exit XY holds M's value.
+!macro set_return(rtn) {
+        mov c,x         ; Capture return address in CD
+        mov d,y
+        mov xy,m        ; Move M params into indexer
+        ldi m,rtn+1     ; Set return address from CD
+        str c
+        ldi m,rtn+2
+        str d
+}
+
 ; ***************************************************************
 ;  Purpose:   Copy block of memory within zero page
 ;
@@ -338,16 +351,8 @@ loop:   mov b,a         ; D = low address of last byte of pair
 ; ***************************************************************
 long_add: {
 
-        ; Because we'll be using XY as a general register we write the
-        ; return address directly in to the jump instruction at rtn.
-        ; That also means a bit of juggling to prepare our registers.
-        mov c,x         ; Capture return address in CD
-        mov d,y
-        mov xy,m        ; Move M params into indexer
-        ldi m,rtn+1     ; Set return address from CD
-        str c
-        ldi m,rtn+2
-        str d
+        ; Set the return address and move the M params into XY
+        +set_return(rtn)
         mov c,x         ; Set address of last addend byte in D
         add d
         ldi b,-1
@@ -442,14 +447,8 @@ carry:  mov m2,y        ; increment augend byte (m1y)
 ; ***************************************************************
 long_subtract: {
 
-        ; Prepare registers and set return address
-        mov c,x         ; Capture return address in CD
-        mov d,y
-        mov xy,m        ; Move M params into indexer
-        ldi m,rtn+1     ; Set return address from CD
-        str c
-        ldi m,rtn+2
-        str d
+        ; Set the return address and move the M params into XY
+        +set_return(rtn)
         mov c,x         ; Set address of last subtrahend byte in D
         add d
         ldi b,-1
@@ -572,16 +571,8 @@ bbp_fraction: {
         ldi b,0         ; Set 0 to get -(V+1) at dv ones' complement
                         ; deliberate fall through to init
 
-        ; Because we'll be using XY as a general register we write the
-        ; return address directly in to the jump instruction at rtn.
-
-  init: mov c,x         ; Capture return address in CD
-        mov d,y
-        mov xy,m        ; Preserve M in XY
-        ldi m,rtn+1     ; Set return address from CD
-        str c
-        ldi m,rtn+2
-        str d
+        ; Set the return address and preserve M in XY
+  init: +set_return(rtn)
 
         ; The return address is now set with C and D spare
         ; We now load the parameter array via ixy to bump Y
