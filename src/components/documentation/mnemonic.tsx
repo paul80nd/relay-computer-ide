@@ -129,7 +129,7 @@ export function Mnemonic(doc: MnemonicDoc) {
     );
 
     const main = (
-      <Card className={styles.card}>
+      <Card className={styles.card} key='main'>
         <CardHeader
           header={doc.syntax.map((s, ii) =>
             s.split(' ').map((p, i) => (

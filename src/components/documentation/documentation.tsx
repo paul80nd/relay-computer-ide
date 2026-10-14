@@ -83,11 +83,11 @@ _loop:  mov b,a         ; A = A + 1
 wait:   +delay(2)
         ldi m,wait::_loop`;
 
-function Documentation() {
-  const styles = useStyles();
-  const mnemonics = mnemonicDocs;
+const mnemonics = mnemonicDocs;
 
-  const Commentary = ({ children }: { children: ReactNode }) => (
+function Commentary({ children }: { children: ReactNode }) {
+  const styles = useStyles();
+  return (
     <Card className={styles.card} appearance='subtle' role='listitem'>
       <CardHeader
         description={
@@ -98,10 +98,15 @@ function Documentation() {
       />
     </Card>
   );
+}
 
-  function Code({ children }: { children: ReactNode }) {
-    return <code className={styles.code}>{children}</code>;
-  }
+function Code({ children }: { children: ReactNode }) {
+  const styles = useStyles();
+  return <code className={styles.code}>{children}</code>;
+}
+
+function Documentation() {
+  const styles = useStyles();
 
   const sections = useMemo<Section[]>(
     () => [
@@ -396,7 +401,7 @@ function Documentation() {
         )
       }
     ],
-    []
+    [styles]
   );
 
   return (
