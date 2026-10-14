@@ -15,7 +15,7 @@
 ;    ff 45 d1 74 5d 17 45 d1 74 5e (~sd+1)
 ;  = 00 ac ef 6d c4 35 3f 38 92 58
 ;
-;  Expected duration: 9m51s at default clock speed
+;  Expected duration: 9m25s at default clock speed
 ; *****************************************************
 
 ; Perform each subtraction in turn by calling function
@@ -57,7 +57,9 @@ sd:     !byte 0xA2, 0x8B, 0x2E, 0xBA, 0xE8, 0xA2, 0x8B, 0x2E, 0xBA, 0x00
 ;    B: Number of bytes in values (B)
 ;
 ;  Length of minuend must be the same as subtrahend.
-;  Byte following minuend will mutate with carry bit.
+;  A carry out of the last byte is discarded, as in
+;  fixed-width arithmetic, so nothing beyond the
+;  minuend changes.
 ;  Mutates A, B, C, D, M, XY
 ; *****************************************************
 long_sub: {
@@ -112,9 +114,7 @@ loop_c: mov m2,x        ; C <- ~subtrahend byte + 1 (m1x)
         mov c,d         ; compare old X with last subtrahend byte
         cmp
         bne loop
-
-        ; Jump to return address (set earlier)
-rtn:    jmp *
+        jmp rtn
 
 loop:   ; Take 1s complement of subtrahend
         mov m2,x        ; B <- subtrahend byte (m1x)
@@ -148,15 +148,9 @@ next_c: ixy             ; Y++ (minuend)
         cmp
         bne loop_c
 
-        ; A carry out of the last byte goes in to the byte following the
-        ; minuend. It's possible though that could cause a carry in that
-        ; byte and so on so we iterate here until no carry.
-carry:  mov m2,y        ; increment minuend byte (m1y)
-        ldr b
-        inc
-        str a
-        ixy             ; Y++ (doesn't change flags)
-        bcs carry       ; Go again if caused carry
-        jmp rtn         ; Otherwise done
+        ; A carry out of the last byte just means there was no borrow, so
+        ; it's dropped. That's how every subtraction with a result that isn't
+        ; negative ends, so the return is placed here where it needs no jump.
+rtn:    jmp *           ; Jump to return address (set earlier)
 }
 

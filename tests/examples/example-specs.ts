@@ -141,7 +141,7 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
 
   'addition-long': [{ mem: { sa: le('32 43 f6 a6 59 b3 45 66 9c 67') }, cycles: 6506 }],
 
-  'subtraction-long': [{ mem: { sa: le('00 ac ef 6d c4 35 3f 38 92 58') }, cycles: 7094 }],
+  'subtraction-long': [{ mem: { sa: le('00 ac ef 6d c4 35 3f 38 92 58') }, cycles: 6788 }],
 
   'reciprocal-long': [
     {
