@@ -94,7 +94,20 @@ long_add: {
         ; There's no add-with-carry so we have two copies of the loop: one
         ; without a carry in (loop) and one that adds a carry in from the
         ; byte before (loop_c). Each ends by stepping the pointers itself
-        ; so that switching between them needs no extra jumps.
+        ; (the next_byte macro) so that switching between them needs no
+        ; extra jumps.
+
+        ; Step both pointers on to the next byte, then go to 'target'
+        ; unless we've just done the last addend byte
+        !macro next_byte(target) {
+        ixy             ; Y++ (augend)
+        mov b,x         ; X++ (addend)
+        inc
+        mov x,a
+        mov c,d         ; compare old X with last addend byte
+        cmp
+        bne target
+        }
 
         ; add two bytes together
 loop:   mov m2,x        ; C <- addend byte (m1x)
@@ -105,14 +118,8 @@ loop:   mov m2,x        ; C <- addend byte (m1x)
         str a           ; A -> augend byte (m1y)
         bcs next_c      ; If add caused carry add it in to the next byte
 
-        ; increment x and y pointers and loop until past the last addend byte
-        ixy             ; Y++ (augend)
-        mov b,x         ; X++ (addend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last addend byte
-        cmp
-        bne loop
+        ; no carry so carry on without a carry in
+        +next_byte(loop)
 
         ; Jump to return address (set earlier)
 rtn:    jmp *
@@ -129,24 +136,12 @@ loop_c: mov m2,x        ; C <- addend byte + 1 (m1x)
         str a           ; A -> augend byte (m1y)
         bcs next_c      ; If add caused carry add it in to the next byte
 
-        ; no carry so increment pointers and carry on without a carry in
-        ixy             ; Y++ (augend)
-        mov b,x         ; X++ (addend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last addend byte
-        cmp
-        bne loop
+        ; no carry so carry on without a carry in
+        +next_byte(loop)
         jmp rtn
 
-        ; with a carry so increment pointers and carry on with a carry in
-next_c: ixy             ; Y++ (augend)
-        mov b,x         ; X++ (addend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last addend byte
-        cmp
-        bne loop_c
+        ; with a carry so carry on with a carry in
+next_c: +next_byte(loop_c)
 
         ; For a carry out of the last addend byte we need to add 1 to the
         ; next augend byte. It's possible though that could cause a carry in

@@ -230,6 +230,19 @@ start:  ; Perform the 16 BBP iterations as an unrolled k loop
 ;  Most have separate examples available with demo & comments
 ; ***************************************************************
 
+; Subroutines that need XY as a general register can't keep their
+; return address there, so they write it directly in to their
+; 'rtn: jmp *' instruction instead. On exit XY holds M's value.
+!macro set_return(rtn) {
+        mov c,x         ; Capture return address in CD
+        mov d,y
+        mov xy,m        ; Move M params into indexer
+        ldi m,rtn+1     ; Set return address from CD
+        str c
+        ldi m,rtn+2
+        str d
+}
+
 ; ***************************************************************
 ;  Purpose:   Copy block of memory within zero page
 ;
@@ -338,16 +351,8 @@ loop:   mov b,a         ; D = low address of last byte of pair
 ; ***************************************************************
 long_add: {
 
-        ; Because we'll be using XY as a general register we write the
-        ; return address directly in to the jump instruction at rtn.
-        ; That also means a bit of juggling to prepare our registers.
-        mov c,x         ; Capture return address in CD
-        mov d,y
-        mov xy,m        ; Move M params into indexer
-        ldi m,rtn+1     ; Set return address from CD
-        str c
-        ldi m,rtn+2
-        str d
+        ; Set the return address and move the M params into XY
+        +set_return(rtn)
         mov c,x         ; Set address of last addend byte in D
         add d
         ldi b,-1
@@ -364,7 +369,20 @@ long_add: {
         ; There's no add-with-carry so we have two copies of the loop: one
         ; without a carry in (loop) and one that adds a carry in from the
         ; byte before (loop_c). Each ends by stepping the pointers itself
-        ; so that switching between them needs no extra jumps.
+        ; (the next_byte macro) so that switching between them needs no
+        ; extra jumps.
+
+        ; Step both pointers on to the next byte, then go to 'target'
+        ; unless we've just done the last addend byte
+        !macro next_byte(target) {
+        ixy             ; Y++ (augend)
+        mov b,x         ; X++ (addend)
+        inc
+        mov x,a
+        mov c,d         ; compare old X with last addend byte
+        cmp
+        bne target
+        }
 
         ; add two bytes together
 loop:   mov m2,x        ; C <- addend byte (m1x)
@@ -375,14 +393,8 @@ loop:   mov m2,x        ; C <- addend byte (m1x)
         str a           ; A -> augend byte (m1y)
         bcs next_c      ; If add caused carry add it in to the next byte
 
-        ; increment x and y pointers and loop until past the last addend byte
-        ixy             ; Y++ (augend)
-        mov b,x         ; X++ (addend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last addend byte
-        cmp
-        bne loop
+        ; no carry so carry on without a carry in
+        +next_byte(loop)
 
         ; Jump to return address (set earlier)
 rtn:    jmp *
@@ -399,24 +411,12 @@ loop_c: mov m2,x        ; C <- addend byte + 1 (m1x)
         str a           ; A -> augend byte (m1y)
         bcs next_c      ; If add caused carry add it in to the next byte
 
-        ; no carry so increment pointers and carry on without a carry in
-        ixy             ; Y++ (augend)
-        mov b,x         ; X++ (addend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last addend byte
-        cmp
-        bne loop
+        ; no carry so carry on without a carry in
+        +next_byte(loop)
         jmp rtn
 
-        ; with a carry so increment pointers and carry on with a carry in
-next_c: ixy             ; Y++ (augend)
-        mov b,x         ; X++ (addend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last addend byte
-        cmp
-        bne loop_c
+        ; with a carry so carry on with a carry in
+next_c: +next_byte(loop_c)
 
         ; For a carry out of the last addend byte we need to add 1 to the
         ; next augend byte. It's possible though that could cause a carry in
@@ -447,14 +447,8 @@ carry:  mov m2,y        ; increment augend byte (m1y)
 ; ***************************************************************
 long_subtract: {
 
-        ; Prepare registers and set return address
-        mov c,x         ; Capture return address in CD
-        mov d,y
-        mov xy,m        ; Move M params into indexer
-        ldi m,rtn+1     ; Set return address from CD
-        str c
-        ldi m,rtn+2
-        str d
+        ; Set the return address and move the M params into XY
+        +set_return(rtn)
         mov c,x         ; Set address of last subtrahend byte in D
         add d
         ldi b,-1
@@ -472,8 +466,20 @@ long_subtract: {
         ; a carry in to the first byte (A - B = A + ~B + 1). There's no
         ; add-with-carry so we have two copies of the loop: one that adds
         ; a carry in from the byte before (loop_c) and one without (loop).
-        ; Each ends by stepping the pointers itself so that switching
-        ; between them needs no extra jumps.
+        ; Each ends by stepping the pointers itself (the next_byte macro)
+        ; so that switching between them needs no extra jumps.
+
+        ; Step both pointers on to the next byte, then go to 'target'
+        ; unless we've just done the last subtrahend byte
+        !macro next_byte(target) {
+        ixy             ; Y++ (minuend)
+        mov b,x         ; X++ (subtrahend)
+        inc
+        mov x,a
+        mov c,d         ; compare old X with last subtrahend byte
+        cmp
+        bne target
+        }
 
         ; Add the 1s complement of the subtrahend byte plus the carry in
 loop_c: mov m2,x        ; C <- ~subtrahend byte + 1 (m1x)
@@ -489,14 +495,8 @@ loop_c: mov m2,x        ; C <- ~subtrahend byte + 1 (m1x)
         str a           ; A -> minuend byte (m1y)
         bcs next_c      ; If add caused carry add it in to the next byte
 
-        ; no carry so increment pointers and carry on without a carry in
-        ixy             ; Y++ (minuend)
-        mov b,x         ; X++ (subtrahend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last subtrahend byte
-        cmp
-        bne loop
+        ; no carry so carry on without a carry in
+        +next_byte(loop)
         jmp rtn
 
 loop:   ; Take 1s complement of subtrahend
@@ -512,24 +512,12 @@ loop:   ; Take 1s complement of subtrahend
         str a           ; A -> minuend byte (m1y)
         bcs next_c      ; If add caused carry add it in to the next byte
 
-        ; increment x and y pointers and loop until past the last subtrahend byte
-        ixy             ; Y++ (minuend)
-        mov b,x         ; X++ (subtrahend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last subtrahend byte
-        cmp
-        bne loop
+        ; no carry so carry on without a carry in
+        +next_byte(loop)
         jmp rtn
 
-        ; with a carry so increment pointers and carry on with a carry in
-next_c: ixy             ; Y++ (minuend)
-        mov b,x         ; X++ (subtrahend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last subtrahend byte
-        cmp
-        bne loop_c
+        ; with a carry so carry on with a carry in
+next_c: +next_byte(loop_c)
 
         ; A carry out of the last byte just means there was no borrow, so
         ; it's dropped. When the result isn't negative (always the case in
@@ -583,16 +571,8 @@ bbp_fraction: {
         ldi b,0         ; Set 0 to get -(V+1) at dv ones' complement
                         ; deliberate fall through to init
 
-        ; Because we'll be using XY as a general register we write the
-        ; return address directly in to the jump instruction at rtn.
-
-  init: mov c,x         ; Capture return address in CD
-        mov d,y
-        mov xy,m        ; Preserve M in XY
-        ldi m,rtn+1     ; Set return address from CD
-        str c
-        ldi m,rtn+2
-        str d
+        ; Set the return address and preserve M in XY
+  init: +set_return(rtn)
 
         ; The return address is now set with C and D spare
         ; We now load the parameter array via ixy to bump Y
@@ -647,34 +627,31 @@ a_loop: mov c,m2        ; decrement M (via M2--)
         mov c,x         ; C = -V for the whole byte
 
         ; ******* B loop (unrolled) - building up each bit of each byte
-        ; As the remainder is always below V (at most 127) rotating it left
-        ; doubles it exactly. If 2A - V is negative the quotient bit is 0 and
-        ; we restore 2A from B. Otherwise the quotient bit is 1 and we keep
-        ; 2A - V, which we copy into B first so that the shared restore leaves
-        ; it in place. The first bit needs no shift of Q as it's still zero.
+        ; Work out one quotient bit. As the remainder is always below V (at
+        ; most 127) rotating it left doubles it exactly. If 2A - V is negative
+        ; the quotient bit is 0 and we restore 2A from B. Otherwise the
+        ; quotient bit is 1 and we keep 2A - V, which we copy into B first so
+        ; that the shared restore leaves it in place.
+        !macro trial_bit() {
         mov b,a         ; A = 2A - V (B = 2A)
         rol
         mov b,a
         add
-        bmi b_neg
+        bmi _neg
         mov b,d         ; Q bit = 1
         inc d
         mov b,a         ; Keep 2A - V
- b_neg: mov a,b
+  _neg: mov a,b
+        }
+
+        ; The first bit needs no shift of Q as it's still zero
+        +trial_bit()
 
 b_loop: !for i in range(7) {
 
             mov b,d         ; Q << 1
             rol d
-      _tst: mov b,a         ; A = 2A - V (B = 2A)
-            rol
-            mov b,a
-            add
-            bmi _neg
-            mov b,d         ; Q bit = 1
-            inc d
-            mov b,a         ; Keep 2A - V
-      _neg: mov a,b
+      _tst: +trial_bit()
 
         }
 

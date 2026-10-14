@@ -89,8 +89,20 @@ long_sub: {
         ; a carry in to the first byte (A - B = A + ~B + 1). There's no
         ; add-with-carry so we have two copies of the loop: one that adds
         ; a carry in from the byte before (loop_c) and one without (loop).
-        ; Each ends by stepping the pointers itself so that switching
-        ; between them needs no extra jumps.
+        ; Each ends by stepping the pointers itself (the next_byte macro)
+        ; so that switching between them needs no extra jumps.
+
+        ; Step both pointers on to the next byte, then go to 'target'
+        ; unless we've just done the last subtrahend byte
+        !macro next_byte(target) {
+        ixy             ; Y++ (minuend)
+        mov b,x         ; X++ (subtrahend)
+        inc
+        mov x,a
+        mov c,d         ; compare old X with last subtrahend byte
+        cmp
+        bne target
+        }
 
         ; Add the 1s complement of the subtrahend byte plus the carry in
 loop_c: mov m2,x        ; C <- ~subtrahend byte + 1 (m1x)
@@ -106,14 +118,8 @@ loop_c: mov m2,x        ; C <- ~subtrahend byte + 1 (m1x)
         str a           ; A -> minuend byte (m1y)
         bcs next_c      ; If add caused carry add it in to the next byte
 
-        ; no carry so increment pointers and carry on without a carry in
-        ixy             ; Y++ (minuend)
-        mov b,x         ; X++ (subtrahend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last subtrahend byte
-        cmp
-        bne loop
+        ; no carry so carry on without a carry in
+        +next_byte(loop)
         jmp rtn
 
 loop:   ; Take 1s complement of subtrahend
@@ -129,24 +135,12 @@ loop:   ; Take 1s complement of subtrahend
         str a           ; A -> minuend byte (m1y)
         bcs next_c      ; If add caused carry add it in to the next byte
 
-        ; increment x and y pointers and loop until past the last subtrahend byte
-        ixy             ; Y++ (minuend)
-        mov b,x         ; X++ (subtrahend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last subtrahend byte
-        cmp
-        bne loop
+        ; no carry so carry on without a carry in
+        +next_byte(loop)
         jmp rtn
 
-        ; with a carry so increment pointers and carry on with a carry in
-next_c: ixy             ; Y++ (minuend)
-        mov b,x         ; X++ (subtrahend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last subtrahend byte
-        cmp
-        bne loop_c
+        ; with a carry so carry on with a carry in
+next_c: +next_byte(loop_c)
 
         ; A carry out of the last byte just means there was no borrow, so
         ; it's dropped. That's how every subtraction with a result that isn't
