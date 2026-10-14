@@ -87,6 +87,17 @@ export const directiveDocs: Record<string, MnemonicDoc> = {
       'The range can either be a single numeric value `n` giving a range of `0..n-1` or two values `s`,`e` giving a range on `s..e-1`.'
     ]
   },
+  '!macro': {
+    title: '!macro',
+    summary: 'Define Macro',
+    syntax: ['!macro <name>([<arg>,...]) { ... }', '+<name>([<value>,...])'],
+    snippet: '!macro ${1:name}(${2:arg}) {\n        ${3:add}\n}',
+    description: [
+      'Defines a named block of code that is assembled wherever it is expanded with `+name(...)`.',
+      'Each argument is evaluated at the call site and bound to the argument name, so it can be used anywhere an expression can (including as a branch target). Registers can also be passed as arguments.',
+      'A macro must be defined before it is used. Labels within the body are local to each expansion; a label on the call line names the expansion so body labels can be referenced as `label::inner_label`.'
+    ]
+  },
   '!if': {
     title: '!if',
     summary: 'Define Conditional Block',

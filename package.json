@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=20.19"
+    "node": ">=24"
   },
   "scripts": {
     "dev": "vite",
@@ -18,7 +18,7 @@
   "private": true,
   "dependencies": {
     "@fluentui/react-components": "^9.72.11",
-    "@paul80nd/rcasm": "1.20.2",
+    "@paul80nd/rcasm": "1.22.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-resizable-panels": "^4.5.9"

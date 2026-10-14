@@ -84,7 +84,9 @@ export default function Emulator({ assembly }: EmulatorProps) {
     const watches = assembly?.watches;
     if (!watches) return [];
     const nameToAddr = new Map<string, number>(
-      Object.entries(assembly?.labels ?? {}).map(([hex, { name }]) => [name, parseInt(hex, 16)])
+      Object.entries(assembly?.labels ?? {}).flatMap(([hex, ls]) =>
+        ls.map(({ name }) => [name, parseInt(hex, 16)] as const)
+      )
     );
     return watches.map(w => ({
       name: w.name,

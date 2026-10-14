@@ -1,5 +1,6 @@
 import {
   AssemblerResult,
+  assemble,
   exchangeAddressForSourceLine,
   exchangeSourceLineNumberForAddress,
   extractWatches
@@ -200,5 +201,31 @@ describe('extractWatches', () => {
     expect(extractWatches(';@watch foo:4:xx')).toEqual([
       { name: 'foo', length: 4, requested: 4, endian: 'be' }
     ]);
+  });
+
+  test('scope-qualified names keep their double colons', () => {
+    expect(extractWatches(';@watch first::_skip:3:le, a::b::c, sc::x:2')).toEqual([
+      { name: 'first::_skip', length: 3, requested: 3, endian: 'le' },
+      { name: 'a::b::c', length: 1, requested: 1, endian: 'be' },
+      { name: 'sc::x', length: 2, requested: 2, endian: 'be' }
+    ]);
+  });
+});
+
+describe('assemble labels', () => {
+  test('keeps every label that shares an address, in definition order', () => {
+    const code = [
+      '!macro skip(n) {',
+      '_skip:  ldi b,n',
+      '        bne _skip',
+      '}',
+      'first:  +skip(3)',
+      '        hlt'
+    ].join('\n');
+    expect(assemble(code).labels?.['0000']).toEqual([{ name: 'first' }, { name: 'first::_skip' }]);
+  });
+
+  test('a label alone at its address is a single entry', () => {
+    expect(assemble('        hlt\nend:    hlt').labels?.['0001']).toEqual([{ name: 'end' }]);
   });
 });

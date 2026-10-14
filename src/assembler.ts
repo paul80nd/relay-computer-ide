@@ -15,9 +15,13 @@ export function assemble(code: string): AssemblerResult {
         dataLength: debugInfo?.info().dataLength
       })
       .join('\n');
-    labelDict = Object.fromEntries(
-      labels.map(l => [l.addr.toString(16).padStart(4, '0').toUpperCase(), { name: l.name }])
-    );
+    // Several labels can share an address (a scope or labelled macro call and
+    // the first label inside it), so keep them all in definition order.
+    labelDict = {} as NonNullable<AssemblerResult['labels']>;
+    for (const l of labels) {
+      const addr = l.addr.toString(16).padStart(4, '0').toUpperCase();
+      (labelDict[addr] ??= []).push({ name: l.name });
+    }
   } else {
     dasm = `❌ Assembly failed (${pluralize(errors.length, 'error', 'errors')})`;
   }
@@ -33,9 +37,10 @@ export function assemble(code: string): AssemblerResult {
 
 // Source-level directive: a comment line of the form
 //   ;@watch pi:9, psum:10, fra:7 frb:7 frc:7 frd:7
-// Each token is "<labelName>:<byteLength>". Separators may be whitespace and/or
-// commas. Length is clamped to [1, 12] so the watches block always fits the
-// emulator display. Returns undefined when no directive is present.
+// Each token is "<labelName>:<byteLength>". Label names may be scope-qualified
+// (first::_skip), so only single colons separate the parts. Separators may be
+// whitespace and/or commas. Length is clamped to [1, 12] so the watches block
+// always fits the emulator display. Returns undefined when no directive is present.
 export type WatchEndian = 'be' | 'le';
 
 export function extractWatches(
@@ -51,7 +56,7 @@ export function extractWatches(
       .filter(Boolean)
       .map(tok => {
         // Tokens are name[:length[:endian]]; unknown trailing parts are ignored.
-        const parts = tok.split(':');
+        const parts = tok.split(/(?<!:):(?!:)/);
         const name = parts[0];
         const parsed = parseInt(parts[1] ?? '', 10);
         const requested = Number.isFinite(parsed) ? parsed : 1;
@@ -77,7 +82,7 @@ export type AssemblerResult = {
   labels?: {
     [k: string]: {
       name: string;
-    };
+    }[];
   };
   watches?: { name: string; length: number; requested: number; endian: WatchEndian }[];
 };
