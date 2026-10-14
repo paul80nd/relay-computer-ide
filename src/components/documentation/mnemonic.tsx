@@ -210,13 +210,23 @@ export function Mnemonic(doc: MnemonicDoc) {
     return (
       <Card className={styles.card}>
         <CardHeader
-          header={doc.syntax.map(s =>
-            s.split(' ').map((p, i) => (
-              <Text className={styles.syntax} key={i} weight={i == 0 ? 'semibold' : 'regular'}>
-                {p}
-              </Text>
-            ))
-          )}
+          header={
+            <div>
+              {doc.syntax.map((s, ii) => (
+                <div key={`${ii}`}>
+                  {s.split(' ').map((p, i) => (
+                    <Text
+                      className={styles.syntax}
+                      key={`${i}`}
+                      weight={i == 0 ? 'semibold' : 'regular'}
+                    >
+                      {p}
+                    </Text>
+                  ))}
+                </div>
+              ))}
+            </div>
+          }
         />
         <div className={styles.instrSummaries}>
           <Text as='p' className={styles.instrSummary}>

@@ -60,8 +60,28 @@ const useStyles = makeStyles({
     color: tokens.colorPaletteGreenForeground2,
     fontSize: tokens.fontSizeBase200,
     lineHeight: tokens.lineHeightBase200
+  },
+  codeBlock: {
+    fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+    color: tokens.colorPaletteGreenForeground2,
+    fontSize: tokens.fontSizeBase200,
+    lineHeight: tokens.lineHeightBase200,
+    margin: 0,
+    overflowX: 'auto'
   }
 });
+
+const macroExample = `!macro delay(n) {
+        ldi a,0-n       ; n = 1..16
+_loop:  mov b,a         ; A = A + 1
+        inc
+        bne _loop       ; until zero
+}
+
+        +delay(4)
+        +delay(8)
+wait:   +delay(2)
+        ldi m,wait::_loop`;
 
 function Documentation() {
   const styles = useStyles();
@@ -314,6 +334,35 @@ function Documentation() {
             <Mnemonic {...mnemonics['!for']} />
             <Mnemonic {...mnemonics['range']} />
             <Mnemonic {...mnemonics['!error']} />
+          </>
+        )
+      },
+      {
+        title: 'Macros',
+        section: 'Assembly Directives',
+        content: (
+          <>
+            <Commentary>
+              A macro is a block of code written once and copied in wherever it is used. Unlike a
+              subroutine (<Code>jsr</Code>/<Code>rts</Code>) it costs no cycles to call, because
+              there is no jump there and back, at the cost of a larger program. That makes macros
+              useful for short blocks repeated to avoid a jump.
+            </Commentary>
+            <Mnemonic {...mnemonics['!macro']} />
+            <Commentary>
+              <Text>Example</Text>
+              <br />
+              <br />A delay loop expanded three times. Each expansion gets its own{' '}
+              <Code>_loop</Code> label, and naming the last call <Code>wait</Code> makes its label
+              reachable as <Code>wait::_loop</Code>.
+              <br />
+              <br />
+              Arguments can be any expression (here a loop count) or a register, e.g.{' '}
+              <Code>+copy(xy, m)</Code>. Argument names can&apos;t themselves be register names.
+            </Commentary>
+            <Card className={styles.card} appearance='subtle' role='listitem'>
+              <pre className={styles.codeBlock}>{macroExample}</pre>
+            </Card>
           </>
         )
       },
