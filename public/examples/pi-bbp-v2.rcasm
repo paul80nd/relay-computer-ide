@@ -627,34 +627,31 @@ a_loop: mov c,m2        ; decrement M (via M2--)
         mov c,x         ; C = -V for the whole byte
 
         ; ******* B loop (unrolled) - building up each bit of each byte
-        ; As the remainder is always below V (at most 127) rotating it left
-        ; doubles it exactly. If 2A - V is negative the quotient bit is 0 and
-        ; we restore 2A from B. Otherwise the quotient bit is 1 and we keep
-        ; 2A - V, which we copy into B first so that the shared restore leaves
-        ; it in place. The first bit needs no shift of Q as it's still zero.
+        ; Work out one quotient bit. As the remainder is always below V (at
+        ; most 127) rotating it left doubles it exactly. If 2A - V is negative
+        ; the quotient bit is 0 and we restore 2A from B. Otherwise the
+        ; quotient bit is 1 and we keep 2A - V, which we copy into B first so
+        ; that the shared restore leaves it in place.
+        !macro trial_bit() {
         mov b,a         ; A = 2A - V (B = 2A)
         rol
         mov b,a
         add
-        bmi b_neg
+        bmi _neg
         mov b,d         ; Q bit = 1
         inc d
         mov b,a         ; Keep 2A - V
- b_neg: mov a,b
+  _neg: mov a,b
+        }
+
+        ; The first bit needs no shift of Q as it's still zero
+        +trial_bit()
 
 b_loop: !for i in range(7) {
 
             mov b,d         ; Q << 1
             rol d
-      _tst: mov b,a         ; A = 2A - V (B = 2A)
-            rol
-            mov b,a
-            add
-            bmi _neg
-            mov b,d         ; Q bit = 1
-            inc d
-            mov b,a         ; Keep 2A - V
-      _neg: mov a,b
+      _tst: +trial_bit()
 
         }
 
