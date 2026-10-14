@@ -436,8 +436,8 @@ export class EmulatorCore {
     const isCont = (op & 0x04) === 0x04; // Continued fractional mode (byte-by-byte)
     const toD = (op & 0x01) === 0x01; // Destination select: A vs D
 
-    let res = 0;
-    let rem = 0;
+    let res: number;
+    let rem: number;
 
     // Continued fractional byte mode:
     // - Produce 8 fractional quotient bits using DVR (remainder) and C (divisor)

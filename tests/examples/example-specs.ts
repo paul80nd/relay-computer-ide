@@ -73,6 +73,17 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
     }
   ],
 
+  // Uses the proposed hardware divider unit (div/dvr)
+  'pi-bbp-du': [
+    {
+      mem: {
+        pi: hex('32 43 f6 a8 88 5a 30 8d 31'),
+        psum: le('32 43 f6 a8 88 5a 30 8d 31 39')
+      },
+      cycles: 189842
+    }
+  ],
+
   // ---- Mathematical operations ----
 
   'subtract-8': [
@@ -152,6 +163,28 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
         rd: hex('02 0c 49 ba 5e 35 3f 7c ed 91')
       },
       cycles: 23458
+    }
+  ],
+
+  // ---- Divider unit (proposed hardware) ----
+
+  'divunit-test': [
+    {
+      // halts at 'fail' instead if any div/mod result is wrong
+      haltAt: 'pass',
+      cycles: 1744
+    }
+  ],
+
+  'reciprocal-long-du': [
+    {
+      mem: {
+        ra: hex('33 33 33 33'),
+        rb: hex('12 49 24 92 49 24'),
+        rc: hex('05 b0 5b 05 b0 5b 05 b0'),
+        rd: hex('02 0c 49 ba 5e 35 3f 7c ed 91')
+      },
+      cycles: 4418
     }
   ]
 };
