@@ -27,7 +27,7 @@ export type ExampleCase = {
   haltAt?: string;
   /** Expected register values at the end */
   regs?: Partial<Registers>;
-  /** Expected memory contents at the end, by label */
+  /** Expected memory contents at the end, by label (optionally `label+offset`) */
   mem?: Record<string, number[]>;
   /** Expected memory contents at the end, by absolute address */
   memAt?: Record<number, number[]>;
@@ -45,6 +45,8 @@ export type ExampleRun = {
   steps: number;
   snapshot: Readonly<Snapshot>;
   labels: Map<string, number>;
+  /** Address of `label` or `label+offset` */
+  resolve: (ref: string) => number | undefined;
   readMem: (addr: number, length: number) => number[];
 };
 
@@ -92,11 +94,17 @@ export function runExample(id: string, spec: ExampleCase): ExampleRun {
   }
 
   const memory = core.getMemory();
+  const labelMap = new Map(labels.map(l => [l.name, l.addr]));
   return {
     halted,
     steps,
     snapshot: core.getSnapshot(),
-    labels: new Map(labels.map(l => [l.name, l.addr])),
+    labels: labelMap,
+    resolve: ref => {
+      const [name, offset] = ref.split('+');
+      const addr = labelMap.get(name);
+      return addr === undefined ? undefined : addr + Number(offset ?? 0);
+    },
     readMem: (addr, length) =>
       Array.from({ length }, (_, i) => memory[(addr + i) & (memory.length - 1)])
   };

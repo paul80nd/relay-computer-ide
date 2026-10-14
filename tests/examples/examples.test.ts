@@ -52,7 +52,7 @@ describe('example programs', () => {
             }
 
             for (const [label, bytes] of Object.entries(spec.mem ?? {})) {
-              const addr = run.labels.get(label);
+              const addr = run.resolve(label);
               expect(addr).toBeDefined();
               // compare as hex so failures read like the example comments
               expect({ [label]: run.readMem(addr!, bytes.length).map(hex2) }).toEqual({
