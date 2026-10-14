@@ -3,7 +3,7 @@
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula like pi-bbp-v1 but reorders the work so
 ;  that digits are produced and confirmed progressively, rather than all at the end.
-;  Expected run time: 11h43m33s at default clock speed for 20 hex places (v1: 12h35m15s
+;  Expected run time: 11h14m57s at default clock speed for 20 hex places (v1: 12h35m15s
 ;  and v2: 9h19m25s for 17, all at the end), with the integer part confirmed after 9m
 ;  and a new byte every 1-2 hours.
 ;
@@ -52,6 +52,8 @@ endp:   !byte tab               ; end of the active table entries
 cnum:   !byte 1                 ; current column
 nfr:    !byte 9                 ; active fractions after this column + 1 (8c+1)
 ftmp:   !byte 0                 ; scratch for the confirmation scan
+colp:   !byte 0                 ; address of pi[c] while XY holds the column sum
+lend:   !byte 0                 ; end of the table entries for the current step loop
 
 ; Fraction table: entry i holds the divisor term and remainder for A, C, B and D.
 ; A_i is term k=i+1, the others term k=i. Two entries start in each column.
@@ -144,10 +146,10 @@ tab:    !for i in range(22) {
 !let subtracted = 1
 
 ; One step of one fraction: work out its next quotient byte ('bits' bits,
-; by wide division if 'wide') and add it into pi[c], or its ones'
-; complement if 'subtract'. On entry M points at the fraction's table
-; entry, and on exit at the next one. A carry out of pi[c] goes off to
-; 'carry', which ripples it up and comes back to the step's '_r'.
+; by wide division if 'wide') and add it into the column sum XY, or its
+; ones' complement if 'subtract'. On entry M points at the fraction's
+; table entry, and on exit at the next one. A carry out of Y goes off to
+; 'carry', which counts it in X and comes back to the step's '_r'.
 !macro step(bits, wide, subtract, carry) {
         ldr c           ; C = divisor term (-V fast, ~V wide)
         mov b,m2        ; point at remainder
@@ -165,28 +167,22 @@ tab:    !for i in range(22) {
             mov b,d     ; subtracted fraction: add ones' complement
             not d
         }
-        mov a,m2        ; A = table pointer
-        mov m2,x        ; pi[c] += D
+        mov b,y         ; column sum XY += D
         mov c,d
-        ldr b
-        add d
-        str d
-        bcs carry       ; ripple any carry
-    _r: mov b,a         ; point at next table entry
+        add
+        mov y,a
+        bcs carry       ; count any carry in X
+    _r: mov b,m2        ; point at next table entry
         inc d
         mov m2,d
 }
 
-; Ripple a carry out of pi[c] up through the more significant columns,
+; Count a carry out of the column sum's low byte Y in its high byte X,
 ; then go back to 'back'
-!macro ripple(back) {
-  _top: mov b,m2        ; carry into the next more significant byte
-        inc d
-        mov m2,d
-        ldr b
-        inc d
-        str d
-        bcs _top
+!macro count_carry(back) {
+        mov b,x
+        inc
+        mov x,a
         jmp back
 }
 
@@ -199,10 +195,16 @@ start:  ldi m,pi+10
 
 column:
         ; ---- Steady steps: one quotient byte from every active fraction ----
+        ;      Their sum builds up in XY: Y is added to pi[c] and X (the
+        ;      carries out of Y) to pi[c-1] once the column's steps are done.
+
+        mov d,x
+        ldi m,colp
+        str d                   ; save the address of pi[c]
+        clr xy                  ; XY = column sum = 0
 
         ldi m,endp
-        ldr d
-        mov y,d                 ; Y = end of active entries
+        ldr d                   ; D = end of active entries
         ldi m,cnum
         ldr c
         ldi b,-9
@@ -210,11 +212,13 @@ column:
         bcs split
         jmp fast_go
 split:  ldi m,tab+15*8
-        mov y,m2                ; fast loop stops at the first wide entry
+        mov d,m2                ; fast loop stops at the first wide entry
 fast_go:
+        ldi m,lend
+        str d
         ldi m,tab
         mov b,m2
-        mov c,y
+        mov c,d
         cmp
         beq fast_end            ; nothing active yet
 
@@ -224,25 +228,28 @@ fast_top:
     fb: +step(8, fast, subtracted, fb_c)        ; B
     fd: +step(8, fast, subtracted, fd_c)        ; D
 
-        mov b,m2
-        mov c,y
+        mov b,m2                ; loop until the table pointer reaches lend
+        ldi m,lend
+        ldr c
         cmp
+        mov m2,b
         bne fast_top
         jmp fast_end
 
-  fa_c: +ripple(fa::_r)
-  fc_c: +ripple(fc::_r)
-  fb_c: +ripple(fb::_r)
-  fd_c: +ripple(fd::_r)
+  fa_c: +count_carry(fa::_r)
+  fc_c: +count_carry(fc::_r)
+  fb_c: +count_carry(fb::_r)
+  fd_c: +count_carry(fd::_r)
 
 fast_end:
         mov a,m2
         ldi m,endp
-        ldr d
-        mov y,d                 ; Y = end of active entries
+        ldr d                   ; wide loop stops at the end of active entries
+        ldi m,lend
+        str d
         mov m2,a
         mov b,a
-        mov c,y
+        mov c,d
         cmp
         beq act                 ; no wide entries active
 
@@ -252,16 +259,18 @@ wide_top:
     wb: +step(8, fast, subtracted, wb_c)        ; B
     wd: +step(8, fast, subtracted, wd_c)        ; D
 
-        mov b,m2
-        mov c,y
+        mov b,m2                ; loop until the table pointer reaches lend
+        ldi m,lend
+        ldr c
         cmp
+        mov m2,b
         bne wide_top
         jmp act
 
-  wa_c: +ripple(wa::_r)
-  wc_c: +ripple(wc::_r)
-  wb_c: +ripple(wb::_r)
-  wd_c: +ripple(wd::_r)
+  wa_c: +count_carry(wa::_r)
+  wc_c: +count_carry(wc::_r)
+  wb_c: +count_carry(wb::_r)
+  wd_c: +count_carry(wd::_r)
 
         ; ---- Start the two new terms for this column (partial first bytes) ----
         ;
@@ -306,20 +315,55 @@ ao_wide:
 ao_bd:
    aob: +step(4, fast, subtracted, aob_c)       ; B
    aod: +step(3, fast, subtracted, aod_c)       ; D
-        jmp borrow
+        jmp fold
 
- aea_c: +ripple(aea::_r)
- aec_c: +ripple(aec::_r)
-aewa_c: +ripple(aewa::_r)
-aewc_c: +ripple(aewc::_r)
- aeb_c: +ripple(aeb::_r)
- aed_c: +ripple(aed::_r)
- aoa_c: +ripple(aoa::_r)
- aoc_c: +ripple(aoc::_r)
-aowa_c: +ripple(aowa::_r)
-aowc_c: +ripple(aowc::_r)
- aob_c: +ripple(aob::_r)
- aod_c: +ripple(aod::_r)
+ aea_c: +count_carry(aea::_r)
+ aec_c: +count_carry(aec::_r)
+aewa_c: +count_carry(aewa::_r)
+aewc_c: +count_carry(aewc::_r)
+ aeb_c: +count_carry(aeb::_r)
+ aed_c: +count_carry(aed::_r)
+ aoa_c: +count_carry(aoa::_r)
+ aoc_c: +count_carry(aoc::_r)
+aowa_c: +count_carry(aowa::_r)
+aowc_c: +count_carry(aowc::_r)
+ aob_c: +count_carry(aob::_r)
+ aod_c: +count_carry(aod::_r)
+
+        ; ---- Add the column sum into pi: Y to pi[c] and X to pi[c-1] ----
+
+fold:   ldi m,colp
+        ldr d
+        mov m2,d                ; M = pi[c]
+        ldr b
+        mov c,y
+        add d
+        str d
+        bcs fold_c
+        jmp fold_hi
+fold_c: mov b,x                 ; carry from pi[c] into X
+        inc
+        mov x,a
+fold_hi:
+        mov b,m2
+        inc d
+        mov m2,d                ; M = pi[c-1]
+        ldr b
+        mov c,x
+        add d
+        str d
+        bcs fold_r
+        jmp fold_x
+fold_r: mov b,m2                ; ripple the carry up through pi
+        inc d
+        mov m2,d
+        ldr b
+        inc d
+        str d
+        bcs fold_r
+fold_x: ldi m,colp
+        ldr d
+        mov x,d                 ; X = address of pi[c] again
 
         ; ---- The six new subtracted fractions each owe -1 at column c-1 ----
 

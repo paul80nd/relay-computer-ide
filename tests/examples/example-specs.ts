@@ -80,7 +80,7 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
         'pi+1': le('03 24 3f 6a 88 85 a3 08 d3 13 19'),
         pifinal: [11]
       },
-      cycles: 506562
+      cycles: 485972
     }
   ],
 
