@@ -155,6 +155,11 @@ function Examples() {
                 'Long Reciprocal v2',
                 'Revised example of byte-by-byte long reciprocal now using the restoring unsigned integer division method'
               )}
+              {renderExample(
+                'reciprocal-long-se-v3',
+                'Long Reciprocal v3',
+                'Third version of byte-by-byte long reciprocal, removing a jump from every bit of the restoring division'
+              )}
               {renderSectionHeader(
                 'Many of the examples above are also available in "Handy Routines" as reusable functions.'
               )}

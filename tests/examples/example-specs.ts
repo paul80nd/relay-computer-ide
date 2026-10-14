@@ -114,6 +114,8 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
 
   'reciprocal-long-se-v2': [{ mem: { ra: hex('02 0c 49 ba 5e 35 3f 7c ed 91') }, cycles: 11874 }],
 
+  'reciprocal-long-se-v3': [{ mem: { ra: hex('02 0c 49 ba 5e 35 3f 7c ed 91') }, cycles: 8298 }],
+
   // ---- Handy routines ----
 
   'convert-endian': [
