@@ -69,8 +69,15 @@ export const language = {
   // The main tokenizer for our languages
   tokenizer: {
     root: [
-      // identifiers and keywords
-      [/[a-z_]*:/, 'type.identifier'],
+      // macro calls (+name(, +scope::name( or +::scope::name() and the name in a
+      // macro definition. Calls must precede the label rule, which would
+      // otherwise claim the 'scope:' of a scope-qualified call.
+      [/\+(::)?[a-z_]\w*(::[a-z_]\w*)*(?=\s*\()/, 'keyword.macro'],
+      [/(!macro)(\s+)([a-z_]\w*)/, ['keyword.directive', '', 'keyword.macro']],
+
+      // identifiers and keywords. A label is a name followed by a single colon;
+      // a double colon is a scope-qualified reference (e.g. outer::inner).
+      [/[a-z_]\w*:(?!:)/, 'type.identifier'],
       [/![a-z]+/, 'keyword.directive'],
       [
         /[a-z]\w*/,
