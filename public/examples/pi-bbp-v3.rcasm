@@ -3,7 +3,7 @@
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula like pi-bbp-v1 but reorders the work so
 ;  that digits are produced and confirmed progressively, rather than all at the end.
-;  Expected run time: 11h14m57s at default clock speed for 20 hex places (v1: 12h35m15s
+;  Expected run time: 10h52m11s at default clock speed for 20 hex places (v1: 12h35m15s
 ;  and v2: 9h19m25s for 17, all at the end), with the integer part confirmed after 9m
 ;  and a new byte every 1-2 hours.
 ;
@@ -77,40 +77,42 @@ tab:    !for i in range(22) {
 ;  Macros: the building blocks of a fraction step
 ; ***************************************************************
 
-; Work out one quotient bit with fast division (V at most 128). As the
-; remainder is always below V, rotating it left doubles it exactly. If
-; 2r - V is negative the bit is 0 and we restore 2r from B. Otherwise the
-; bit is 1 and we keep 2r - V, which we copy into B first so that the
-; shared restore leaves it in place.
+; Work out one quotient bit with fast division (V at most 128). D builds
+; up ~Q, the ones' complement of the quotient, because then only the
+; restore path has work to do. As the remainder is always below V,
+; rotating it left doubles it exactly, and adding -V carries exactly when
+; 2r >= V. Then the Q bit is 1 and we keep 2r - V, with nothing more to
+; do. Otherwise the Q bit is 0, so we restore 2r and set the bit of ~Q.
 !macro fast_bit() {
         mov b,a         ; A = (r << 1) - V (B = r << 1)
         rol
         mov b,a
         add
-        bmi _neg        ; negative: restore
-        mov b,d         ; otherwise set the Q bit
+        bcs _keep       ; carry: keep A = (r << 1) - V
+        mov a,b         ; otherwise restore A = r << 1
+        mov b,d         ;  and set the bit of ~Q
         inc d
-        mov b,a         ;  and keep A = (r << 1) - V
-  _neg: mov a,b         ; restore A = r << 1 (or keep)
+ _keep:
 }
 
-; Work out 'n' quotient bits into D with fast division. The first bit
-; needs no shift of Q as D is still zero.
+; Work out 'n' bits of ~Q into D with fast division. The first bit needs
+; no shift as D is still zero.
 !macro fast_bits(n) {
         +fast_bit()
         !for j in range(n - 1) {
-            mov b,d     ; Q << 1
+            mov b,d     ; ~Q << 1
             rol d
             +fast_bit()
         }
 }
 
-; Work out one quotient bit with wide division (V up to 255, and odd).
-; Now 2r can reach 256, so we follow the carry out of the rotate: if it's
-; set, 2r is certainly above V. Otherwise adding ~V gives 2r - V - 1 and
-; carries if 2r > V (never equal as V is odd), and an inc corrects it.
+; Work out one quotient bit with wide division (V up to 255, and odd),
+; again building ~Q in D. Now 2r can reach 256, so we follow the carry out
+; of the rotate: if it's set, 2r is certainly above V. Otherwise adding ~V
+; gives 2r - V - 1 and carries if 2r > V (never equal as V is odd), and an
+; inc corrects it.
 !macro wide_bit() {
-        mov b,d         ; Q << 1
+        mov b,d         ; ~Q << 1
         rol d
         mov b,a         ; A = rol(r), carry set if r >= 128
         rol
@@ -119,25 +121,32 @@ tab:    !for i in range(22) {
         add
         bcs _keep
         mov a,b         ; restore A = 2r
+        mov b,d         ;  and set the bit of ~Q
+        inc d
         jmp _next
  _keep: mov b,a         ; keep A = 2r - V
         inc
-        mov b,d
-        inc d
         jmp _next
   _ovf: mov b,a         ; 2r >= 256 > V so always keep: A = rol(r) + ~V = 2r - V
         add
-        mov b,d
-        inc d
  _next:
 }
 
-; Work out 'n' quotient bits into D with wide division
+; Work out 'n' bits of ~Q into D with wide division
 !macro wide_bits(n) {
         !for j in range(n) {
             +wide_bit()
         }
 }
+
+; A partial first byte of n bits comes out of the bit loop as (2^n - 1) - q
+; rather than 255 - q, as its top 8 - n bits of ~Q are 0 rather than 1.
+; That leaves each subtracted one 256 - 2^n short, and each added one (after
+; its not) 256 - 2^n over. The same partial steps start in every column
+; (see 'act' below), so the column sum starts at their net correction.
+!let partial_short = (256-128) + (256-16) + (256-16) + (256-8) ; D7 even; C4 B4 D3 odd
+!let partial_over = (256-64) + (256-4)                          ; A6 even; A2 odd
+!let partial_fix = partial_short - partial_over
 
 ; Step options, so that calls read as words
 !let fast = 0
@@ -147,7 +156,8 @@ tab:    !for i in range(22) {
 
 ; One step of one fraction: work out its next quotient byte ('bits' bits,
 ; by wide division if 'wide') and add it into the column sum XY, or its
-; ones' complement if 'subtract'. On entry M points at the fraction's
+; ones' complement if 'subtract'. The bits come out as ~Q, so it's the
+; added fractions that need a not. On entry M points at the fraction's
 ; table entry, and on exit at the next one. A carry out of Y goes off to
 ; 'carry', which counts it in X and comes back to the step's '_r'.
 !macro step(bits, wide, subtract, carry) {
@@ -156,15 +166,15 @@ tab:    !for i in range(22) {
         inc d
         mov m2,d
         ldr a           ; A = remainder
-        clr d           ; D = quotient byte
+        clr d           ; D = ~quotient byte
         !if (wide) {
             +wide_bits(bits)
         } else {
             +fast_bits(bits)
         }
         str a           ; save remainder
-        !if (subtract) {
-            mov b,d     ; subtracted fraction: add ones' complement
+        !if (subtract == 0) {
+            mov b,d     ; added fraction: D = quotient byte
             not d
         }
         mov b,y         ; column sum XY += D
@@ -201,7 +211,8 @@ column:
         mov d,x
         ldi m,colp
         str d                   ; save the address of pi[c]
-        clr xy                  ; XY = column sum = 0
+        ldi m,partial_fix
+        mov xy,m                ; XY = column sum = partial_fix (see below)
 
         ldi m,endp
         ldr d                   ; D = end of active entries
