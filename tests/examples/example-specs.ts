@@ -139,7 +139,7 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
         rc: hex('05 b0 5b 05 b0 5b 05 b0'),
         rd: hex('02 0c 49 ba 5e 35 3f 7c ed 91')
       },
-      cycles: 33314
+      cycles: 23458
     }
   ]
 };
