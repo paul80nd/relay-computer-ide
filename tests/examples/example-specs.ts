@@ -73,6 +73,17 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
     }
   ],
 
+  'pi-bbp-v3': [
+    {
+      mem: {
+        // pi is little-endian with column 11 (unconfirmed working space) first
+        'pi+1': le('03 24 3f 6a 88 85 a3 08 d3 13 19'),
+        pifinal: [11]
+      },
+      cycles: 506562
+    }
+  ],
+
   // ---- Mathematical operations ----
 
   'subtract-8': [

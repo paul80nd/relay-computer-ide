@@ -119,6 +119,11 @@ function Examples() {
                 'Pi Calculation (BBP) v2',
                 'The same calculation with its subroutines optimised for speed, with a table of what each change saved.'
               )}
+              {renderExample(
+                'pi-bbp-v3',
+                'Pi Calculation (BBP, streaming)',
+                'Reorders the BBP calculation column by column so hex digits of Pi are confirmed progressively as it runs.'
+              )}
             </AccordionPanel>
           </AccordionItem>
 

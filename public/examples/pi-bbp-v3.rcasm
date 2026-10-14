@@ -1,0 +1,462 @@
+; *****************************************************************************************
+;  Calculation of Pi as a stream of hex digits (BBP, column by column)
+;
+;  Uses the Bailey-Borwein-Plouffe (BBP) formula like pi-bbp-v1 but reorders the work so
+;  that digits are produced and confirmed progressively, rather than all at the end.
+;  Expected run time: 11h43m33s at default clock speed for 20 hex places (v1: 12h35m15s
+;  and v2: 9h19m25s for 17, all at the end), with the integer part confirmed after 9m
+;  and a new byte every 1-2 hours.
+;
+;  Each BBP fraction is a long division, and a long division only needs its remainder to
+;  carry on. So instead of finishing each term's fractions in turn, every fraction keeps a
+;  1-byte remainder and produces ONE quotient byte per column:
+;
+;    for each column c (byte c after the point):
+;      every active fraction adds its next quotient byte into pi[c]
+;      two more terms start (their 16^-k scaling now reaches column c)
+;      earlier columns are confirmed once nothing still to come can carry into them
+;
+;  The result streams into pi (little-endian, so pi+11 is the integer part). pifinal counts
+;  the confirmed columns from the integer part: watch them fill in as the program runs.
+;  After 11 columns pi holds 3.243f6a8885a308d31319 (20 hex places) all confirmed.
+;
+;  Terms (A: k = 1..22, B/C/D: k = 0..21) with every numerator reduced to 1:
+;
+;    4/(8k+1) 16^-k = (1/(8k+1)) 2^-(4k-2)    A  added       (k=0 is the constant 4)
+;    2/(8k+4) 16^-k = (1/(4k+2)) 2^-4k        B  subtracted
+;    1/(8k+5) 16^-k = (1/(8k+5)) 2^-4k        C  subtracted
+;    1/(8k+6) 16^-k = (1/(4k+3)) 2^-(4k+1)    D  subtracted
+;
+;  Every fraction starts with remainder 1. Its first quotient byte is partial (2-8 bits)
+;  to align it to the byte grid, as v1 does with its nibble shift.
+;
+;  Subtracted fractions add the ones' complement of each quotient byte plus a single -1
+;  when they start, so pi only ever has bytes added. The unfinished part of every fraction
+;  is then always worth 0 to 1 unit of the current column, which keeps the test for a
+;  confirmed column simple (see confirm below for the two cases).
+;
+;  Divisors up to 128 use fast division (rol doubles the remainder exactly). A and C
+;  divisors above 128 (entries 15+) use wide division, which follows the carry.
+; *****************************************************************************************
+
+        jmp start
+
+; @watch pi:12:le, pifinal:1
+
+        !align 16
+pi:     !fill 11,0              ; columns 11..1 (little-endian)
+        !byte 4                 ; column 0 (integer part) starts as the k=0 term 4/1
+pifinal: !byte 0                ; number of confirmed columns, from the integer part
+finp:   !byte pi+10             ; address of the column after the next unconfirmed one
+endp:   !byte tab               ; end of the active table entries
+cnum:   !byte 1                 ; current column
+nfr:    !byte 9                 ; active fractions after this column + 1 (8c+1)
+ftmp:   !byte 0                 ; scratch for the confirmation scan
+
+; Fraction table: entry i holds the divisor term and remainder for A, C, B and D.
+; A_i is term k=i+1, the others term k=i. Two entries start in each column.
+; Divisor terms are -V for fast division and ~V for wide division.
+
+        !align 16
+tab:    !for i in range(22) {
+            !let va = 8*i+9
+            !let vc = 8*i+5
+            !if (i < 15) {
+                !byte 256-va, 1, 256-vc, 1
+            } else {
+                !byte 255-va, 1, 255-vc, 1
+            }
+            !byte 256-(4*i+2), 1, 256-(4*i+3), 1
+        }
+
+!if (* > 0xff) { !error "Exceeded Zero Page!" }
+
+; ***************************************************************
+;  Macros: the building blocks of a fraction step
+; ***************************************************************
+
+; Work out one quotient bit with fast division (V at most 128). As the
+; remainder is always below V, rotating it left doubles it exactly. If
+; 2r - V is negative the bit is 0 and we restore 2r from B. Otherwise the
+; bit is 1 and we keep 2r - V, which we copy into B first so that the
+; shared restore leaves it in place.
+!macro fast_bit() {
+        mov b,a         ; A = (r << 1) - V (B = r << 1)
+        rol
+        mov b,a
+        add
+        bmi _neg        ; negative: restore
+        mov b,d         ; otherwise set the Q bit
+        inc d
+        mov b,a         ;  and keep A = (r << 1) - V
+  _neg: mov a,b         ; restore A = r << 1 (or keep)
+}
+
+; Work out 'n' quotient bits into D with fast division. The first bit
+; needs no shift of Q as D is still zero.
+!macro fast_bits(n) {
+        +fast_bit()
+        !for j in range(n - 1) {
+            mov b,d     ; Q << 1
+            rol d
+            +fast_bit()
+        }
+}
+
+; Work out one quotient bit with wide division (V up to 255, and odd).
+; Now 2r can reach 256, so we follow the carry out of the rotate: if it's
+; set, 2r is certainly above V. Otherwise adding ~V gives 2r - V - 1 and
+; carries if 2r > V (never equal as V is odd), and an inc corrects it.
+!macro wide_bit() {
+        mov b,d         ; Q << 1
+        rol d
+        mov b,a         ; A = rol(r), carry set if r >= 128
+        rol
+        bcs _ovf
+        mov b,a         ; A = 2r + ~V, carry set if 2r > V (V is odd)
+        add
+        bcs _keep
+        mov a,b         ; restore A = 2r
+        jmp _next
+ _keep: mov b,a         ; keep A = 2r - V
+        inc
+        mov b,d
+        inc d
+        jmp _next
+  _ovf: mov b,a         ; 2r >= 256 > V so always keep: A = rol(r) + ~V = 2r - V
+        add
+        mov b,d
+        inc d
+ _next:
+}
+
+; Work out 'n' quotient bits into D with wide division
+!macro wide_bits(n) {
+        !for j in range(n) {
+            +wide_bit()
+        }
+}
+
+; Step options, so that calls read as words
+!let fast = 0
+!let wide = 1
+!let added = 0
+!let subtracted = 1
+
+; One step of one fraction: work out its next quotient byte ('bits' bits,
+; by wide division if 'wide') and add it into pi[c], or its ones'
+; complement if 'subtract'. On entry M points at the fraction's table
+; entry, and on exit at the next one. A carry out of pi[c] goes off to
+; 'carry', which ripples it up and comes back to the step's '_r'.
+!macro step(bits, wide, subtract, carry) {
+        ldr c           ; C = divisor term (-V fast, ~V wide)
+        mov b,m2        ; point at remainder
+        inc d
+        mov m2,d
+        ldr a           ; A = remainder
+        clr d           ; D = quotient byte
+        !if (wide) {
+            +wide_bits(bits)
+        } else {
+            +fast_bits(bits)
+        }
+        str a           ; save remainder
+        !if (subtract) {
+            mov b,d     ; subtracted fraction: add ones' complement
+            not d
+        }
+        mov a,m2        ; A = table pointer
+        mov m2,x        ; pi[c] += D
+        mov c,d
+        ldr b
+        add d
+        str d
+        bcs carry       ; ripple any carry
+    _r: mov b,a         ; point at next table entry
+        inc d
+        mov m2,d
+}
+
+; Ripple a carry out of pi[c] up through the more significant columns,
+; then go back to 'back'
+!macro ripple(back) {
+  _top: mov b,m2        ; carry into the next more significant byte
+        inc d
+        mov m2,d
+        ldr b
+        inc d
+        str d
+        bcs _top
+        jmp back
+}
+
+; ***************************************************************
+;  Main loop: one column per pass. X = address of pi[c].
+; ***************************************************************
+
+start:  ldi m,pi+10
+        mov x,m2                ; X = pi[1]
+
+column:
+        ; ---- Steady steps: one quotient byte from every active fraction ----
+
+        ldi m,endp
+        ldr d
+        mov y,d                 ; Y = end of active entries
+        ldi m,cnum
+        ldr c
+        ldi b,-9
+        add                     ; carry if c >= 9 (active entries reach wide range)
+        bcs split
+        jmp fast_go
+split:  ldi m,tab+15*8
+        mov y,m2                ; fast loop stops at the first wide entry
+fast_go:
+        ldi m,tab
+        mov b,m2
+        mov c,y
+        cmp
+        beq fast_end            ; nothing active yet
+
+fast_top:
+    fa: +step(8, fast, added, fa_c)             ; A
+    fc: +step(8, fast, subtracted, fc_c)        ; C
+    fb: +step(8, fast, subtracted, fb_c)        ; B
+    fd: +step(8, fast, subtracted, fd_c)        ; D
+
+        mov b,m2
+        mov c,y
+        cmp
+        bne fast_top
+        jmp fast_end
+
+  fa_c: +ripple(fa::_r)
+  fc_c: +ripple(fc::_r)
+  fb_c: +ripple(fb::_r)
+  fd_c: +ripple(fd::_r)
+
+fast_end:
+        mov a,m2
+        ldi m,endp
+        ldr d
+        mov y,d                 ; Y = end of active entries
+        mov m2,a
+        mov b,a
+        mov c,y
+        cmp
+        beq act                 ; no wide entries active
+
+wide_top:
+    wa: +step(8, wide, added, wa_c)             ; A
+    wc: +step(8, wide, subtracted, wc_c)        ; C
+    wb: +step(8, fast, subtracted, wb_c)        ; B
+    wd: +step(8, fast, subtracted, wd_c)        ; D
+
+        mov b,m2
+        mov c,y
+        cmp
+        bne wide_top
+        jmp act
+
+  wa_c: +ripple(wa::_r)
+  wc_c: +ripple(wc::_r)
+  wb_c: +ripple(wb::_r)
+  wd_c: +ripple(wd::_r)
+
+        ; ---- Start the two new terms for this column (partial first bytes) ----
+        ;
+        ; A term scaled by 2^-s is below 2^-s, so its first bit is bit s+1
+        ; after the point. If that's in column c, the term's first byte has
+        ; only 8c - s bits. Entry i = 2c-2 (even) starts with
+        ; s = 8c-6 (A), 8c-8 (C and B) and 8c-7 (D). Entry i = 2c-1 (odd)
+        ; starts with s = 8c-2 (A), 8c-4 (C and B) and 8c-3 (D).
+
+act:    mov a,m2                ; even entry i = 2c-2: wide A and C from c >= 9
+        ldi m,cnum
+        ldr c
+        ldi b,-9
+        add d
+        mov m2,a
+        bcs ae_wide
+
+   aea: +step(6, fast, added, aea_c)            ; A
+   aec: +step(8, fast, subtracted, aec_c)       ; C
+        jmp ae_bd
+ae_wide:
+  aewa: +step(6, wide, added, aewa_c)           ; A
+  aewc: +step(8, wide, subtracted, aewc_c)      ; C
+ae_bd:
+   aeb: +step(8, fast, subtracted, aeb_c)       ; B
+   aed: +step(7, fast, subtracted, aed_c)       ; D
+
+        mov a,m2                ; odd entry i = 2c-1: wide A and C from c >= 8
+        ldi m,cnum
+        ldr c
+        ldi b,-8
+        add d
+        mov m2,a
+        bcs ao_wide
+
+   aoa: +step(2, fast, added, aoa_c)            ; A
+   aoc: +step(4, fast, subtracted, aoc_c)       ; C
+        jmp ao_bd
+ao_wide:
+  aowa: +step(2, wide, added, aowa_c)           ; A
+  aowc: +step(4, wide, subtracted, aowc_c)      ; C
+ao_bd:
+   aob: +step(4, fast, subtracted, aob_c)       ; B
+   aod: +step(3, fast, subtracted, aod_c)       ; D
+        jmp borrow
+
+ aea_c: +ripple(aea::_r)
+ aec_c: +ripple(aec::_r)
+aewa_c: +ripple(aewa::_r)
+aewc_c: +ripple(aewc::_r)
+ aeb_c: +ripple(aeb::_r)
+ aed_c: +ripple(aed::_r)
+ aoa_c: +ripple(aoa::_r)
+ aoc_c: +ripple(aoc::_r)
+aowa_c: +ripple(aowa::_r)
+aowc_c: +ripple(aowc::_r)
+ aob_c: +ripple(aob::_r)
+ aod_c: +ripple(aod::_r)
+
+        ; ---- The six new subtracted fractions each owe -1 at column c-1 ----
+
+borrow: mov b,x
+        inc d
+        mov m2,d                ; M = pi[c-1]
+        ldr b
+        ldi a,-6
+        mov c,a
+        add d
+        str d
+        bcs confirm             ; carry means no borrow
+brw:    mov b,m2                ; borrow from the next more significant byte
+        inc d
+        mov m2,d
+        ldr b
+        ldi a,-1
+        mov c,a
+        add d
+        str d
+        bcs confirm
+        jmp brw
+
+        ; ---- Confirm columns. Column F (= pifinal) is final once nothing still to come
+        ;      can carry or borrow into it. Each started fraction adds at most 1 more unit
+        ;      of column c, fractions not yet started under 1 in total, and the only
+        ;      borrows to come are the -6 at the start of each later column. So:
+        ;        F = c-1: final if 7 <= pi[c] <= 255 - (active fractions + 1)
+        ;        F < c-1: final if columns F+1..c-1 are neither all 00 nor all ff ----
+
+confirm:
+        ldi m,finp
+        ldr d
+        mov y,d                 ; Y = address of column F+1
+cf_loop:
+        mov b,y
+        mov c,x
+        cmp
+        bne cf_block            ; columns between F and c
+        mov m2,x                ; F = c-1: test the newest column
+        ldr b                   ; B = pi[c]
+        ldi a,-7
+        mov c,a
+        add d                   ; carry if pi[c] >= 7
+        bcs cf_low_ok
+        jmp cf_done
+cf_low_ok:
+        ldi m,nfr
+        ldr c
+        add d                   ; carry if pi[c] + active + 1 > 255
+        bcs cf_done
+        ldi m,pifinal           ; column c-1 is confirmed (and with it everything before)
+        ldr b
+        inc
+        str a
+        ldi a,-1
+        mov c,a
+        mov b,y
+        add
+        mov y,a                 ; Y = column c+1, the next column's candidate block start
+        jmp cf_done
+cf_block:
+        mov m2,y
+        ldr d                   ; D = column F+1
+        mov b,d
+        inc                     ; zero if ff
+        beq cf_scan
+        mov b,d
+        rol                     ; zero if 00
+        beq cf_scan
+cf_yes: ldi m,pifinal           ; column F is confirmed
+        ldr b
+        inc
+        str a
+        ldi a,-1                ; Y = Y - 1 (next column)
+        mov c,a
+        mov b,y
+        add
+        mov y,a
+        jmp cf_loop
+cf_scan:                        ; column F+1 is 00 or ff: look for a later column that differs
+        ldi m,ftmp
+        str d
+        mov a,y
+cf_next:
+        mov b,a                 ; A = A - 1
+        not d
+        mov b,d
+        inc d
+        mov b,d
+        not
+        mov b,a
+        mov c,x
+        cmp d
+        beq cf_done             ; reached column c: all the same, not confirmed yet
+        mov d,a
+        ldi m,ftmp
+        ldr c
+        mov m2,d
+        ldr b
+        cmp                     ; differs from column F+1?
+        mov a,d
+        beq cf_next
+        jmp cf_yes
+cf_done:
+        mov d,y
+        ldi m,finp
+        str d
+
+        ; ---- Next column ----
+
+        ldi a,-1                ; X = X - 1
+        mov c,a
+        mov b,x
+        add
+        mov x,a
+        ldi m,16                ; two more entries are active next column
+        mov c,m2
+        ldi m,endp
+        ldr b
+        add
+        str a
+        ldi m,nfr               ; eight more fractions are active next column
+        ldr b
+        ldi a,8
+        mov c,a
+        add
+        str a
+        ldi m,cnum
+        ldr b
+        inc
+        str a
+        mov c,a
+        ldi b,-12
+        add
+        beq done
+        jmp column
+
+done:   ldi m,pi                ; position on the result
+        hlt
