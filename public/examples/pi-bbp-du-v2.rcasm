@@ -1,0 +1,472 @@
+; *****************************************************************************************
+;  Calculation of Pi to 20 decimal places using the proposed hardware divider unit
+;
+;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
+;  Expected run time: 2h51m21s at default clock speed.
+;
+;  This is pi-bbp-du reworked around the divider unit. With a byte of division down to
+;  24 cycles, storing each fraction and then walking it again to subtract it cost more
+;  than making it. So bbp_fraction now adds (or subtracts) each byte straight into psum
+;  as the divider produces it, and fra..frd, long_add and long_subtract are gone.
+;
+;    ╔═══════════════╤══════════════════════════════════════════╤═════════╤═══════════╗
+;    ║ Routine       │ Change                                   │  Cycles │  Run time ║
+;    ╟───────────────┼──────────────────────────────────────────┼─────────┼───────────╢
+;    ║ pi-bbp-v1     │ software only                            │ 543,786 │ 12h35m15s ║
+;    ║ pi-bbp-v2     │ optimised software                       │ 402,786 │  9h19m25s ║
+;    ║ pi-bbp-du     │ v2 with the divider unit in bbp_fraction │ 164,666 │  3h48m42s ║
+;    ║ bbp_fraction  │ each byte added straight into psum       │ 123,374 │  2h51m21s ║
+;    ╟───────────────┼──────────────────────────────────────────┼─────────┼───────────╢
+;    ║ pi-bbp-du-v2  │ total (-25.1% on du, -69.4% on v2)       │ 123,374 │  2h51m21s ║
+;    ╚═══════════════╧══════════════════════════════════════════╧═════════╧═══════════╝
+;
+;                  ◯◯
+;                ┌───╮  ┏         ╭                                          ╮  ┓
+;       ┳━┳  ━━   ╲     ┃    1    │    4          2          1          1    │  ┃
+;       ┃ ┃  ━━   ╱     ┃  ─────  │  ─────  ━━  ─────  ━━  ─────  ━━  ─────  │  ┃
+;                ╰───╯  ┃  16 ^k  │  8k +1      8k +4      8k +5      8k +6  │  ┃
+;                 k=0   ┗         ╰                                          ╯  ┛
+;
+;  Result is correct to 17 hex places (by calculating to 19hp over 16 iterations of BBP)
+;  which when converted to decimal provides 20dp result. Target of program is to produce:
+;
+;    32 43 f6 a8 88 5a 30 8d 31     (pi)       [9 byte Big Endian Q4.68]
+;
+;  After each BBP iteration the value of Pi will build up in psum as follows with accuracy
+;  to at least n hex digits following n iterations. Remaining digits are partial results.
+;
+;    39 31 8d 30 5a 88 a8 f6 43 32  (psum)     [10 byte Little Endian Q4.76]
+;
+;  In each BBP iteration the four fractions (as shifted reciprocals) are worked out to the
+;  required precision - i.e. no more than 1/16^k right shift would throw away - one byte
+;  at a time from the most significant. Each byte goes straight into psum, added for the
+;  first fraction and subtracted for the other three. For example at k=6 (7th iteration):
+;
+;    53 f0 72 0a 5e 4e 01           (+ 4/49 >> 24)          [7 byte LE]
+;    d7 89 9d d8 89 9d 00           (- 2/52 >> 24)          [7 byte LE]
+;    e3 ad ec 73 48 4d 00           (- 1/53 >> 24)          [7 byte LE]
+;    bd 84 f6 12 da 4b 00           (- 1/54 >> 24)          [7 byte LE]
+;
+;    db 33 f2 aa b1 17 00           (psum gains this)       [7 byte LE]
+;
+; *****************************************************************************************
+
+        jmp start       ; jump to start of program (keep zero page free for major variables)
+
+; ***************************************************************
+;  Major variables of Pi calculation ...
+;
+;  We keep these early (and aligned) in the zero page of memory
+;  to ease viewing in the computer and emulator. Aligns & orgs
+;  can be removed to shorten the assembled output.
+; ***************************************************************
+
+; @watch psum:10:le, psexp:10:le
+
+        org 0x07
+pi:     !fill 9,0xaa    ; final result of Pi [9 byte Big Endian Q4.68] (area marked with 0xaa for visibility)
+psum:   !fill 10,0      ; intermediate sum of Pi [10 byte Little Endian Q4.76]
+
+        !align 16       ; expected final psum value (used purely for sight check - can be deleted without impact)
+psexp:  !byte 0x39, 0x31, 0x8d, 0x30, 0x5a, 0x88, 0xa8, 0xf6, 0x43, 0x32
+
+; ***************************************************************
+;  Calculation plan ... array of the parameters for BBP fractions
+; ***************************************************************
+
+; We hold all the required iteration values in the following table.
+; This trades memory for execution time and can be used because we
+; are limited, by design, to calculate no more than 20 dp of Pi.
+
+; The calculation plan is also used as a parameter array to the
+; BBP fraction function via zero page pointer arithmetic:
+;   bbp_fraction(dv,fsz,fopts) => cplan + (k * CPLAN_SIZE)
+
+!let CPLAN_SIZE = 3     ; Byte size of each cplan entry
+
+cplan:
+;    ╔═════╤═════╤═══════╤════╤════════════════════════════════╤═══════╗
+;    ║  8k │ fsz │ fopts │  k │ resulting psum                 │ rp †  ║
+;    ╟─────┼─────┼───────┼────┼────────────────────────────────┼───────╢
+!byte    0 ,   9 ,  0x01 ;  0 │ 3.2 22 22 22 22 22 22 22 22 23 │  1 hp ║
+!byte    8 ,   9 ,  0x00 ;  1 │ 3.2 43 44 34 43 44 34 43 44 36 │  3 hp ║
+!byte   16 ,   8 ,  0x01 ;  2 │ 3.2 43 f1 23 b1 08 69 82 7c c9 │  4 hp ║
+!byte   24 ,   8 ,  0x00 ;  3 │ 3.2 43 f6 73 e9 cc 66 c0 8c b2 │  5 hp ║
+!byte   32 ,   7 ,  0x01 ;  4 │ 3.2 43 f6 a6 59 b3 45 66 9c 6c │  6 hp ║
+!byte   40 ,   7 ,  0x00 ;  5 │ 3.2 43 f6 a8 6f 7e fe e1 06 65 │  7 hp ║
+!byte   48 ,   6 ,  0x01 ;  6 │ 3.2 43 f6 a8 87 30 a9 d3 3a 40 │  8 hp ║
+!byte   56 ,   6 ,  0x00 ;  7 │ 3.2 43 f6 a8 88 4b c1 32 73 1d │  9 hp ║
+!byte   64 ,   5 ,  0x01 ;  8 │ 3.2 43 f6 a8 88 59 78 11 ce be │ 10 hp ║
+!byte   72 ,   5 ,  0x00 ;  9 │ 3.2 43 f6 a8 88 5a 27 21 32 01 │ 11 hp ║
+!byte   80 ,   4 ,  0x01 ; 10 │ 3.2 43 f6 a8 88 5a 30 0f b2 d4 │ 13 hp ║
+!byte   88 ,   4 ,  0x00 ; 11 │ 3.2 43 f6 a8 88 5a 30 86 8f bb │ 14 hp ║
+!byte   96 ,   3 ,  0x01 ; 12 │ 3.2 43 f6 a8 88 5a 30 8c d6 5d │ 14 hp ║
+!byte  104 ,   3 ,  0x00 ; 13 │ 3.2 43 f6 a8 88 5a 30 8d 2c 51 │ 15 hp ║
+!byte  112 ,   2 ,  0x01 ; 14 │ 3.2 43 f6 a8 88 5a 30 8d 30 f8 │ 16 hp ║
+!byte  120 ,   2 ,  0x00 ; 15 │ 3.2 43 f6 a8 88 5a 30 8d 31 39 │ 18 hp ║
+;    ╚═════╧═════╧═══════╧════╧════════════════════════════════╧═══════╝
+; † result precision (hexadecimal places) compared to known result of Pi in hex.
+
+; k      The BBP iteration counter (pre-assembly only as loop is unrolled)
+; 8k/dv  BBP fraction divisor (representing 8k at start of each iteration)
+; fsz    BBP fraction byte size (decreases every even iteration)
+; fopts  BBP fraction option flags (0x01 shifts reciprocals << 4)
+
+; Ensure assembly so far has not exceeded zero page
+!if (* > 0xff) { !error "Exceeded Zero Page!" }
+
+; ***************************************************************
+;  Start of main program ... core Pi calculation follows ...
+; ***************************************************************
+
+start:  ; Perform the 16 BBP iterations as an unrolled k loop
+        !for k in range(16) {
+
+            ; The calculation plan provides a parameter array to the BBP fraction
+            ; function which is de-referenced by zero page pointer arithmetic:
+            ;   bbp_fraction(dv,fsz,fopts) => cplan + (k * CPLAN_SIZE)
+            !let parr = cplan + (k * CPLAN_SIZE)
+
+            ; Accumulate the four BBP fractions into psum
+
+            !if (k == 0) {
+
+                ; In the first iteration we 'cheat' for speed and write
+                ; 4/1 - 2/4 = 3.5 straight in to psum
+
+                ldi m,0x38              ; psum = 3.5 (Q4.76)
+                mov b,m2
+                ldi m,psum+9
+                str b
+
+            } else {
+
+                ; Otherwise we calculate as normal
+
+                ldi m,psum§parr         ; psum += (4 / 8k+1)
+                jsr bbp_fraction::vA
+
+                ldi m,psum§parr         ; psum -= (2 / 8k+4)
+                jsr bbp_fraction::vB
+
+            }
+
+            ldi m,psum§parr             ; psum -= (1 / 8k+5)
+            jsr bbp_fraction::vC
+
+            ldi m,psum§parr             ; psum -= (1 / 8k+6)
+            jsr bbp_fraction::vD
+        }
+
+        ; BBP iterations are now complete and we have Pi to 19hp LE in psum!
+        ; Last step is to copy and truncate to 17hp then convert to BE
+
+        ldi m,pi§psum+1         ; Copy 9 bytes of psum to pi ignoring first LE byte
+        ldi b,9
+        jsr copy
+
+        ldi m,pi                ; Convert pi LE to BE
+        ldi b,9
+        jsr reverse
+
+        ; Fin - mission accomplished
+
+        ldi m,pi                ; Position on start of result
+        hlt
+
+; ***************************************************************
+;  End of main program ... subroutines follow ...
+;  Most have separate examples available with demo & comments
+; ***************************************************************
+
+; Subroutines that need XY as a general register can't keep their
+; return address there, so they write it directly in to their
+; 'rtn: jmp *' instruction instead. On exit XY holds M's value.
+!macro set_return(rtn) {
+        mov c,x         ; Capture return address in CD
+        mov d,y
+        mov xy,m        ; Move M params into indexer
+        ldi m,rtn+1     ; Set return address from CD
+        str c
+        ldi m,rtn+2
+        str d
+}
+
+; ***************************************************************
+;  Purpose:   Copy block of memory within zero page
+;
+;  Inputs:    M1 = Location of target block start (low byte)
+;             M2 = Location of source block start (low byte)
+;              B = Number of bytes to copy
+;
+;  Clobbered: ABCD and M
+; ***************************************************************
+copy: {
+        not             ; set up loop counter in D
+        mov b,a
+        inc d
+        mov b,m1        ; capture target in M1
+        clr m1
+
+  loop: ldr a           ; copy byte (B is tgt, M2 is src)
+        mov c,m2
+        mov m2,b
+        str a
+
+        mov b,d         ; bump loop - exit when 0
+        inc d
+        beq done
+
+        mov b,c         ; bump src (C is src, M2 is tgt)
+        inc
+        mov b,m2        ; swap src and tgt
+        mov m2,a
+        inc             ; bump tgt
+        mov b,a
+        jmp loop
+
+  done: rts
+}
+
+; ***************************************************************
+;  Purpose:   Byte-by-byte endian conversion (reverse bytes)
+;
+;  Inputs:    M = Location of value start
+;             B = Length of value in bytes (at least 1)
+;
+;  Notes:     Value will be converted in-place and must be
+;             within single memory page.
+;
+;  Clobbered: ABCD and M
+; ***************************************************************
+reverse: {
+
+        ; Set up the address of the first byte (A) and the distance
+        ; from it to the last byte (C = B - 1)
+        mov c,b
+        ldi b,-1
+        add d
+        mov c,d
+        mov a,m2
+
+        ; Registers are in the following state
+        ;  A = low address of first byte of pair
+        ;  C = distance from first to last byte of pair
+        ;  M = address of first byte of pair
+        ; XY = return address
+
+        ; The last byte of the pair is always the first plus the
+        ; distance so we don't need to keep a pointer to it.
+loop:   mov b,a         ; D = low address of last byte of pair
+        add d
+
+        ; M is pointing at the first of the pair and D at the last.
+        ; We now just need to swap them via B and D.
+        ldr b
+        mov m2,d
+        ldr d
+        str b
+        mov m2,a
+        str d
+
+        ; Step A (and M) on to the next pair, which is 2 closer together.
+        ; Subtracting 2 from the distance (by adding -2) sets the carry
+        ; if it was at least 2, meaning there's another pair to swap.
+        ; For an odd length the middle byte ends up swapped with itself
+        ; which is harmless.
+        mov b,a
+        inc a
+        mov m2,a
+        ldi b,-2
+        add d
+        mov c,d
+        bcs loop
+
+        ; Jump to return address held in XY register
+        rts
+}
+
+; Ripple a carry up into the bytes above M, then go to 'back'
+!macro ripple(back) {
+  _up:  mov b,m2        ; carry into the next byte up
+        inc
+        mov m2,a
+        ldr b
+        inc
+        str a
+        bcs _up
+        jmp back
+}
+
+; Options for accumulate, so that calls read as words
+!let added = 0
+!let subtracted = 1
+
+; The body of bbp_fraction, once for added and once for subtracted
+; fractions. A = dividend and B = the amount to add to dv on entry.
+;
+; Bytes go into the sum from the top down. The divider unit keeps the
+; remainder in DR between bytes, so each byte below the top is one dvr.
+; A subtracted fraction F (top byte at T) goes in as ~q for each byte,
+; which adds 256^(T+1) - 1 - F. So the top byte takes away q + 1 rather
+; than adding ~q, which removes the 256^(T+1), and the bottom byte has
+; the 1 added back at the end.
+!macro accumulate(subtract) {
+        ; Set the return address and preserve M in XY
+        +set_return(rtn)
+
+        ; We now load the parameter array via ixy to bump Y
+
+        mov m2,y        ; Point M at parameter array
+        clr m1
+        ldr c           ; Load divisor, add with B
+        add d
+        mov c,x         ; Swap C = X (sum location)
+        mov x,d         ;  and X = D (divisor)
+        ixy             ; Point to size parameter
+        mov m2,y
+        ldr b           ; Load size in to B
+        ixy             ; Point to options parameter
+        mov m2,y
+        mov y,c         ; Set bottom byte address in Y (C)
+        add d           ; Set top byte address (C+B)
+        ldr c           ; Load options in to C
+        mov m2,d
+
+        ; Process option in C
+        ; If we're nibble shifting multiply dividend in A by 16
+        ldi b,1         ; Test lsb of options
+        cmp d
+        bne _top        ; no shift required
+        !for i in range(4) {
+            mov b,a     ; Shift A << 1
+            rol
+        }
+
+        ; Registers are now in the following state
+        ;  A = dividend (1, 2 or 4) (or 16, 32, 64 if nibble shifted)
+        ;  D = M = address of the top byte in the sum (zero page)
+        ;  X = divisor value (V)
+        ;  Y = address of the bottom byte in the sum (zero page)
+        ; D keeps the address of the current byte, so that a carry or
+        ; borrow can move M up through the sum without losing its place.
+
+        ; Top byte: A = dividend / V. This also sets the divider unit's
+        ; remainder register (DR) for the bytes below.
+  _top: mov d,m2
+        mov b,a
+        mov c,x
+        div
+        !if (subtract) {
+            mov b,a     ; sum -= q + 1, as sum += ~q where no carry
+            not         ;  means a borrow from the byte above
+            mov c,a
+            ldr b
+            add
+            str a
+            bcs _loop   ; carry: nothing to borrow
+     _brw:  mov b,m2    ; otherwise borrow from the bytes above
+            inc
+            mov m2,a
+            ldr b       ; byte -= 1
+            ldi a,-1
+            mov c,a
+            add
+            str a
+            bcs _loop   ; carry: the byte wasn't 0 so the borrow stops
+            jmp _brw
+        } else {
+            mov c,a     ; sum += q
+            ldr b
+            add
+            str a
+            bcs _ctop   ; ripple any carry up
+        }
+
+        ; Each byte below: the divider brings the remainder down from DR
+ _loop: ldi b,-1        ; D-- (next byte down) and point M at it
+        mov c,d
+        add d
+        mov m2,d
+        clr b           ; A = next quotient byte
+        mov c,x
+        dvr
+        !if (subtract) {
+            mov b,a     ; subtracting: A = ~q
+            not
+        }
+        mov c,a         ; sum byte += A
+        ldr b
+        add
+        str a
+        bcs _carry      ; ripple any carry up
+ _next: mov b,d         ; Loop until the bottom byte is done (D=Y)
+        mov c,y
+        cmp
+        bne _loop
+        !if (subtract) {
+            mov m2,d    ; add back the 1 at the bottom byte
+            ldr b
+            inc
+            str a
+            bcs _cbot
+        }
+
+        ; Note that the 'jmp *' will be replaced by the actual return address
+        ; at the beginning of this routine.
+   rtn: jmp *
+
+ _carry: +ripple(_next)
+  _ctop: +ripple(_loop)  ; added fractions only
+  _cbot: +ripple(rtn)    ; subtracted fractions only
+}
+
+; ***************************************************************
+;  Purpose:   Byte-by-byte BBP fraction, accumulated into a sum
+;
+;  Inputs:    M1 = Address of the sum (zero page)
+;             M2 = Address of paramter array (zero page)
+;                  byte 0: divisor value dv (max 127)
+;                  byte 1: byte precision B, so the fraction spans
+;                          sum bytes 0..B (top byte at M1+B)
+;                  byte 2: options flag -------s
+;                    s: Integral size:
+;                      0: 8-bit - Fraction is in form Q8.(B*8)
+;                      1: 4-bit - Fraction is in form Q4.((B*8)+4)
+;                      Effectively 4-bit result is 8-bit result << 4
+;
+;  Variants:  bbp_fraction::vA   adds       4 / dv+1
+;             bbp_fraction::vB   subtracts  2 / dv+4
+;             bbp_fraction::vC   subtracts  1 / dv+5
+;             bbp_fraction::vD   subtracts  1 / dv+6
+;
+;  Notes:     The sum is little-endian. The fraction's bytes go in
+;             from the most significant down, so carries and borrows
+;             ripple up into bytes already done. Operates on the zero
+;             page so M1 + B must be in ZP.
+;
+;  Clobbered: ABCD, M and XY
+; ***************************************************************
+bbp_fraction: {
+
+        ; Define variant entry points. This might seem odd having them
+        ; here but they have knowledge of implementation so belong here.
+
+    vD: ldi a,1         ; Dividend = 1
+        ldi b,6         ; Add 6 to dv
+        jmp minus
+
+    vC: ldi a,1         ; Dividend = 1
+        ldi b,5         ; Add 5 to dv
+        jmp minus
+
+    vB: ldi a,2         ; Dividend = 2
+        ldi b,4         ; Add 4 to dv
+                        ; deliberate fall through
+ minus: +accumulate(subtracted)
+
+    vA: ldi a,4         ; Dividend = 4
+        ldi b,1         ; Add 1 to dv
+                        ; deliberate fall through
+  plus: +accumulate(added)
+}
