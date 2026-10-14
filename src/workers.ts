@@ -61,17 +61,17 @@ monaco.languages.registerCodeLensProvider('rcdsm', {
     model.getLinesContent().forEach((v, idx) => {
       if (token.isCancellationRequested) return { lenses: [], dispose: () => {} };
       const addr = v.substring(0, 4);
-      const label = labels?.[addr];
-      if (!label) return;
-      labelLenses.push({
-        range: new monaco.Range(idx + 1, 1, idx + 1, 1),
-        id: `${addr}:${label.name}`,
-        command: {
-          id: jumpToSourceCommandId,
-          title: label.name,
-          arguments: [addr]
-        }
-      });
+      for (const label of labels?.[addr] ?? []) {
+        labelLenses.push({
+          range: new monaco.Range(idx + 1, 1, idx + 1, 1),
+          id: `${addr}:${label.name}`,
+          command: {
+            id: jumpToSourceCommandId,
+            title: label.name,
+            arguments: [addr]
+          }
+        });
+      }
     });
 
     return { lenses: labelLenses, dispose: () => {} };
