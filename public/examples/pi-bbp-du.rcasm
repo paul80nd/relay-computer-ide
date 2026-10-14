@@ -2,18 +2,21 @@
 ;  Calculation of Pi to 20 decimal places using the proposed hardware divider unit
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
-;  Expected run time: 3h55m42s at default clock speed.
+;  Expected run time: 3h48m42s at default clock speed.
 ;
 ;  This is pi-bbp-v2 with bbp_fraction's bit-by-bit division handed to the proposed
 ;  divider unit: div and dvr each produce a whole byte of quotient in 24 cycles, where
 ;  software needs a shift, trial subtraction and branch for every bit.
 ;
 ;    ╔═══════════════╤══════════════════════════════════════════╤═════════╤═══════════╗
-;    ║ Program       │                                          │  Cycles │  Run time ║
+;    ║ Routine       │ Change                                   │  Cycles │  Run time ║
 ;    ╟───────────────┼──────────────────────────────────────────┼─────────┼───────────╢
 ;    ║ pi-bbp-v1     │ software only                            │ 543,786 │ 12h35m15s ║
 ;    ║ pi-bbp-v2     │ optimised software                       │ 402,786 │  9h19m25s ║
-;    ║ pi-bbp-du     │ v2 with the divider unit in bbp_fraction │ 169,706 │  3h55m42s ║
+;    ║ bbp_fraction  │ divider unit makes each byte (div/dvr)   │ 169,706 │  3h55m42s ║
+;    ║ bbp_fraction  │ loop on bne so each byte saves a jmp     │ 164,666 │  3h48m42s ║
+;    ╟───────────────┼──────────────────────────────────────────┼─────────┼───────────╢
+;    ║ pi-bbp-du     │ total (-59.1% on v2)                     │ 164,666 │  3h48m42s ║
 ;    ╚═══════════════╧══════════════════════════════════════════╧═════════╧═══════════╝
 ;
 ;                  ◯◯
@@ -630,9 +633,11 @@ bbp_fraction: {
         ; A now contains our next byte so we'll store it in memory.
         str a
 
+        ; Note that the 'jmp *' will be replaced by the actual return address
+        ; at the beginning of this routine.
         mov b,m2        ; Check if on last byte (M2=Y)
         mov c,y
         cmp
- rtn:   beq *           ; Done if so
-        jmp loop        ; otherwise loop.
+        bne loop        ; Loop if not
+ rtn:   jmp *           ; otherwise done.
 }
