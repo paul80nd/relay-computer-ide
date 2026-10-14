@@ -2,7 +2,7 @@
 ;  Calculation of Pi to 20 decimal places
 ;
 ;  Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.
-;  Expected run time: 9h26m13s at default clock speed. Version v1.0
+;  Expected run time: 12h35m15s at default clock speed. Version v1.0
 ;
 ;                  ◯◯
 ;                ┌───╮  ┏         ╭                                          ╮  ┓
@@ -244,7 +244,7 @@ copy: {
 ;  Purpose:   Byte-by-byte endian conversion (reverse bytes)
 ;
 ;  Inputs:    M = Location of value start
-;             B = Length of value in bytes (at least 1)
+;             B = Length of value in bytes
 ;
 ;  Notes:     Value will be converted in-place and must be
 ;             within single memory page.
@@ -253,49 +253,58 @@ copy: {
 ; ***************************************************************
 reverse: {
 
-        ; Set up the address of the first byte (A) and the distance
-        ; from it to the last byte (C = B - 1)
-        mov c,b
-        ldi b,-1
+        ; Set up first and last byte pointers (A and D)
+        mov a,m2        ; A is just M2
+        mov c,m2        ; D is M2+C-1
         add d
+        ldi b,-1
         mov c,d
-        mov a,m2
+        add d
 
         ; Registers are in the following state
-        ;  A = low address of first byte of pair
-        ;  C = distance from first to last byte of pair
-        ;  M = address of first byte of pair
+        ;  A = low address of first byte
+        ;  D = low address of last byte
+        ;  M = address of first byte
         ; XY = return address
 
-        ; The last byte of the pair is always the first plus the
-        ; distance so we don't need to keep a pointer to it.
-loop:   mov b,a         ; D = low address of last byte of pair
-        add d
-
-        ; M is pointing at the first of the pair and D at the last.
-        ; We now just need to swap them via B and D.
-        ldr b
+        ; On entry to the loop M is pointing at 1st of pair.
+        ; M2 = A and D is low address of 2nd of pair.
+        ; We now just need to swap them via B and C registers.
+  loop: ldr b
         mov m2,d
-        ldr d
+        ldr c
         str b
         mov m2,a
-        str d
+        str c
 
-        ; Step A (and M) on to the next pair, which is 2 closer together.
-        ; Subtracting 2 from the distance (by adding -2) sets the carry
-        ; if it was at least 2, meaning there's another pair to swap.
-        ; For an odd length the middle byte ends up swapped with itself
-        ; which is harmless.
+        ; We now need to increment A and decrement D
         mov b,a
         inc a
-        mov m2,a
-        ldi b,-2
-        add d
+        ldi b,-1
         mov c,d
-        bcs loop
+        add d
+
+        ; We now take A from D however this needs a bit of
+        ; juggling to keep in registers
+        mov c,d         ; take A and D to ALU
+        mov b,a
+        not d           ; negate B via D
+        mov b,d
+        inc d
+        mov b,d
+        add d           ; subtract
+        mov d,c         ; restore D
+
+        ; If result is less than or equal to 0 we're done
+        ; Even swaps set sign flag and odds zero flag hence ble.
+        ble rtn
+
+        ; Otherwise we're going for another loop so set M2 = A
+        mov m2,a
+        jmp loop
 
         ; Jump to return address held in XY register
-        rts
+   rtn: rts
 }
 
 ; ***************************************************************
@@ -322,23 +331,19 @@ long_add: {
         str c
         ldi m,rtn+2
         str d
-        mov c,x         ; Set address of last addend byte in D
-        add d
-        ldi b,-1
-        mov c,d
+        mov c,x         ; Set end address of addend in D
         add d
         clr m1          ; clear M1 = zero page
+
+        ; Although register XY is typically used for indexing memory
+        ; here we cheat a little and use it for tracking two locations.
+        ; This does mean though the addresses must be in the same page.
 
         ; Registers are now in the following state
         ;  Y = augend zero page address
         ;  X = addend zero page address
-        ;  D = zp address of last addend byte
+        ;  D = zp address after addend
         ; M1 = zero page
-
-        ; There's no add-with-carry so we have two copies of the loop: one
-        ; without a carry in (loop) and one that adds a carry in from the
-        ; byte before (loop_c). Each ends by stepping the pointers itself
-        ; so that switching between them needs no extra jumps.
 
         ; add two bytes together
 loop:   mov m2,x        ; C <- addend byte (m1x)
@@ -346,64 +351,39 @@ loop:   mov m2,x        ; C <- addend byte (m1x)
         mov m2,y        ; B <- augend byte (m1y)
         ldr b
         add             ; A = B + C
-        str a           ; A -> augend byte (m1y)
-        bcs next_c      ; If add caused carry add it in to the next byte
+        str a           ; A -> augend byte (m1x)
+        bcs carry       ; If add caused carry ripple it through augend
 
-        ; increment x and y pointers and loop until past the last addend byte
-        ixy             ; Y++ (augend)
+        ; increment x and y pointers
+cont:   ixy             ; Y++ (augend)
         mov b,x         ; X++ (addend)
         inc
         mov x,a
-        mov c,d         ; compare old X with last addend byte
+
+        ; compare with target
+        mov c,d
+        mov b,a
         cmp
         bne loop
 
         ; Jump to return address (set earlier)
 rtn:    jmp *
 
-        ; add two bytes together plus the carry in
-loop_c: mov m2,x        ; C <- addend byte + 1 (m1x)
-        ldr b
-        inc
-        mov c,a
-        bcs next_c      ; addend byte was ff so augend byte unchanged and still carrying
-        mov m2,y        ; B <- augend byte (m1y)
-        ldr b
-        add             ; A = B + C
-        str a           ; A -> augend byte (m1y)
-        bcs next_c      ; If add caused carry add it in to the next byte
+carry:  ; For the carry scenario we need to add 1 to the byte. It's
+        ; possible though that could cause a carry in that byte and
+        ; so on so we iterate here until no carry.
 
-        ; no carry so increment pointers and carry on without a carry in
-        ixy             ; Y++ (augend)
-        mov b,x         ; X++ (addend)
+        mov b,m2        ; increment m2 (to point at next byte in augend)
         inc
-        mov x,a
-        mov c,d         ; compare old X with last addend byte
-        cmp
-        bne loop
-        jmp rtn
+        mov m2,a
 
-        ; with a carry so increment pointers and carry on with a carry in
-next_c: ixy             ; Y++ (augend)
-        mov b,x         ; X++ (addend)
-        inc
-        mov x,a
-        mov c,d         ; compare old X with last addend byte
-        cmp
-        bne loop_c
-
-        ; For a carry out of the last addend byte we need to add 1 to the
-        ; next augend byte. It's possible though that could cause a carry in
-        ; that byte and so on so we iterate here until no carry.
-carry:  mov m2,y        ; increment augend byte (m1y)
-        ldr b
+        ldr b           ; increment augend byte (m1y)
         inc
         str a
-        ixy             ; Y++ (doesn't change flags)
-        bcs carry       ; Go again if caused carry
-        jmp rtn         ; Otherwise done
-}
 
+        bcs carry       ; Go again if caused carry
+        jmp cont        ; Otherwise done and can continue
+}
 
 ; ***************************************************************
 ;  Purpose:   Byte-by-byte long subtraction (A) = (A) - (B)
@@ -427,53 +407,27 @@ long_subtract: {
         str c
         ldi m,rtn+2
         str d
-        mov c,x         ; Set address of last subtrahend byte in D
-        add d
-        ldi b,-1
-        mov c,d
+        mov c,x         ; Set end address of subtrahend in D
         add d
         clr m1          ; clear M1 = zero page
 
         ; Registers are now in the following state
         ;  Y = minuend zero page address
         ;  X = subtrahend zero page address
-        ;  D = zp address of last subtrahend byte
+        ;  D = zp address after subtrahend
         ; M1 = zero page
 
-        ; We subtract by adding the ones-complement of the subtrahend with
-        ; a carry in to the first byte (A - B = A + ~B + 1). There's no
-        ; add-with-carry so we have two copies of the loop: one that adds
-        ; a carry in from the byte before (loop_c) and one without (loop).
-        ; Each ends by stepping the pointers itself so that switching
-        ; between them needs no extra jumps.
-
-        ; Add the 1s complement of the subtrahend byte plus the carry in
-loop_c: mov m2,x        ; C <- ~subtrahend byte + 1 (m1x)
-        ldr b
-        not
-        mov b,a
-        inc
-        mov c,a
-        bcs next_c      ; subtrahend byte was 0 so minuend byte unchanged and still carrying
+        ; To simplify the main loop we'll be using ones-complement.
+        ; Therefore to give a correct minuend we increment it by one now.
         mov m2,y        ; B <- minuend byte (m1y)
         ldr b
-        add             ; A = B + C
-        str a           ; A -> minuend byte (m1y)
-        bcs next_c      ; If add caused carry add it in to the next byte
-
-        ; no carry so increment pointers and carry on without a carry in
-        ixy             ; Y++ (minuend)
-        mov b,x         ; X++ (subtrahend)
         inc
-        mov x,a
-        mov c,d         ; compare old X with last subtrahend byte
-        cmp
-        bne loop
+        str a           ; A -> minuend byte (m1x)
+        bcs carry1      ; If inc caused carry ripple it through minuend
 
-        ; Jump to return address (set earlier)
-rtn:    jmp *
+loop:   ; Main loop of byte-by-byte subtraction
 
-loop:   ; Take 1s complement of subtrahend
+        ; Take 1s complement of subtrahend
         mov m2,x        ; B <- subtrahend byte (m1x)
         ldr b
         not             ; A = ~B
@@ -483,40 +437,56 @@ loop:   ; Take 1s complement of subtrahend
         mov m2,y        ; B <- minuend byte (m1y)
         ldr b
         add             ; A = B + C
-        str a           ; A -> minuend byte (m1y)
-        bcs next_c      ; If add caused carry add it in to the next byte
+        str a           ; A -> minuend byte (m1x)
 
-        ; increment x and y pointers and loop until past the last subtrahend byte
-        ixy             ; Y++ (minuend)
+        ; Branch if addition caused carry
+        bcs carry2
+
+        ; increment x and y pointers
+ cont:  ixy             ; Y++ (minuend)
         mov b,x         ; X++ (subtrahend)
         inc
         mov x,a
-        mov c,d         ; compare old X with last subtrahend byte
+
+        ; compare with target
+        mov c,d
+        mov b,a
         cmp
         bne loop
-        jmp rtn
 
-        ; with a carry so increment pointers and carry on with a carry in
-next_c: ixy             ; Y++ (minuend)
-        mov b,x         ; X++ (subtrahend)
+        ; Jump to return address (set earlier)
+rtn:    jmp *
+
+carry1: ; Handles a carry following the initial increment
+
+        mov b,m2        ; Incement m2 (to point at next byte in minuend)
         inc
-        mov x,a
-        mov c,d         ; compare old X with last subtrahend byte
-        cmp
-        bne loop_c
+        mov m2,a
 
-        ; A carry out of the last byte goes in to the byte following the
-        ; minuend. It's possible though that could cause a carry in that
-        ; byte and so on so we iterate here until no carry.
-carry:  mov m2,y        ; increment minuend byte (m1y)
-        ldr b
+        ldr b           ; Increment minuend byte (m1y)
         inc
         str a
-        ixy             ; Y++ (doesn't change flags)
-        bcs carry       ; Go again if caused carry
-        jmp rtn         ; Otherwise done
-}
 
+        bcs carry1      ; Go again if caused carry
+        jmp loop        ; Otherwise done and can enter main loop
+
+carry2: ; Handles a carry following a byte-to-byte-addition
+        ; This is very similar to the carry above and could be a
+        ; subroutine but we're using the XY register.
+        ; We could use the same trick at 'rtn' but this way trades
+        ; memory against additional instructions to load the return addresses.
+
+        mov b,m2        ; increment m2 (to point at next byte in minuend)
+        inc
+        mov m2,a
+
+        ldr b           ; increment minuend byte (m1x)
+        inc
+        str a
+
+        bcs carry2      ; Go again if caused carry
+        jmp cont        ; Otherwise done and can continue
+}
 
 ; ***************************************************************
 ;  Purpose:   Byte-by-byte BBP fraction (restoring division)
@@ -597,24 +567,22 @@ bbp_fraction: {
         ; Terms
         ;   A = remainder (register A - ongoing)
         ;   Q = quotient (register D - current byte)
-        ;  -V = negated divisor (register X, and C within each byte)
+        ;   V = divisor (register X - stored negated)
 
         ; Jump into initial byte loop depending on option in A
-        ; If we're nibble shifting we'll start at the 5th bit
+        ; If we're nibble shifting we'll start at the 5th iteration
         ; Otherwise we can skip the first byte leaving it as zero
         ldi b,1              ; Test lsb of options
         cmp d
         clr d                ; D = 0
-        mov c,x              ; C = -V
-        beq b_loop__3::_tst  ; 1/v >> 4  (first nibble 0)
+        beq b_loop__4::_tst  ; 1/v >> 4  (first nibble 0)
         jmp b_end            ; 1/v >> 8  (first byte 0)
 
         ; Registers are now in the following state
         ;  A = Initital dividend (1, 2 or 4)
-        ;  C = Negated divisor value (-V)
         ;  D = Initial quotient of 0 (Q)
         ;  M = next result byte address (zero page)
-        ;  X = Negated divisor value (-V)
+        ;  X = divisor value (-V)
         ;  Y = first address of result (zero page)
 
         ; ******* A loop - building up each byte of overall result
@@ -623,47 +591,40 @@ a_loop: mov c,m2        ; decrement M (via M2--)
         add d
         mov m2,d
         clr d           ; Set up next quotient (Q)
-        mov c,x         ; C = -V for the whole byte
 
         ; ******* B loop (unrolled) - building up each bit of each byte
-        ; As the remainder is always below V (at most 127) rotating it left
-        ; doubles it exactly. If 2A - V is negative the quotient bit is 0 and
-        ; we restore 2A from B. Otherwise the quotient bit is 1 and we keep
-        ; 2A - V, which we copy into B first so that the shared restore leaves
-        ; it in place. The first bit needs no shift of Q as it's still zero.
-        mov b,a         ; A = 2A - V (B = 2A)
-        rol
-        mov b,a
-        add
-        bmi b_neg
-        mov b,d         ; Q bit = 1
-        inc d
-        mov b,a         ; Keep 2A - V
- b_neg: mov a,b
+b_loop: !for i in range(8) {
 
-b_loop: !for i in range(7) {
-
-            mov b,d         ; Q << 1
-            rol d
-      _tst: mov b,a         ; A = 2A - V (B = 2A)
-            rol
-            mov b,a
+            ; Shift remainder and perform trial subtraction of V
+            ; If negative then C=0 and restore else C=1 and keep
+      _tst: mov b,a         ; A << 1 (via x2)
+            mov c,a
+            add a
+            mov b,a         ; A = A + -V
+            mov c,x
             add
-            bmi _neg
-            mov b,d         ; Q bit = 1
-            inc d
-            mov b,a         ; Keep 2A - V
+            bmi _neg        ; Restore and set C to 0 if negative
+            ldi b,1         ; Otherwise keep result and set C to 1
+            mov c,b
+            jmp _set
+
+            ; If A - V was negative we restore the remainder and clear C
       _neg: mov a,b
+            clr c
+
+            ; We can now shift Q left and apply the 1 or 0 in register C
+      _set: mov b,d         ; (Q << 1) + C
+            rol d
+            mov b,d
+            add d
 
         }
 
  b_end: str d           ; D now contains our complete byte so we'll store it in memory
 
-        ; Note that the 'jmp *' will be replaced by the actual return address
-        ; at the beginning of this routine.
         mov b,m2        ; Check if on last byte (M2=Y)
         mov c,y
         eor d
-        bne a_loop      ; Loop if not
-rtn:    jmp *           ; otherwise done.
+rtn:    beq *           ; Done if so
+        jmp a_loop      ; otherwise loop.
 }

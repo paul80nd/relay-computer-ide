@@ -114,6 +114,11 @@ function Examples() {
                 'Pi Calculation (BBP)',
                 'Uses the Bailey-Borwein-Plouffe (BBP) formula to compute Pi digit by digit in base 16.'
               )}
+              {renderExample(
+                'pi-bbp-v2',
+                'Pi Calculation (BBP) v2',
+                'The same calculation with its subroutines optimised for speed, with a table of what each change saved.'
+              )}
             </AccordionPanel>
           </AccordionItem>
 
