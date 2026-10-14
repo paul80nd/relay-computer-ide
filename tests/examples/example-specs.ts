@@ -69,7 +69,7 @@ export const exampleSpecs: Record<string, ExampleCase[]> = {
         pi: hex('32 43 f6 a8 88 5a 30 8d 31'),
         psum: le('32 43 f6 a8 88 5a 30 8d 31 39')
       },
-      cycles: 407682
+      cycles: 402786
     }
   ],
 
