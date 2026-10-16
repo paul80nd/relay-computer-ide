@@ -1,0 +1,34 @@
+# Keep dependencies current with weekly Dependabot PRs. Low-risk minor/patch bumps are grouped into
+# a single PR each to keep the noise down; majors still arrive as their own PRs for a proper look.
+#
+# @paul80nd/rcasm lives on GitHub Packages, which needs a token even to read. The `registries`
+# block lets Dependabot authenticate (DEPENDABOT_PACKAGES_TOKEN, a Dependabot secret with
+# read:packages); the scope -> registry mapping it relies on is in the committed .npmrc.
+#
+# There is no CI workflow yet, so add a github-actions entry here when one arrives.
+version: 2
+registries:
+  github-packages:
+    type: npm-registry
+    url: https://npm.pkg.github.com
+    token: ${{ secrets.DEPENDABOT_PACKAGES_TOKEN }}
+updates:
+  - package-ecosystem: npm
+    directory: '/'
+    registries:
+      - github-packages
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    ignore:
+      # @types/node tracks the Node major we run on (engines: >=24) — bumped in lockstep with
+      # the runtime, not on Dependabot's schedule. Minor/patch within it still flow.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+    groups:
+      dev-minor-patch:
+        dependency-type: development
+        update-types: [minor, patch]
+      prod-minor-patch:
+        dependency-type: production
+        update-types: [minor, patch]
