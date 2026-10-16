@@ -6,7 +6,8 @@
 # Node
 /node_modules
 npm-debug.log*
-.npmrc
+# .npmrc is committed: it only maps @paul80nd to GitHub Packages (Dependabot needs it). Keep
+# credentials in ~/.npmrc — never here. Push protection will block a committed token.
 
 # IDEs and editors
 .idea/
