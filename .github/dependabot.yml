@@ -1,22 +1,17 @@
 # Keep dependencies current with weekly Dependabot PRs. Low-risk minor/patch bumps are grouped into
 # a single PR each to keep the noise down; majors still arrive as their own PRs for a proper look.
 #
-# @paul80nd/rcasm lives on GitHub Packages, which needs a token even to read. The `registries`
-# block lets Dependabot authenticate (DEPENDABOT_PACKAGES_TOKEN, a Dependabot secret with
-# read:packages); the scope -> registry mapping it relies on is in the committed .npmrc.
+# @paul80nd/rcasm lives on GitHub Packages, which needs a token even to read. Dependabot uses its
+# own GITHUB_TOKEN for that (no PAT): the package grants this repo Read under "Manage Actions
+# access". There is deliberately no `registries` block — explicit registry credentials would take
+# precedence over that built-in token. The scope -> registry mapping it relies on is in the
+# committed .npmrc.
 #
 # There is no CI workflow yet, so add a github-actions entry here when one arrives.
 version: 2
-registries:
-  github-packages:
-    type: npm-registry
-    url: https://npm.pkg.github.com
-    token: ${{ secrets.DEPENDABOT_PACKAGES_TOKEN }}
 updates:
   - package-ecosystem: npm
     directory: '/'
-    registries:
-      - github-packages
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
